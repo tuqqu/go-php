@@ -1,0 +1,22 @@
+{
+    "name": "tuqqu/go-php",
+    "type": "library",
+    "require": {
+        "tuqqu/go-parser": "^0.2.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "GoPhp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "tuqqu",
+            "email": "artkurbidaev@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "symfony/var-dumper": "^6.0"
+    }
+}
