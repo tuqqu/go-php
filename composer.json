@@ -1,9 +1,6 @@
 {
     "name": "tuqqu/go-php",
     "type": "library",
-    "require": {
-        "tuqqu/go-parser": "^0.2.0"
-    },
     "license": "MIT",
     "autoload": {
         "psr-4": {
@@ -16,7 +13,18 @@
             "email": "artkurbidaev@gmail.com"
         }
     ],
+    "require": {
+        "php": "^8.1",
+        "tuqqu/go-parser": "^0.2.0"
+    },
     "require-dev": {
-        "symfony/var-dumper": "^6.0"
+        "symfony/var-dumper": "^6.0",
+        "friendsofphp/php-cs-fixer": "^3.8"
+    },
+    "scripts": {
+        "fix-cs": "vendor/bin/php-cs-fixer fix --diff --allow-risky=yes",
+        "lint": [
+          "vendor/bin/php-cs-fixer fix --dry-run --verbose --diff --using-cache=no --allow-risky=yes"
+        ]
     }
 }
