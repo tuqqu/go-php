@@ -43,4 +43,10 @@ enum ValueType: string
     case Func = 'func';
     case Channel = 'channel';
     case Interface = 'interface';
+
+    public function equals(self $type): bool
+    {
+        // fixme apply complications
+        return $this === $type;
+    }
 }

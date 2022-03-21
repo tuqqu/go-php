@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoParser\Ast\Operator;
-use GoParser\Lexer\Token;
+use GoPhp\Operator;
 use GoPhp\Error\UnknownOperationError;
 
 enum BoolValue: int implements GoValue
@@ -35,8 +34,8 @@ enum BoolValue: int implements GoValue
 
     public function operate(Operator $op): GoValue
     {
-        return match ($op->value) {
-            Token::LogicNot->value => $this->invert(),
+        return match ($op) {
+            Operator::LogicNot => $this->invert(),
             default => throw UnknownOperationError::unknownOperator($op),
         };
     }
@@ -45,9 +44,9 @@ enum BoolValue: int implements GoValue
     {
         // fixme add type check
 
-        return match ($op->value) {
-            Token::EqEq->value => $this->equals($rhs),
-            Token::NotEq->value => $this->equals($rhs)->invert(),
+        return match ($op) {
+            Operator::EqEq => $this->equals($rhs),
+            Operator::NotEq => $this->equals($rhs)->invert(),
             default => throw UnknownOperationError::unknownOperator($op),
         };
     }

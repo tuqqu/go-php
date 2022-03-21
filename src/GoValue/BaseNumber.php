@@ -4,58 +4,57 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoParser\Ast\Operator;
+use GoPhp\Operator;
 use GoParser\Lexer\Token;
 use GoPhp\Error\UnknownOperationError;
 
 abstract class BaseNumber implements Number, Comparable
 {
+    protected int|float $value;
+
+    protected ValueType $valueType;
+
     public function operateOn(Operator $op, GoValue $rhs): GoValue
     {
         //fixme check rhs
 
         $lhs = $this;
-        switch ($op->value) {
+        switch ($op) {
             // math
-            case Token::Plus->value:
-            case Token::PlusEq->value:
+            case Operator::Plus:
                 return $lhs->add($rhs);
                 break;
 
-            case Token::Minus->value:
-            case Token::MinusEq->value:
+            case Operator::Minus:
                 return $lhs->sub($rhs);
 
-            case Token::Mul->value:
-            case Token::MulEq->value:
+            case Operator::Mul:
                 return $lhs->mul($rhs);
 
-            case Token::Div->value:
-            case Token::DivEq->value:
+            case Operator::Div:
                 return $lhs->div($rhs);
 
-            case Token::Mod->value:
-            case Token::ModEq->value:
+            case Operator::Mod:
                 return $lhs->mod($rhs);
 
             // eq
-            case Token::EqEq->value:
+            case Operator::EqEq:
                 return $lhs->equals($rhs);
 
-            case Token::NotEq->value:
+            case Operator::NotEq:
                 return $lhs->equals($rhs)->invert();
 
             // comparison
-            case Token::Greater->value:
+            case Operator::Greater:
                 return $lhs->greater($rhs);
 
-            case Token::GreaterEq->value:
+            case Operator::GreaterEq:
                 return $lhs->greaterEq($rhs);
 
-            case Token::Less->value:
+            case Operator::Less:
                 return $lhs->less($rhs);
 
-            case Token::LessEq->value:
+            case Operator::LessEq:
                 return $lhs->lessEq($rhs);
 
             default:
@@ -67,14 +66,14 @@ abstract class BaseNumber implements Number, Comparable
     {
         // fixme check rhs
 
-        switch ($op->value) {
-            case Token::Plus->value:
+        switch ($op) {
+            case Operator::Plus:
                 return $this->noop();
-            case Token::Minus->value:
+            case Operator::Minus:
                 return $this->negate();
-            case Token::LogicNot->value:
+            case Operator::LogicNot:
                 return $this->invert();
-            case Token::BitXor->value:
+            case Operator::BitXor:
                 // fixme move to ints
                 return $this->bitwiseComplement();
             default:
@@ -85,5 +84,71 @@ abstract class BaseNumber implements Number, Comparable
     public function equals(GoValue $rhs): BoolValue
     {
         return BoolValue::fromBool($this->unwrap() === $rhs->unwrap());
+    }
+
+
+    // unary
+
+    // bit
+
+    // arith
+
+    public function negate(): static
+    {
+        return new static(-$this->value);
+    }
+
+    public function noop(): static
+    {
+        return $this;
+    }
+
+    // binary
+
+    // fixme move all these to basenumber
+
+    public function add(Addable $value): static
+    {
+        return new static($this->value + $value->value, $this->valueType);
+    }
+
+    public function sub(Number $value): static
+    {
+        return new static($this->value - $value->value, $this->valueType);
+    }
+
+    public function greater(Comparable $other): BoolValue
+    {
+        return BoolValue::fromBool($this->value > $other->value);
+    }
+
+    public function greaterEq(Comparable $other): BoolValue
+    {
+        return BoolValue::fromBool($this->value >= $other->value);
+    }
+
+    public function less(Comparable $other): BoolValue
+    {
+        return BoolValue::fromBool($this->value < $other->value);
+    }
+
+    public function lessEq(Comparable $other): BoolValue
+    {
+        return BoolValue::fromBool($this->value <= $other->value);
+    }
+
+    public function div(Number $value): static
+    {
+        return new static($this->value / $value->value, $this->valueType);
+    }
+
+    public function mod(Number $value): static
+    {
+        return new static($this->value % $value->value, $this->valueType);
+    }
+
+    public function mul(Number $value): static
+    {
+        return new static($this->value * $value->value, $this->valueType);
     }
 }

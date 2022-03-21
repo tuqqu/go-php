@@ -17,6 +17,7 @@ use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\File as Ast;
 use GoParser\Ast\GroupSpec;
+use GoParser\Ast\Stmt\AssignmentStmt;
 use GoParser\Ast\Stmt\BlockStmt;
 use GoParser\Ast\Stmt\ConstDecl;
 use GoParser\Ast\Stmt\ExprStmt;
@@ -26,12 +27,16 @@ use GoParser\Ast\Stmt\Stmt;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\VarSpec;
 use GoPhp\Env\Environment;
+use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\EnvValue\Func;
+use GoPhp\Env\EnvValue\Variable;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\StringValue;
-use GoPhp\GoValue\UntypedFloatValue;
-use GoPhp\GoValue\UntypedIntValue;
+use GoPhp\GoValue\FloatValue;
+use GoPhp\GoValue\IntValue;
+use GoPhp\GoValue\ValueType;
+use Symfony\Component\String\Exception\InvalidArgumentException;
 
 final class Interpreter
 {
@@ -92,6 +97,7 @@ final class Interpreter
                     $stmt instanceof FuncDecl => $this->evalFuncDecl($stmt),
 
                     $stmt instanceof IfStmt => $this->evalIfStmt($stmt), //fixme
+                    $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt), //fixme
                     default => dd($stmt),
                 };
 
@@ -194,24 +200,28 @@ final class Interpreter
 
     private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtValue
     {
-        $prevEnv = $this->env;
+        $this->evalWithEnv($env, function () use ($blockStmt): void {
+            foreach ($blockStmt->stmtList->stmts as $stmt) {
+                $stmtVal = $this->evalStmt($stmt);
 
-        if ($env === null) {
-            $env = new Environment(enclosing: $this->env);
-        }
-
-        $this->env = $env;
-
-        foreach ($blockStmt->stmtList->stmts as $stmt) {
-            $stmtVal = $this->evalStmt($stmt);
-            if (!$stmtVal->isNone()) {
-                break;
+                if (!$stmtVal->isNone()) {
+                    break;
+                }
             }
-        }
 
-        $this->env = $prevEnv;
+            //fixme debug
+            dd($this->env);
+        });
 
         return StmtValue::None;
+    }
+
+    private function evalWithEnv(?Environment $env, callable $code): void
+    {
+        $prevEnv = $this->env;
+        $this->env = $env ?? new Environment($this->env);
+        $code();
+        $this->env = $prevEnv;
     }
 
     private function evalIfStmt(IfStmt $stmt): StmtValue
@@ -237,6 +247,45 @@ final class Interpreter
         return StmtValue::None;
     }
 
+    private function evalAssignmentStmt(AssignmentStmt $stmt): StmtValue
+    {
+        $lhs = [];
+        $rhs = [];
+        foreach ($stmt->lhs->exprs as $expr) {
+            $envValue = $this->getEnvValue($expr);
+            if (!$envValue instanceof Variable) {
+                throw new InvalidArgumentException('cannot modify non-vars');
+            }
+
+            $lhs[] = $envValue;
+        }
+
+        foreach ($stmt->rhs->exprs as $expr) {
+            $rhs[] = $this->evalExpr($expr);
+        }
+
+        $assignLen = \count($lhs);
+        for ($i = 0; $i < $assignLen; ++$i) {
+            $op = Operator::fromAst($stmt->op);
+
+            $newValue = match (true) {
+                $op === Operator::Eq => $rhs[$i],
+                $op->isCompound() => $lhs[$i]->value->operateOn($op->disjoin(), $rhs[$i]),
+                default => throw new \Exception('wtf'),
+            };
+
+            $this->env->assign($lhs[$i]->name, $newValue);
+        }
+
+        dump(
+            $lhs,
+            $rhs,
+            $this->env
+        );
+
+        return StmtValue::None;
+    }
+
     private function evalExpr(Expr $expr): GoValue
     {
         return match (true) {
@@ -256,9 +305,20 @@ final class Interpreter
         };
     }
 
-    private function evalRuneLit(RuneLit $lit): UntypedIntValue
+    private function getEnvValue(Expr $expr): EnvValue
     {
-        return UntypedIntValue::fromRune($lit->rune);
+        return match (true) {
+            // pointers
+            $expr instanceof Ident => $this->env->get($expr->name),
+
+            // fixme debug
+            default => dd($expr),
+        };
+    }
+
+    private function evalRuneLit(RuneLit $lit): IntValue
+    {
+        return IntValue::fromRune($lit->rune);
     }
 
     private function evalStringLit(StringLit $lit): StringValue
@@ -266,14 +326,14 @@ final class Interpreter
         return new StringValue($lit->str);
     }
 
-    private function evalIntLit(IntLit $lit): UntypedIntValue
+    private function evalIntLit(IntLit $lit): IntValue
     {
-        return UntypedIntValue::fromString($lit->digits);
+        return IntValue::fromString($lit->digits, ValueType::Int);
     }
 
-    private function evalFloatLit(FloatLit $lit): UntypedFloatValue
+    private function evalFloatLit(FloatLit $lit): FloatValue
     {
-        return UntypedFloatValue::fromString($lit->digits);
+        return FloatValue::fromString($lit->digits, ValueType::Float32);
     }
 
     private function evalBinaryExpr(BinaryExpr $expr): GoValue
@@ -281,7 +341,7 @@ final class Interpreter
         return $this
             ->evalExpr($expr->lExpr)
             ->operateOn(
-                $expr->op,
+                Operator::fromAst($expr->op),
                 $this->evalExpr($expr->rExpr),
             );
     }
@@ -290,7 +350,7 @@ final class Interpreter
     {
         return $this
             ->evalExpr($expr->expr)
-            ->operate($expr->op);
+            ->operate(Operator::fromAst($expr->op));
     }
 
     private function evalGroupExpr(GroupExpr $expr): GoValue

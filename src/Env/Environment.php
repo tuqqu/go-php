@@ -38,4 +38,24 @@ final class Environment
             $this->enclosing?->get($name) ??
             throw new UndefinedValueError($name);
     }
+
+    public function assign(string $name, GoValue $value): void
+    {
+        $envValue = $this->definedValues->tryGet($name);
+        if ($envValue !== null) {
+            if (!$envValue instanceof Variable) {
+                throw new \Exception('non-var assign');
+            }
+
+            $envValue->set($value);
+            return;
+        }
+
+        if ($this->enclosing !== null) {
+            $this->enclosing->assign($name, $value);
+            return;
+        }
+
+        throw new \Exception('Assigning to undef');
+    }
 }

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
-use GoParser\Ast\Operator;
+use GoPhp\Operator;
 
-final class UnknownOperationError extends \RuntimeException implements PositionAwareError
+final class UnknownOperationError extends \RuntimeException
 {
-    use PositionAware;
+//    use PositionAwa/re;
 
     public static function unknownOperator(Operator $op): self
     {
         $error = new self(\sprintf('Unknown operator "%s"', $op->value));
-        $error->position = $op->pos;
+//        $error->position = $op->pos;
 
         return $error;
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoParser\Ast\Operator;
+use GoPhp\Operator;
 
 interface GoValue
 {

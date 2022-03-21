@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoParser\Ast\Operator;
-use GoParser\Lexer\Token;
+use GoPhp\Operator;
 use GoPhp\Error\UnknownOperationError;
 
 final class StringValue implements Addable, Comparable
@@ -26,11 +25,11 @@ final class StringValue implements Addable, Comparable
 
     public function operateOn(Operator $op, GoValue $rhs): self|BoolValue
     {
-        return match ($op->value) {
-            Token::Plus->value,
-            Token::PlusEq->value => $this->add($rhs),
-            Token::EqEq->value => $this->equals($rhs),
-            Token::NotEq->value => $this->equals($rhs)->invert(),
+        return match ($op) {
+            Operator::Plus,
+            Operator::PlusEq => $this->add($rhs),
+            Operator::EqEq => $this->equals($rhs),
+            Operator::NotEq => $this->equals($rhs)->invert(),
             default => throw UnknownOperationError::unknownOperator($op),
         };
     }

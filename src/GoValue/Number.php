@@ -6,15 +6,15 @@ namespace GoPhp\GoValue;
 
 interface Number extends Addable
 {
-    public function noop(): self;
+    public function noop(): static;
 
-    public function negate(): self;
+    public function negate(): static;
 
-    public function sub(self $value): self;
+    public function sub(self $value): static;
 
-    public function div(self $value): self;
+    public function div(self $value): static;
 
-    public function mod(self $value): self;
+    public function mod(self $value): static;
 
-    public function mul(self $value): self;
+    public function mul(self $value): static;
 }

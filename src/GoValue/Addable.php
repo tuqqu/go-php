@@ -6,5 +6,5 @@ namespace GoPhp\GoValue;
 
 interface Addable extends GoValue
 {
-    public function add(self $value): self;
+    public function add(self $value): static;
 }
