@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Env;
 
 use GoPhp\Env\EnvValue\{Constant, EnvValue, Variable};
-use GoPhp\Error\UndefinedValueError;
+use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoValue\GoValue;
 
 final class Environment

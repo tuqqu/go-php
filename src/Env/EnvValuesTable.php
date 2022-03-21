@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Env;
 
 use GoPhp\Env\EnvValue\EnvValue;
-use GoPhp\Error\{AlreadyDefinedError, UndefinedValueError};
+use GoPhp\Env\Error\{AlreadyDefinedError, UndefinedValueError};
 
 final class EnvValuesTable
 {

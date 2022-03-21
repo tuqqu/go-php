@@ -29,10 +29,10 @@ enum BoolValue: int implements GoValue
 
     public function invert(): self
     {
-        return self::fromBool($this->unwrap());
+        return self::fromBool(!$this->unwrap());
     }
 
-    public function operate(Operator $op): GoValue
+    public function operate(Operator $op): self
     {
         return match ($op) {
             Operator::LogicNot => $this->invert(),
@@ -40,7 +40,7 @@ enum BoolValue: int implements GoValue
         };
     }
 
-    public function operateOn(Operator $op, GoValue $rhs): self|BoolValue
+    public function operateOn(Operator $op, GoValue $rhs): self
     {
         // fixme add type check
 

@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\Error;
-
-use GoPhp\Env\Error\EnvError;
+namespace GoPhp\Env\Error;
 
 final class UndefinedValueError extends EnvError
 {
