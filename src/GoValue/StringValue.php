@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Operator;
+use GoPhp\GoType\ValueType;
 use GoPhp\Error\UnknownOperationError;
 
 final class StringValue implements Addable, Comparable
@@ -39,7 +40,7 @@ final class StringValue implements Addable, Comparable
         return $this->value;
     }
 
-    public function add(Addable $value): self
+    public function add(Addable $value): static
     {
         // fixme add type check
         return new self($this->value . $value->value);

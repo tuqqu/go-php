@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Operator;
+use GoPhp\GoType\ValueType;
 use GoPhp\Error\UnknownOperationError;
 
 enum BoolValue: int implements GoValue

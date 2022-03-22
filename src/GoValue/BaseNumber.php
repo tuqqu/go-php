@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Operator;
-use GoParser\Lexer\Token;
+use GoPhp\GoType\ValueType;
 use GoPhp\Error\UnknownOperationError;
 
 abstract class BaseNumber implements Number, Comparable

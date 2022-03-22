@@ -6,6 +6,7 @@ namespace GoPhp\Env;
 
 use GoPhp\Env\EnvValue\{Constant, EnvValue, Variable};
 use GoPhp\Env\Error\UndefinedValueError;
+use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\GoValue;
 
 final class Environment
@@ -20,15 +21,15 @@ final class Environment
         $this->enclosing = $enclosing;
     }
 
-    public function defineConst(string $name, GoValue $value): void
+    public function defineConst(string $name, GoValue $value, ValueType $type): void
     {
-        $const = new Constant($name, $value);
+        $const = new Constant($name, $value, $type);
         $this->definedValues->add($const);
     }
 
-    public function defineVar(string $name, GoValue $value): void
+    public function defineVar(string $name, GoValue $value, ValueType $type): void
     {
-        $var = new Variable($name, $value);
+        $var = new Variable($name, $value, $type);
         $this->definedValues->add($var);
     }
 

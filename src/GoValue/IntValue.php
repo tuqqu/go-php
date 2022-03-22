@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\GoType\ValueType;
+
 final class IntValue extends BaseNumber implements Bitwise
 {
     public function __construct(

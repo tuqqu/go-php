@@ -13,6 +13,7 @@ use GoParser\Ast\Expr\Ident;
 use GoParser\Ast\Expr\IntLit;
 use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
+use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\File as Ast;
@@ -31,12 +32,12 @@ use GoPhp\Env\Environment;
 use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\EnvValue\Func;
 use GoPhp\Env\EnvValue\Variable;
+use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
-use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\FloatValue;
+use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\IntValue;
-use GoPhp\GoValue\ValueType;
+use GoPhp\GoValue\StringValue;
 use Symfony\Component\String\Exception\InvalidArgumentException;
 
 final class Interpreter
@@ -113,75 +114,96 @@ final class Interpreter
 
     private function evalConstDecl(ConstDecl $decl): StmtValue
     {
-        /** @var ConstSpec[] $specs */
-        $specs = [];
-        if ($decl->spec instanceof GroupSpec) {
-            $specs = [...$specs, ...$decl->spec->specs];
-        } else {
-            $specs[] = $decl->spec;
-        }
+        // fixme add iota support
 
-        foreach ($specs as $spec) {
-            $values = [];
+        $lastValue = null;
 
-            foreach ($spec->initList->exprs as $expr) {
-                $value = $this->evalExpr($expr);
-                $values[] = $value;
+        foreach (self::wrapSpecs($decl->spec) as $spec) {
+            /** @var ConstSpec $spec */
+
+            $type = null;
+            if ($spec->type !== null && !$spec->type instanceof SingleTypeName) {
+                // fixme resolve full type names
+                throw new \Exception('non resolved type name');
             }
 
-            $names = [];
-            foreach ($spec->identList->idents as $ident) {
-                $names[] = $ident->name;
+            if ($spec->type !== null) {
+                $type = ValueType::tryFrom($spec->type->name);
+                if ($type === null) {
+                    // fixme resolve types
+                    throw new \Exception('unknown name');
+                }
             }
-        }
 
-        $valLen = \count($values);
-        $namesLen = \count($names);
-        if ($valLen > $namesLen) {
-            throw new \Exception('Wrong length'); //fixme
-        }
+            $singular = \count($spec->identList->idents) === 1;
 
-        $lastValue = $values[$valLen-1];
-        foreach ($names as $i => $name) {
-            $this->env->defineConst($name, $values[$i] ?? $lastValue);
+            foreach ($spec->identList->idents as $i => $ident) {
+                $value = isset($spec->initList->exprs[$i]) ?
+                    $this->evalExpr($spec->initList->exprs[$i]) :
+                    null;
+
+                if ($singular) {
+                    if ($value === null) {
+                        $value = $lastValue;
+                    } else {
+                        $lastValue = $value;
+                    }
+                }
+
+                if ($value === null) {
+                    throw new \Exception('const does not have init value');
+                }
+
+                $this->env->defineConst(
+                    $ident->name,
+                    $value,
+                    ($type ?? $value->type())->reify(),
+                );
+            }
         }
 
         return StmtValue::None;
     }
 
-    // fixme unite with const decl
     private function evalVarDecl(VarDecl $decl): StmtValue
     {
-        /** @var VarSpec[] $specs */
-        $specs = [];
-        if ($decl->spec instanceof GroupSpec) {
-            $specs = [...$specs, ...$decl->spec->specs];
-        } else {
-            $specs[] = $decl->spec;
-        }
-
-        foreach ($specs as $spec) {
-            $values = [];
-            foreach ($spec->initList->exprs as $expr) {
-                $value = $this->evalExpr($expr);
-                $values[] = $value;
+        foreach (self::wrapSpecs($decl->spec) as $spec) {
+            /** @var VarSpec $spec */
+            $type = null;
+            if ($spec->type !== null && !$spec->type instanceof SingleTypeName) {
+                // fixme resolve full type names
+                throw new \Exception('non resolved type name');
             }
 
-            $names = [];
-            foreach ($spec->identList->idents as $ident) {
-                $names[] = $ident->name;
+            if ($spec->type !== null) {
+                $type = ValueType::tryFrom($spec->type->name);
+                if ($type === null) {
+                    // fixme resolve types
+                    throw new \Exception('unknown name');
+                }
             }
-        }
 
-        $valLen = \count($values);
-        $namesLen = \count($names);
-        if ($valLen > $namesLen) {
-            throw new \Exception('wrong len');
-        }
+            $initWithDefaultValue = false;
+            if ($spec->initList === null) {
+                if ($type === null) {
+                    throw new \Exception('type error: must be either ini or type');
+                }
 
-        $lastValue = $values[$valLen-1];
-        foreach ($names as $i => $name) {
-            $this->env->defineVar($name, $values[$i] ?? $lastValue); //todo check this last value
+                $initWithDefaultValue = true;
+            }
+
+            // fixme revisit when func returns tuple
+            foreach ($spec->identList->idents as $i => $ident) {
+                $value = $initWithDefaultValue ?
+                    $type->defaultValue() :
+                    $this->evalExpr($spec->initList->exprs[$i]);
+
+                $this->env->defineVar(
+                    $ident->name,
+                    $value,
+                    ($type ?? $value->type())->reify(),
+                );
+            }
         }
 
         return StmtValue::None;
@@ -283,17 +305,11 @@ final class Interpreter
             $newValue = match (true) {
                 $op === Operator::Eq => $rhs[$i],
                 $op->isCompound() => $lhs[$i]->value->operateOn($op->disjoin(), $rhs[$i]),
-                default => throw new \Exception('wtf'),
+                default => throw new \Exception('wrong operator'),
             };
 
             $this->env->assign($lhs[$i]->name, $newValue);
         }
-
-        dump(
-            $lhs,
-            $rhs,
-            $this->env
-        );
 
         return StmtValue::None;
     }
@@ -340,12 +356,12 @@ final class Interpreter
 
     private function evalIntLit(IntLit $lit): IntValue
     {
-        return IntValue::fromString($lit->digits, ValueType::Int);
+        return IntValue::fromString($lit->digits, ValueType::UntypedInt);
     }
 
     private function evalFloatLit(FloatLit $lit): FloatValue
     {
-        return FloatValue::fromString($lit->digits, ValueType::Float32);
+        return FloatValue::fromString($lit->digits, ValueType::UntypedFloat);
     }
 
     private function evalBinaryExpr(BinaryExpr $expr): GoValue
@@ -404,5 +420,12 @@ final class Interpreter
 
             $this->entryPoint = $func;
         }
+    }
+
+    private static function wrapSpecs(VarSpec|ConstSpec|GroupSpec $spec): iterable
+    {
+        return $spec->isGroup() ?
+            yield from $spec->specs :
+            yield $spec;
     }
 }
