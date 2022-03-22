@@ -20,6 +20,7 @@ use GoParser\Ast\GroupSpec;
 use GoParser\Ast\Stmt\AssignmentStmt;
 use GoParser\Ast\Stmt\BlockStmt;
 use GoParser\Ast\Stmt\ConstDecl;
+use GoParser\Ast\Stmt\EmptyStmt;
 use GoParser\Ast\Stmt\ExprStmt;
 use GoParser\Ast\Stmt\FuncDecl;
 use GoParser\Ast\Stmt\IfStmt;
@@ -75,6 +76,7 @@ final class Interpreter
         switch ($this->state) {
             case State::EntryPoint:
                 $value = match (true) {
+                    $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt),
                     $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
                     $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
                     $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
@@ -97,6 +99,8 @@ final class Interpreter
                     $stmt instanceof FuncDecl => $this->evalFuncDecl($stmt),
 
                     $stmt instanceof IfStmt => $this->evalIfStmt($stmt), //fixme
+                    $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt), //fixme
+                    $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
                     $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt), //fixme
                     default => dd($stmt),
                 };
@@ -191,6 +195,11 @@ final class Interpreter
         return StmtValue::None;
     }
 
+    private function evalEmptyStmt(EmptyStmt $stmt): StmtValue
+    {
+        return StmtValue::None;
+    }
+
     private function evalExprStmt(ExprStmt $stmt): StmtValue
     {
         $this->evalExpr($stmt->expr);
@@ -200,7 +209,7 @@ final class Interpreter
 
     private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtValue
     {
-        $this->evalWithEnv($env, function () use ($blockStmt): void {
+        return $this->evalWithEnvWrap($env, function () use ($blockStmt): StmtValue {
             foreach ($blockStmt->stmtList->stmts as $stmt) {
                 $stmtVal = $this->evalStmt($stmt);
 
@@ -211,40 +220,43 @@ final class Interpreter
 
             //fixme debug
             dd($this->env);
-        });
 
-        return StmtValue::None;
+            return $stmtVal;
+        });
     }
 
-    private function evalWithEnv(?Environment $env, callable $code): void
+    /**
+     * @var callable(): StmtValue $code
+     */
+    private function evalWithEnvWrap(?Environment $env, callable $code): StmtValue
     {
         $prevEnv = $this->env;
         $this->env = $env ?? new Environment($this->env);
-        $code();
+        $stmtValue = $code();
         $this->env = $prevEnv;
+
+        return $stmtValue;
     }
 
     private function evalIfStmt(IfStmt $stmt): StmtValue
     {
-        // fixme check that init statement is env wrapped
-        $prevEnv = $this->env;
-        $this->env = new Environment($this->env);
+        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtValue {
+            if ($stmt->init !== null) {
+                $this->evalStmt($stmt->init);
+            }
 
-        if ($stmt->init !== null) {
-            $this->evalStmt($stmt->init);
-        }
+            $condition = $this->evalExpr($stmt->condition);
 
-        $condition = $this->evalExpr($stmt->condition);
+            if ($this->isTrue($condition)) {
+                return $this->evalBlockStmt($stmt->ifBody);
+            }
 
-        if ($this->isTrue($condition)) {
-            $this->evalBlockStmt($stmt->ifBody);
-        } else {
-            $this->evalStmt($stmt->elseBody);
-        }
+            if ($stmt->elseBody !== null) {
+                return $this->evalStmt($stmt->elseBody);
+            }
 
-        $this->env = $prevEnv;
-
-        return StmtValue::None;
+            return StmtValue::None;
+        });
     }
 
     private function evalAssignmentStmt(AssignmentStmt $stmt): StmtValue
