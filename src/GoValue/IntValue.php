@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\BasicType;
 
 final class IntValue extends BaseNumber implements Bitwise
 {
     public function __construct(
-        int $value,
-        ValueType $valueType,
+        int       $value,
+        BasicType $valueType,
     ) {
         $this->value = $value;
         $this->valueType = $valueType;
     }
-    public static function fromString(string $digits, ValueType $valueType): static
+    public static function fromString(string $digits, BasicType $valueType): static
     {
         return new static((int) $digits, $valueType);
     }
 
     public static function fromRune(string $rune): static
     {
-        return new static(\mb_ord(\trim($rune, '\''), 'UTF-8'), ValueType::Int32);
+        return new static(\mb_ord(\trim($rune, '\''), 'UTF-8'), BasicType::Int32);
     }
 
     public function unwrap(): int
@@ -35,7 +35,7 @@ final class IntValue extends BaseNumber implements Bitwise
         return new static(~$this->value, $this->valueType);
     }
 
-    public function type(): ValueType
+    public function type(): BasicType
     {
         return $this->valueType;
     }

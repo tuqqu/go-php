@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace GoPhp;
+namespace GoPhp\StmtValue;
 
-enum StmtValue
+enum SimpleValue implements StmtValue
 {
     case None;
     case Break;
     case Continue;
-    case Return;
-    case Goto;
+//    case Goto; //fixme
 
     public function isNone(): bool
     {

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Operator;
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\BasicType;
 use GoPhp\Error\UnknownOperationError;
 
 abstract class BaseNumber implements Number, Comparable
 {
     protected int|float $value;
 
-    protected ValueType $valueType;
+    protected BasicType $valueType;
 
     public function operateOn(Operator $op, GoValue $rhs): GoValue
     {

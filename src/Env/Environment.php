@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
-use GoPhp\Env\EnvValue\{Constant, EnvValue, Variable};
+use GoPhp\Env\EnvValue\{Constant, EnvValue, Func, Variable};
 use GoPhp\Env\Error\UndefinedValueError;
+use GoPhp\GoType\BasicType;
 use GoPhp\GoType\ValueType;
+use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
 
 final class Environment
@@ -21,7 +23,7 @@ final class Environment
         $this->enclosing = $enclosing;
     }
 
-    public function defineConst(string $name, GoValue $value, ValueType $type): void
+    public function defineConst(string $name, GoValue $value, BasicType $type): void
     {
         $const = new Constant($name, $value, $type);
         $this->definedValues->add($const);
@@ -31,6 +33,12 @@ final class Environment
     {
         $var = new Variable($name, $value, $type);
         $this->definedValues->add($var);
+    }
+
+    public function defineFunc(string $name, FuncValue $value): void
+    {
+        $func = new Func($name, $value, $value->signature->type);
+        $this->definedValues->add($func);
     }
 
     public function get(string $name): EnvValue

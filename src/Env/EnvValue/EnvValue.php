@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\Env\EnvValue;
 
-use GoPhp\GoValue\GoValue;
 use GoPhp\GoType\ValueType;
+use GoPhp\GoValue\GoValue;
+use GoPhp\GoType\BasicType;
 
 abstract class EnvValue
 {
@@ -15,6 +16,7 @@ abstract class EnvValue
         public readonly ValueType $type,
     ) {
         if (!$this->type->conforms($this->value->type())) {
+            //fixme debug
             dump($this->type);
             dump($this->value->type());
             throw new \Exception('type error');
@@ -27,7 +29,7 @@ abstract class EnvValue
         return $this->value;
     }
 
-    public function getType(): ValueType
+    public function getType(): BasicType
     {
         return $this->type;
     }

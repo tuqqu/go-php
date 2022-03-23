@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Operator;
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\BasicType;
 use GoPhp\Error\UnknownOperationError;
 
 final class StringValue implements Addable, Comparable
@@ -14,9 +14,9 @@ final class StringValue implements Addable, Comparable
         private readonly string $value,
     ) {}
 
-    public function type(): ValueType
+    public function type(): BasicType
     {
-        return ValueType::String;
+        return BasicType::String;
     }
 
     public function operate(Operator $op): never

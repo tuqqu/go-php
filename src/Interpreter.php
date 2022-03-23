@@ -6,18 +6,26 @@ namespace GoPhp;
 
 use GoParser\Ast\ConstSpec;
 use GoParser\Ast\Expr\BinaryExpr;
+use GoParser\Ast\Expr\CallExpr;
 use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\Expr\FloatLit;
+use GoParser\Ast\Expr\FuncType as AstFuncType;
 use GoParser\Ast\Expr\GroupExpr;
 use GoParser\Ast\Expr\Ident;
 use GoParser\Ast\Expr\IntLit;
+use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\StringLit;
+use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\File as Ast;
 use GoParser\Ast\GroupSpec;
+use GoParser\Ast\IdentList;
+use GoParser\Ast\ParamDecl;
+use GoParser\Ast\Params as AstParams;
+use GoParser\Ast\Signature as AstSignature;
 use GoParser\Ast\Stmt\AssignmentStmt;
 use GoParser\Ast\Stmt\BlockStmt;
 use GoParser\Ast\Stmt\ConstDecl;
@@ -25,35 +33,43 @@ use GoParser\Ast\Stmt\EmptyStmt;
 use GoParser\Ast\Stmt\ExprStmt;
 use GoParser\Ast\Stmt\FuncDecl;
 use GoParser\Ast\Stmt\IfStmt;
+use GoParser\Ast\Stmt\ReturnStmt;
 use GoParser\Ast\Stmt\Stmt;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\VarSpec;
+use GoPhp\EntryPoint\EntryPointValidator;
+use GoPhp\EntryPoint\MainEntryPoint;
 use GoPhp\Env\Environment;
 use GoPhp\Env\EnvValue\EnvValue;
-use GoPhp\Env\EnvValue\Func;
 use GoPhp\Env\EnvValue\Variable;
+use GoPhp\GoType\BasicType;
+use GoPhp\GoType\FuncType;
+use GoPhp\GoType\TypeFactory;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\FloatValue;
+use GoPhp\GoValue\Func\FuncValue;
+use GoPhp\GoValue\Func\Param;
+use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\IntValue;
 use GoPhp\GoValue\StringValue;
-use Symfony\Component\String\Exception\InvalidArgumentException;
+use GoPhp\StmtValue\ReturnValue;
+use GoPhp\StmtValue\SimpleValue;
+use GoPhp\StmtValue\StmtValue;
 
 final class Interpreter
 {
-    private const ENTRY_POINT_PACKAGE_NAME = 'main';
-    private const ENTRY_POINT_FUNC_NAME = 'main';
-
     private State $state = State::DeclEvaluation;
     private Environment $env;
     private ?string $curPackage = null;
-    private ?Func $entryPoint = null;
+    private ?FuncValue $entryPoint = null;
 
     public function __construct(
         private readonly Ast $ast,
         private array $argv = [],
         private readonly StreamProvider $streamProvider = new StdStreamProvider(),
+        private readonly EntryPointValidator $entryPointValidator = new MainEntryPoint(),
     )
     {
         $this->env = new Environment();
@@ -67,7 +83,13 @@ final class Interpreter
             $this->evalStmt($decl);
         }
 
-        dd($this->env);
+        if ($this->entryPoint !== null) {
+            $this->state = State::EntryPoint;
+            ($this->entryPoint)($this->evalBlockStmt(...));
+            dump('entry success'); die; // fixme debug
+        } else {
+            dd($this->env, 'no entry'); // fixme debug
+        }
 
         return ExecCode::Success;
     }
@@ -81,6 +103,8 @@ final class Interpreter
                     $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
                     $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
                     $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
+                    $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
+                    $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
 
                     $stmt instanceof ConstDecl => $this->evalConstDecl($stmt),
                     $stmt instanceof VarDecl => $this->evalVarDecl($stmt),
@@ -98,12 +122,10 @@ final class Interpreter
                     $stmt instanceof ConstDecl => $this->evalConstDecl($stmt),
                     $stmt instanceof VarDecl => $this->evalVarDecl($stmt),
                     $stmt instanceof FuncDecl => $this->evalFuncDecl($stmt),
-
-                    $stmt instanceof IfStmt => $this->evalIfStmt($stmt), //fixme
-                    $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt), //fixme
-                    $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
-                    $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt), //fixme
-                    default => dd($stmt),
+                    default => dd(
+                        'non-declaration statement outside function body',
+                        $stmt
+                    ),
                 };
 
                 if ($value) {
@@ -112,7 +134,7 @@ final class Interpreter
         }
     }
 
-    private function evalConstDecl(ConstDecl $decl): StmtValue
+    private function evalConstDecl(ConstDecl $decl): SimpleValue
     {
         // fixme add iota support
 
@@ -122,17 +144,13 @@ final class Interpreter
             /** @var ConstSpec $spec */
 
             $type = null;
-            if ($spec->type !== null && !$spec->type instanceof SingleTypeName) {
-                // fixme resolve full type names
-                throw new \Exception('non resolved type name');
-            }
 
             if ($spec->type !== null) {
-                $type = ValueType::tryFrom($spec->type->name);
-                if ($type === null) {
-                    // fixme resolve types
-                    throw new \Exception('unknown name');
-                }
+                $type = self::resolveType($spec->type);
+            }
+
+            if (!$type instanceof BasicType) {
+                throw new \Exception('const must be of basic type');
             }
 
             $singular = \count($spec->identList->idents) === 1;
@@ -162,25 +180,17 @@ final class Interpreter
             }
         }
 
-        return StmtValue::None;
+        return SimpleValue::None;
     }
 
-    private function evalVarDecl(VarDecl $decl): StmtValue
+    private function evalVarDecl(VarDecl $decl): SimpleValue
     {
         foreach (self::wrapSpecs($decl->spec) as $spec) {
             /** @var VarSpec $spec */
             $type = null;
-            if ($spec->type !== null && !$spec->type instanceof SingleTypeName) {
-                // fixme resolve full type names
-                throw new \Exception('non resolved type name');
-            }
 
             if ($spec->type !== null) {
-                $type = ValueType::tryFrom($spec->type->name);
-                if ($type === null) {
-                    // fixme resolve types
-                    throw new \Exception('unknown name');
-                }
+                $type = self::resolveType($spec->type);
             }
 
             $initWithDefaultValue = false;
@@ -206,27 +216,47 @@ final class Interpreter
             }
         }
 
-        return StmtValue::None;
+        return SimpleValue::None;
     }
 
-    private function evalFuncDecl(FuncDecl $decl): StmtValue
+    private function evalFuncDecl(FuncDecl $decl): SimpleValue
     {
-        // fixme check entrypoint status
-        $this->evalBlockStmt($decl->body);
+        [$params, $returns] = self::resolveParamsFromAstSignature($decl->signature);
 
-        return StmtValue::None;
+        $funcValue = new FuncValue($decl->body, $params, $returns, $this->env); //fixme body null
+        $this->env->defineFunc($decl->name->name, $funcValue);
+
+        $this->checkEntryPoint($decl->name->name, $funcValue);
+
+        return SimpleValue::None;
     }
 
-    private function evalEmptyStmt(EmptyStmt $stmt): StmtValue
+    private function evalCallExpr(CallExpr $expr): GoValue
     {
-        return StmtValue::None;
+        $func = $this->evalExpr($expr->expr);
+
+        if (!$func instanceof FuncValue) {
+            throw new \Exception('call error');
+        }
+
+        $argv = [];
+        foreach ($expr->args->exprs as $arg) {
+            $argv[] = $this->evalExpr($arg);
+        }
+
+        return $func($this->evalBlockStmt(...), ...$argv);
     }
 
-    private function evalExprStmt(ExprStmt $stmt): StmtValue
+    private function evalEmptyStmt(EmptyStmt $stmt): SimpleValue
+    {
+        return SimpleValue::None;
+    }
+
+    private function evalExprStmt(ExprStmt $stmt): SimpleValue
     {
         $this->evalExpr($stmt->expr);
 
-        return StmtValue::None;
+        return SimpleValue::None;
     }
 
     private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtValue
@@ -241,14 +271,14 @@ final class Interpreter
             }
 
             //fixme debug
-            dd($this->env);
+            dump($this->env);
 
             return $stmtVal;
         });
     }
 
     /**
-     * @var callable(): StmtValue $code
+     * @var callable(): SimpleValue $code
      */
     private function evalWithEnvWrap(?Environment $env, callable $code): StmtValue
     {
@@ -258,6 +288,16 @@ final class Interpreter
         $this->env = $prevEnv;
 
         return $stmtValue;
+    }
+
+    private function evalReturnStmt(ReturnStmt $stmt): ReturnValue
+    {
+        $values = [];
+        foreach ($stmt->exprList->exprs as $expr) {
+            $values[] = $this->evalExpr($expr);
+        }
+
+        return new ReturnValue($values);
     }
 
     private function evalIfStmt(IfStmt $stmt): StmtValue
@@ -277,18 +317,18 @@ final class Interpreter
                 return $this->evalStmt($stmt->elseBody);
             }
 
-            return StmtValue::None;
+            return SimpleValue::None;
         });
     }
 
-    private function evalAssignmentStmt(AssignmentStmt $stmt): StmtValue
+    private function evalAssignmentStmt(AssignmentStmt $stmt): SimpleValue
     {
         $lhs = [];
         $rhs = [];
         foreach ($stmt->lhs->exprs as $expr) {
             $envValue = $this->getEnvValue($expr);
             if (!$envValue instanceof Variable) {
-                throw new InvalidArgumentException('cannot modify non-vars');
+                throw new \InvalidArgumentException('cannot modify non-vars');
             }
 
             $lhs[] = $envValue;
@@ -311,7 +351,7 @@ final class Interpreter
             $this->env->assign($lhs[$i]->name, $newValue);
         }
 
-        return StmtValue::None;
+        return SimpleValue::None;
     }
 
     private function evalExpr(Expr $expr): GoValue
@@ -327,6 +367,7 @@ final class Interpreter
             $expr instanceof BinaryExpr => $this->evalBinaryExpr($expr),
             $expr instanceof GroupExpr => $this->evalGroupExpr($expr),
             $expr instanceof Ident => $this->evalIdent($expr),
+            $expr instanceof CallExpr => $this->evalCallExpr($expr),
 
             // fixme debug
             default => dd($expr),
@@ -356,12 +397,12 @@ final class Interpreter
 
     private function evalIntLit(IntLit $lit): IntValue
     {
-        return IntValue::fromString($lit->digits, ValueType::UntypedInt);
+        return IntValue::fromString($lit->digits, BasicType::UntypedInt);
     }
 
     private function evalFloatLit(FloatLit $lit): FloatValue
     {
-        return FloatValue::fromString($lit->digits, ValueType::UntypedFloat);
+        return FloatValue::fromString($lit->digits, BasicType::UntypedFloat);
     }
 
     private function evalBinaryExpr(BinaryExpr $expr): GoValue
@@ -405,20 +446,17 @@ final class Interpreter
         return $value->unwrap();
     }
 
-    // fixme
-    private function checkEntryPointStatus(Func $func): void
+    private function checkEntryPoint(string $name, FuncValue $funcValue): void
     {
         if (
-            $this->curPackage === self::ENTRY_POINT_PACKAGE_NAME &&
-            $func->name === self::ENTRY_POINT_FUNC_NAME
+            !isset($this->entryPoint) &&
+            $this->entryPointValidator->validate(
+                $this->curPackage ?? '',
+                $name,
+                $funcValue->signature,
+            )
         ) {
-            if ($this->entryPoint !== null) {
-                throw new \Exception('two main functions');
-            }
-
-            // fixme validate signature
-
-            $this->entryPoint = $func;
+            $this->entryPoint = $funcValue;
         }
     }
 
@@ -427,5 +465,73 @@ final class Interpreter
         return $spec->isGroup() ?
             yield from $spec->specs :
             yield $spec;
+    }
+
+    // fixme maybe must be done lazily
+    private static function resolveType(AstType $type): ValueType
+    {
+        $resolved = null;
+
+        switch (true) {
+            case $type instanceof SingleTypeName:
+                $resolved = TypeFactory::tryFrom($type->name);
+                break;
+            case $type instanceof QualifiedTypeName:
+                $resolved = TypeFactory::tryFrom(self::resolveQualifiedTypeName($type));
+                break;
+            case $type instanceof AstFuncType:
+                $resolved = self::resolveTypeFromAstSignature($type->signature);
+                break;
+        }
+
+        if ($resolved === null) {
+            throw new \InvalidArgumentException('unresolved type'); //fixme
+        }
+
+        return $resolved;
+    }
+
+    private static function resolveTypeFromAstSignature(AstSignature $signature): FuncType
+    {
+        return new FuncType(...self::resolveParamsFromAstSignature($signature));
+    }
+
+    /**
+     * @return array{Params, Params}
+     */
+    private static function resolveParamsFromAstSignature(AstSignature $signature): array
+    {
+        return [
+            new Params(self::resolveParamsFromAstParams($signature->params)),
+            new Params(match (true) {
+                $signature->result === null => [],
+                $signature->result instanceof AstType => [new Param(self::resolveType($signature->result))],
+                $signature->result instanceof AstParams => self::resolveParamsFromAstParams($signature->result),
+            }),
+        ];
+    }
+
+    private static function resolveParamsFromAstParams(AstParams $params): array
+    {
+        return \array_map(self::paramFromAstParamDecl(...), $params->paramList);
+    }
+
+    private static function paramFromAstParamDecl(ParamDecl $paramDecl): Param
+    {
+        return new Param(
+            self::resolveType($paramDecl->type),
+            self::arrayFromIdents($paramDecl->identList), // fixme maybe anon option for perf
+            $paramDecl->ellipsis !== null,
+        );
+    }
+
+    private static function arrayFromIdents(IdentList $identList): array
+    {
+        return \array_map(static fn (Ident $ident): string => $ident->name, $identList->idents);
+    }
+
+    private static function resolveQualifiedTypeName(QualifiedTypeName $typeName): string
+    {
+        return \sprintf('%s.%s', $typeName->packageName->name, $typeName->typeName->name);
     }
 }

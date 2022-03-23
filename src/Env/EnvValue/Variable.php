@@ -10,8 +10,8 @@ final class Variable extends EnvValue
 {
     public function set(GoValue $value): void
     {
-        $this->value = $value->type()->equals($this->getType()) ?
+        $this->value = $this->getType()->conforms($value->type()) ?
             $value :
-            throw new \Exception('Type error');
+            throw new \Exception('Type error'. $value->type()->name() . ' ' . $this->getType()->name());
     }
 }
