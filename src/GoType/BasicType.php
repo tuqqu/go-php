@@ -128,15 +128,15 @@ enum BasicType: string implements ValueType
             self::Uint64,
             self::Uintptr => match ($other) {
                 self::UntypedInt => true,
-                default => false,
+                default => $this->equals($other),
             },
             self::UntypedFloat => match ($other) {
                 self::Float32, self::Float64 => true,
-                default => false,
+                default => $this->equals($other),
             },
             self::Float64, self::Float32 => match ($other) {
                 self::UntypedFloat => true,
-                default => false,
+                default => $this->equals($other),
             },
             default => $this->equals($other),
         };

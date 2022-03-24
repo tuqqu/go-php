@@ -9,7 +9,7 @@ use GoPhp\GoType\BasicType;
 final class IntValue extends BaseNumber implements Bitwise
 {
     public function __construct(
-        int       $value,
+        int $value,
         BasicType $valueType,
     ) {
         $this->value = $value;

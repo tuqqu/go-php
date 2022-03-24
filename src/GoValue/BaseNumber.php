@@ -95,7 +95,7 @@ abstract class BaseNumber implements Number, Comparable
 
     public function negate(): static
     {
-        return new static(-$this->value);
+        return new static(-$this->value, $this->valueType);
     }
 
     public function noop(): static

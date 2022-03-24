@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-use GoPhp\GoValue\GoValue;
-
+/**
+ * Not a real Go type, but an internal representation
+ * of a set of types returned from a function call.
+ */
 final class TupleType implements ValueType
 {
     public readonly array $types;
@@ -16,8 +18,11 @@ final class TupleType implements ValueType
      */
     public function __construct(
         array $types,
-    )
-    {
+    ) {
+        if (empty($types)) {
+            throw new \Exception('cannot be empty');//fixme
+        }
+
         $this->types = $types;
         $this->name = \sprintf(
             '(%s)',
@@ -35,9 +40,9 @@ final class TupleType implements ValueType
         return $this;
     }
 
-    public function defaultValue(): GoValue
+    public function defaultValue(): never
     {
-        //fixme
+        throw new \Exception('cannot have def value');
     }
 
     public function equals(ValueType $other): bool

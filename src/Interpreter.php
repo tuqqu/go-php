@@ -34,6 +34,7 @@ use GoParser\Ast\Stmt\ExprStmt;
 use GoParser\Ast\Stmt\FuncDecl;
 use GoParser\Ast\Stmt\IfStmt;
 use GoParser\Ast\Stmt\ReturnStmt;
+use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\VarSpec;
@@ -44,6 +45,7 @@ use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\EnvValue\Variable;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
+use GoPhp\GoType\TupleType;
 use GoPhp\GoType\TypeFactory;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
@@ -54,6 +56,7 @@ use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\IntValue;
 use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\TupleValue;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\SimpleValue;
 use GoPhp\StmtValue\StmtValue;
@@ -105,9 +108,10 @@ final class Interpreter
                     $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
                     $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
                     $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
+                    $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
 
-                    $stmt instanceof ConstDecl => $this->evalConstDecl($stmt),
-                    $stmt instanceof VarDecl => $this->evalVarDecl($stmt),
+                    $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
+                    $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
                     $stmt instanceof FuncDecl => throw new \Exception('Func decl in a func scope'),
 
                     default => null,
@@ -119,9 +123,9 @@ final class Interpreter
                 break;
             case State::DeclEvaluation:
                 $value = match (true) {
-                    $stmt instanceof ConstDecl => $this->evalConstDecl($stmt),
-                    $stmt instanceof VarDecl => $this->evalVarDecl($stmt),
-                    $stmt instanceof FuncDecl => $this->evalFuncDecl($stmt),
+                    $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
+                    $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
+                    $stmt instanceof FuncDecl => $this->evalFuncDeclStmt($stmt),
                     default => dd(
                         'non-declaration statement outside function body',
                         $stmt
@@ -134,7 +138,7 @@ final class Interpreter
         }
     }
 
-    private function evalConstDecl(ConstDecl $decl): SimpleValue
+    private function evalConstDeclStmt(ConstDecl $decl): SimpleValue
     {
         // fixme add iota support
 
@@ -142,9 +146,7 @@ final class Interpreter
 
         foreach (self::wrapSpecs($decl->spec) as $spec) {
             /** @var ConstSpec $spec */
-
             $type = null;
-
             if ($spec->type !== null) {
                 $type = self::resolveType($spec->type);
             }
@@ -157,7 +159,7 @@ final class Interpreter
 
             foreach ($spec->identList->idents as $i => $ident) {
                 $value = isset($spec->initList->exprs[$i]) ?
-                    $this->evalExpr($spec->initList->exprs[$i]) :
+                    $this->tryEvalConstExpr($spec->initList->exprs[$i]) :
                     null;
 
                 if ($singular) {
@@ -183,12 +185,11 @@ final class Interpreter
         return SimpleValue::None;
     }
 
-    private function evalVarDecl(VarDecl $decl): SimpleValue
+    private function evalVarDeclStmt(VarDecl $decl): SimpleValue
     {
         foreach (self::wrapSpecs($decl->spec) as $spec) {
             /** @var VarSpec $spec */
             $type = null;
-
             if ($spec->type !== null) {
                 $type = self::resolveType($spec->type);
             }
@@ -198,20 +199,48 @@ final class Interpreter
                 if ($type === null) {
                     throw new \Exception('type error: must be either ini or type');
                 }
-
                 $initWithDefaultValue = true;
             }
 
-            // fixme revisit when func returns tuple
-            foreach ($spec->identList->idents as $i => $ident) {
-                $value = $initWithDefaultValue ?
-                    $type->defaultValue() :
-                    $this->evalExpr($spec->initList->exprs[$i]);
+            $values = [];
+            $len = \count($spec->identList->idents);
+            if ($initWithDefaultValue) {
+                for ($i = 0; $i < $len; ++$i) {
+                    $values[] = $type->defaultValue();
+                }
+            } else {
+                $value = $this->evalExpr($spec->initList->exprs[0]);
 
+                if ($value instanceof TupleValue) {
+                    $exprLen = \count($spec->initList->exprs);
+                    if ($exprLen !== 1) {
+                        throw new \Exception('multiple-value in single-value context');
+                    }
+
+                    foreach ($value->values as $value) {
+                        $values[] = $value;
+                    }
+
+                    if (\count($values) !== $len) {
+                        throw new \Exception('not enough');
+                    }
+                } else {
+                    $values[] = $value;
+                    for ($i = 1; $i < $len; ++$i) {
+                        $value = $this->evalExpr($spec->initList->exprs[$i++]);
+                        if ($value instanceof TupleValue) {
+                            throw new \Exception('multiple-value in single-value context');
+                        }
+                        $values[] = $value;
+                    }
+                }
+            }
+
+            foreach ($spec->identList->idents as $i => $ident) {
                 $this->env->defineVar(
                     $ident->name,
-                    $value,
-                    ($type ?? $value->type())->reify(),
+                    $values[$i],
+                    ($type ?? $values[$i]->type())->reify(),
                 );
             }
         }
@@ -219,7 +248,7 @@ final class Interpreter
         return SimpleValue::None;
     }
 
-    private function evalFuncDecl(FuncDecl $decl): SimpleValue
+    private function evalFuncDeclStmt(FuncDecl $decl): SimpleValue
     {
         [$params, $returns] = self::resolveParamsFromAstSignature($decl->signature);
 
@@ -244,7 +273,7 @@ final class Interpreter
             $argv[] = $this->evalExpr($arg);
         }
 
-        return $func($this->evalBlockStmt(...), ...$argv);
+        return $func($this->evalBlockStmt(...), ...$argv); //fixme tuple
     }
 
     private function evalEmptyStmt(EmptyStmt $stmt): SimpleValue
@@ -324,7 +353,6 @@ final class Interpreter
     private function evalAssignmentStmt(AssignmentStmt $stmt): SimpleValue
     {
         $lhs = [];
-        $rhs = [];
         foreach ($stmt->lhs->exprs as $expr) {
             $envValue = $this->getEnvValue($expr);
             if (!$envValue instanceof Variable) {
@@ -334,12 +362,37 @@ final class Interpreter
             $lhs[] = $envValue;
         }
 
-        foreach ($stmt->rhs->exprs as $expr) {
-            $rhs[] = $this->evalExpr($expr);
+        $rhs = [];
+        $len = \count($lhs);
+        $value = $this->evalExpr($stmt->rhs->exprs[0]);
+
+        if ($value instanceof TupleValue) {
+            $rhsLen = \count($stmt->rhs->exprs);
+            if ($rhsLen !== 1) {
+                throw new \Exception('multiple-value in single-value context');
+            }
+
+            foreach ($value->values as $value) {
+                $rhs[] = $value;
+            }
+
+            if (\count($rhs) !== $len) {
+                throw new \Exception('not enough');
+            }
+        } else {
+            $rhs[] = $value;
+            for ($i = 1; $i < $len; ++$i) {
+                $value = $this->evalExpr($stmt->rhs->exprs[$i++]);
+                if ($value instanceof TupleValue) {
+                    throw new \Exception('multiple-value in single-value context');
+                }
+                $rhs[] = $value;
+            }
         }
 
-        $assignLen = \count($lhs);
-        for ($i = 0; $i < $assignLen; ++$i) {
+        // fixme duplicated logic
+
+        for ($i = 0; $i < $len; ++$i) {
             $op = Operator::fromAst($stmt->op);
 
             $newValue = match (true) {
@@ -354,7 +407,63 @@ final class Interpreter
         return SimpleValue::None;
     }
 
+    private function evalShortVarDeclStmt(ShortVarDecl $stmt): SimpleValue
+    {
+        // fixme duplicated logic
+        $values = [];
+        $len = \count($stmt->identList->idents);
+        $value = $this->evalExpr($stmt->exprList->exprs[0]);
+
+        if ($value instanceof TupleValue) {
+            $exprLen = \count($stmt->exprList->exprs);
+            if ($exprLen !== 1) {
+                throw new \Exception('multiple-value in single-value context');
+            }
+
+            foreach ($value->values as $value) {
+                $values[] = $value;
+            }
+
+            if (\count($values) !== $len) {
+                throw new \Exception('not enough');
+            }
+        } else {
+            $values[] = $value;
+            for ($i = 1; $i < $len; ++$i) {
+                $value = $this->evalExpr($stmt->exprList->exprs[$i++]);
+                if ($value instanceof TupleValue) {
+                    throw new \Exception('multiple-value in single-value context');
+                }
+                $values[] = $value;
+            }
+        }
+
+        foreach ($stmt->identList->idents as $i => $ident) {
+            $this->env->defineVar(
+                $ident->name,
+                $values[$i],
+                $values[$i]->type()->reify(),
+            );
+        }
+
+        return SimpleValue::None;
+    }
+
     private function evalExpr(Expr $expr): GoValue
+    {
+        $value = $this->tryEvalConstExpr($expr);
+
+        return match (true) {
+            // literals
+            $value !== null => $value,
+            $expr instanceof CallExpr => $this->evalCallExpr($expr),
+
+            // fixme debug
+            default => dd($expr),
+        };
+    }
+
+    private function tryEvalConstExpr(Expr $expr): ?GoValue
     {
         return match (true) {
             // literals
@@ -367,10 +476,7 @@ final class Interpreter
             $expr instanceof BinaryExpr => $this->evalBinaryExpr($expr),
             $expr instanceof GroupExpr => $this->evalGroupExpr($expr),
             $expr instanceof Ident => $this->evalIdent($expr),
-            $expr instanceof CallExpr => $this->evalCallExpr($expr),
-
-            // fixme debug
-            default => dd($expr),
+            default => null,
         };
     }
 
