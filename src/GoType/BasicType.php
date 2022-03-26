@@ -127,7 +127,7 @@ enum BasicType: string implements ValueType
                 self::Uint32,
                 self::Uint64,
                 self::Uintptr, => true,
-                default => false,
+                default => $this->equals($other),
             },
             self::Int,
             self::Int8,
@@ -143,7 +143,8 @@ enum BasicType: string implements ValueType
                 default => $this->equals($other),
             },
             self::UntypedFloat => match ($other) {
-                self::Float32, self::Float64 => true,
+                self::Float32,
+                self::Float64 => true,
                 default => $this->equals($other),
             },
             self::Float64, self::Float32 => match ($other) {

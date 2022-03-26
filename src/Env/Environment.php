@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
-use GoPhp\Env\EnvValue\{Constant, EnvValue, Func, Variable};
+use GoPhp\Env\EnvValue\{BuiltinFunc, Constant, EnvValue, Func, Variable};
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoType\BasicType;
+use GoPhp\GoType\VoidType;
 use GoPhp\GoType\ValueType;
+use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
 
@@ -38,6 +40,12 @@ final class Environment
     public function defineFunc(string $name, FuncValue $value): void
     {
         $func = new Func($name, $value, $value->signature->type);
+        $this->definedValues->add($func);
+    }
+
+    public function defineBuiltinFunc(string $name, BuiltinFuncValue $value): void
+    {
+        $func = new BuiltinFunc($name, $value, VoidType::Builtin);
         $this->definedValues->add($func);
     }
 

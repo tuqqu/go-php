@@ -4,38 +4,37 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
-use GoParser\Ast\Stmt\BlockStmt;
-use GoParser\Ast\Stmt\Stmt;
 use GoPhp\Env\Environment;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\StmtValue;
+use GoPhp\StreamProvider;
 
 final class FuncValue implements GoValue
 {
     public readonly Signature $signature;
     public readonly Environment $enclosure;
-    public readonly BlockStmt $body;
+
+    /** @var \Closure(?Environment): StmtValue */
+    public readonly \Closure $body;
 
     public function __construct(
-        BlockStmt $body, //fixme think of a collection object
+        \Closure $body,
         Params $params,
         Params $returns,
         Environment $enclosure,
     ) {
         $this->body = $body;
         $this->signature = new Signature($params, $returns);
-        $this->enclosure = new Environment(enclosing: $enclosure);
+        $this->enclosure = new Environment(enclosing: $enclosure); // remove?
     }
 
-    /**
-     * @param callable(Stmt[], ?Environment): StmtValue $bodyEvaluator
-     */
-    public function __invoke(callable $bodyEvaluator, GoValue ...$argv): ?TupleValue
+    public function __invoke(StreamProvider $streams, GoValue ...$argv): NoValue|TupleValue
     {
         $env = new Environment(enclosing: $this->enclosure);
 
@@ -54,10 +53,10 @@ final class FuncValue implements GoValue
         }
 
         /** @var StmtValue $stmtValue */
-        $stmtValue = $bodyEvaluator($this->body, $env);
+        $stmtValue = ($this->body)($env);
 
         if ($stmtValue->isNone()) {
-            return null;
+            return NoValue::NoValue;
         }
 
         if (!$stmtValue instanceof ReturnValue) {

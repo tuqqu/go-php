@@ -6,7 +6,6 @@ namespace GoPhp\Env\EnvValue;
 
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoType\BasicType;
 
 abstract class EnvValue
 {
@@ -29,7 +28,7 @@ abstract class EnvValue
         return $this->value;
     }
 
-    public function getType(): BasicType
+    public function getType(): ValueType
     {
         return $this->type;
     }

@@ -40,14 +40,17 @@ use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\VarSpec;
 use GoPhp\EntryPoint\EntryPointValidator;
 use GoPhp\EntryPoint\MainEntryPoint;
+use GoPhp\Env\Builtin\BuiltinProvider;
 use GoPhp\Env\Environment;
 use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\EnvValue\Variable;
+use GoPhp\Env\Builtin\StdBuiltinProvider;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\TypeFactory;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
+use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
@@ -71,11 +74,11 @@ final class Interpreter
     public function __construct(
         private readonly Ast $ast,
         private array $argv = [],
-        private readonly StreamProvider $streamProvider = new StdStreamProvider(),
+        private readonly StreamProvider $streams = new StdStreamProvider(),
         private readonly EntryPointValidator $entryPointValidator = new MainEntryPoint(),
-    )
-    {
-        $this->env = new Environment();
+        BuiltinProvider $builtin = new StdBuiltinProvider(),
+    ) {
+        $this->env = new Environment($builtin->provide());
     }
 
     public function run(): ExecCode
@@ -88,7 +91,7 @@ final class Interpreter
 
         if ($this->entryPoint !== null) {
             $this->state = State::EntryPoint;
-            ($this->entryPoint)($this->evalBlockStmt(...));
+            ($this->entryPoint)($this->streams, ...$this->argv);
             dump('entry success'); die; // fixme debug
         } else {
             dd($this->env, 'no entry'); // fixme debug
@@ -252,7 +255,12 @@ final class Interpreter
     {
         [$params, $returns] = self::resolveParamsFromAstSignature($decl->signature);
 
-        $funcValue = new FuncValue($decl->body, $params, $returns, $this->env); //fixme body null
+        $funcValue = new FuncValue(
+            fn (Environment $env) => $this->evalBlockStmt($decl->body, $env),
+            $params,
+            $returns,
+            $this->env
+        ); //fixme body null
         $this->env->defineFunc($decl->name->name, $funcValue);
 
         $this->checkEntryPoint($decl->name->name, $funcValue);
@@ -264,7 +272,7 @@ final class Interpreter
     {
         $func = $this->evalExpr($expr->expr);
 
-        if (!$func instanceof FuncValue) {
+        if (!$func instanceof FuncValue && !$func instanceof BuiltinFuncValue) {
             throw new \Exception('call error');
         }
 
@@ -273,7 +281,7 @@ final class Interpreter
             $argv[] = $this->evalExpr($arg);
         }
 
-        return $func($this->evalBlockStmt(...), ...$argv); //fixme tuple
+        return $func($this->streams, ...$argv); //fixme tuple
     }
 
     private function evalEmptyStmt(EmptyStmt $stmt): SimpleValue
