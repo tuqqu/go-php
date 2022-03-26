@@ -7,8 +7,9 @@ namespace GoPhp\GoValue;
 use GoPhp\Operator;
 use GoPhp\GoType\BasicType;
 use GoPhp\Error\UnknownOperationError;
+use function GoPhp\assert_type_conforms;
 
-final class StringValue implements Addable, Comparable
+final class StringValue implements GoValue
 {
     public function __construct(
         private readonly string $value,
@@ -26,6 +27,8 @@ final class StringValue implements Addable, Comparable
 
     public function operateOn(Operator $op, GoValue $rhs): self|BoolValue
     {
+        assert_type_conforms($this, $rhs);
+
         return match ($op) {
             Operator::Plus,
             Operator::PlusEq => $this->add($rhs),
@@ -40,34 +43,32 @@ final class StringValue implements Addable, Comparable
         return $this->value;
     }
 
-    public function add(Addable $value): static
+    public function add(self $value): static
     {
-        // fixme add type check
         return new self($this->value . $value->value);
     }
 
     public function equals(GoValue $rhs): BoolValue
     {
-        // fixme add type check
         return BoolValue::fromBool($this->value === $rhs->unwrap());
     }
 
-    public function greater(Comparable $other): BoolValue
+    public function greater(self $other): BoolValue
     {
         // TODO: Implement greater() method.
     }
 
-    public function greaterEq(Comparable $other): BoolValue
+    public function greaterEq(self $other): BoolValue
     {
         // TODO: Implement greaterEq() method.
     }
 
-    public function less(Comparable $other): BoolValue
+    public function less(self $other): BoolValue
     {
         // TODO: Implement less() method.
     }
 
-    public function lessEq(Comparable $other): BoolValue
+    public function lessEq(self $other): BoolValue
     {
         // TODO: Implement lessEq() method.
     }

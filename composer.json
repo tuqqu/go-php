@@ -5,7 +5,10 @@
     "autoload": {
         "psr-4": {
             "GoPhp\\": "src/"
-        }
+        },
+        "files": [
+            "src/functions.php"
+        ]
     },
     "authors": [
         {

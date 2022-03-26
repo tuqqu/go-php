@@ -5,9 +5,21 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\GoValue\BoolValue;
+use GoPhp\GoValue\Float\Float32Value;
+use GoPhp\GoValue\Float\Float64Value;
 use GoPhp\GoValue\FloatValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\IntValue;
+use GoPhp\GoValue\Int\Int16Value;
+use GoPhp\GoValue\Int\Int32Value;
+use GoPhp\GoValue\Int\Int64Value;
+use GoPhp\GoValue\Int\Int8Value;
+use GoPhp\GoValue\Int\IntValue;
+use GoPhp\GoValue\Int\Uint16Value;
+use GoPhp\GoValue\Int\Uint32Value;
+use GoPhp\GoValue\Int\Uint64Value;
+use GoPhp\GoValue\Int\Uint8Value;
+use GoPhp\GoValue\Int\UintptrValue;
+use GoPhp\GoValue\Int\UintValue;
 use GoPhp\GoValue\StringValue;
 
 enum BasicType: string implements ValueType
@@ -75,19 +87,19 @@ enum BasicType: string implements ValueType
     public function defaultValue(): GoValue
     {
         return match ($this) {
-            self::Int => new IntValue(0, self::Int),
-            self::Int8 => new IntValue(0, self::Int8),
-            self::Int16 => new IntValue(0, self::Int16),
-            self::Int32 => new IntValue(0, self::Int32),
-            self::Int64 => new IntValue(0, self::Int64),
-            self::Uint => new IntValue(0, self::Uint),
-            self::Uint8 => new IntValue(0, self::Uint8),
-            self::Uint16 => new IntValue(0, self::Uint16),
-            self::Uint32 => new IntValue(0, self::Uint32),
-            self::Uint64 => new IntValue(0, self::Uint64),
-            self::Uintptr => new IntValue(0, self::Uintptr),
-            self::Float32 => new FloatValue(0, self::Float32),
-            self::Float64 => new FloatValue(0, self::Float64),
+            self::Int => new IntValue(0),
+            self::Int8 => new Int8Value(0),
+            self::Int16 => new Int16Value(0),
+            self::Int32 => new Int32Value(0),
+            self::Int64 => new Int64Value(0),
+            self::Uint => new UintValue(0),
+            self::Uint8 => new Uint8Value(0),
+            self::Uint16 => new Uint16Value(0),
+            self::Uint32 => new Uint32Value(0),
+            self::Uint64 => new Uint64Value(0),
+            self::Uintptr => new UintptrValue(0),
+            self::Float32 => new Float32Value(0),
+            self::Float64 => new Float64Value(0),
 //            self::Complex64 =>
 //            self::Complex128 =>
             self::Bool => BoolValue::False,

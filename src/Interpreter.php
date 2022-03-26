@@ -45,16 +45,16 @@ use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\EnvValue\Variable;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
-use GoPhp\GoType\TupleType;
 use GoPhp\GoType\TypeFactory;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
-use GoPhp\GoValue\FloatValue;
+use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\IntValue;
+use GoPhp\GoValue\Int\Int32Value;
+use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\StmtValue\ReturnValue;
@@ -491,9 +491,9 @@ final class Interpreter
         };
     }
 
-    private function evalRuneLit(RuneLit $lit): IntValue
+    private function evalRuneLit(RuneLit $lit): Int32Value
     {
-        return IntValue::fromRune($lit->rune);
+        return Int32Value::fromRune($lit->rune);
     }
 
     private function evalStringLit(StringLit $lit): StringValue
@@ -501,14 +501,14 @@ final class Interpreter
         return new StringValue($lit->str);
     }
 
-    private function evalIntLit(IntLit $lit): IntValue
+    private function evalIntLit(IntLit $lit): UntypedIntValue
     {
-        return IntValue::fromString($lit->digits, BasicType::UntypedInt);
+        return UntypedIntValue::fromString($lit->digits);
     }
 
-    private function evalFloatLit(FloatLit $lit): FloatValue
+    private function evalFloatLit(FloatLit $lit): UntypedFloatValue
     {
-        return FloatValue::fromString($lit->digits, BasicType::UntypedFloat);
+        return UntypedFloatValue::fromString($lit->digits);
     }
 
     private function evalBinaryExpr(BinaryExpr $expr): GoValue

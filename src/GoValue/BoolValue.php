@@ -7,6 +7,7 @@ namespace GoPhp\GoValue;
 use GoPhp\Operator;
 use GoPhp\GoType\BasicType;
 use GoPhp\Error\UnknownOperationError;
+use function GoPhp\assert_type_conforms;
 
 enum BoolValue: int implements GoValue
 {
@@ -43,7 +44,7 @@ enum BoolValue: int implements GoValue
 
     public function operateOn(Operator $op, GoValue $rhs): self
     {
-        // fixme add type check
+        assert_type_conforms($this, $rhs);
 
         return match ($op) {
             Operator::EqEq => $this->equals($rhs),
