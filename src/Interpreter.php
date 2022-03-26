@@ -38,6 +38,7 @@ use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\VarSpec;
+use GoParser\Parser;
 use GoPhp\EntryPoint\EntryPointValidator;
 use GoPhp\EntryPoint\MainEntryPoint;
 use GoPhp\Env\Builtin\BuiltinProvider;
@@ -81,8 +82,29 @@ final class Interpreter
         $this->env = new Environment($builtin->provide());
     }
 
+    public static function fromString(
+        string $src,
+        array $argv = [],
+        StreamProvider $streams = new StdStreamProvider(),
+        EntryPointValidator $entryPointValidator = new MainEntryPoint(),
+        BuiltinProvider $builtin = new StdBuiltinProvider(),
+    ): self {
+        // fixme add onerror
+        $parser = new Parser($src);
+        $ast = $parser->parse();
+
+        if ($parser->hasErrors()) {
+            // fixme handle errs
+            dump('has parse errs');
+            dump($parser->getErrors());
+        }
+
+        return new self($ast, $argv, $streams, $entryPointValidator, $builtin);
+    }
+
     public function run(): ExecCode
     {
+
         $this->curPackage = $this->ast->package->identifier->name;
 
         foreach ($this->ast->decls as $decl) {

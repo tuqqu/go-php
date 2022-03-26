@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Float;
 
-use GoPhp\GoValue\Addable;
-use GoPhp\GoValue\Number;
 use GoPhp\GoValue\SimpleNumber;
 
 abstract class BaseFloatValue extends SimpleNumber
@@ -34,27 +32,27 @@ abstract class BaseFloatValue extends SimpleNumber
 
     // binary
 
-    public function add(Addable $value): static
+    public function add(self $value): static
     {
         return new static($this->value + $value->value);
     }
 
-    public function sub(Number $value): static
+    public function sub(self $value): static
     {
         return new static($this->value - $value->value);
     }
 
-    public function div(Number $value): static
+    public function div(self $value): static
     {
         return new static($this->value / $value->value);
     }
 
-    public function mod(Number $value): static
+    public function mod(self $value): static
     {
         return new static($this->value % $value->value);
     }
 
-    public function mul(Number $value): static
+    public function mul(self $value): static
     {
         return new static($this->value * $value->value);
     }
