@@ -13,7 +13,7 @@ use GoPhp\GoValue\TupleValue;
 use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\StmtValue;
-use GoPhp\StreamProvider;
+use GoPhp\Stream\StreamProvider;
 
 final class FuncValue implements GoValue
 {

@@ -65,6 +65,8 @@ use GoPhp\GoValue\TupleValue;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\SimpleValue;
 use GoPhp\StmtValue\StmtValue;
+use GoPhp\Stream\StdStreamProvider;
+use GoPhp\Stream\StreamProvider;
 
 final class Interpreter
 {

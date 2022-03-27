@@ -7,7 +7,7 @@ namespace GoPhp\GoValue;
 use GoPhp\GoType\VoidType;
 use GoPhp\GoType\ValueType;
 use GoPhp\Operator;
-use GoPhp\StreamProvider;
+use GoPhp\Stream\StreamProvider;
 
 final class BuiltinFuncValue implements GoValue
 {

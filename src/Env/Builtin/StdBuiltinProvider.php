@@ -12,7 +12,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\TupleValue;
-use GoPhp\StreamProvider;
+use GoPhp\Stream\StreamProvider;
 
 final class StdBuiltinProvider implements BuiltinProvider
 {

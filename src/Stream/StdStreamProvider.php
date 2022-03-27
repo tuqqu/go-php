@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoPhp;
+namespace GoPhp\Stream;
 
 use const STDOUT;
 use const STDERR;
