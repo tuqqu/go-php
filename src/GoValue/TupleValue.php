@@ -35,6 +35,11 @@ final class TupleValue implements GoValue
         throw new \BadMethodCallException(); //fixme
     }
 
+    public function mutate(Operator $op, GoValue $rhs): never
+    {
+        throw new \BadMethodCallException('cannot operate');
+    }
+
     /**
      * @return GoValue[]
      */

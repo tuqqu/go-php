@@ -47,6 +47,22 @@ abstract class SimpleNumber implements GoValue
         }
     }
 
+    public function mutate(Operator $op, GoValue $rhs): void
+    {
+        assert_type_conforms($this, $rhs);
+
+        match ($op) {
+            Operator::PlusEq,
+            Operator::Inc => $this->mutAdd($rhs),
+            Operator::MinusEq,
+            Operator::Dec => $this->mutSub($rhs),
+            Operator::MulEq => $this->mutMul($rhs),
+            Operator::DivEq => $this->mutDiv($rhs),
+            Operator::ModEq => $this->mutMod($rhs),
+            default => throw UnknownOperationError::unknownOperator($op),
+        };
+    }
+
     public function equals(GoValue $rhs): BoolValue
     {
         return BoolValue::fromBool($this->value === $rhs->unwrap());

@@ -32,6 +32,11 @@ enum NoValue implements GoValue
         throw new \BadMethodCallException('cannot operate');
     }
 
+    public function mutate(Operator $op, GoValue $rhs): never
+    {
+        throw new \BadMethodCallException('cannot operate');
+    }
+
     public function equals(GoValue $rhs): BoolValue
     {
         throw new \BadMethodCallException('cannot operate');

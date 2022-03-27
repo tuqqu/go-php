@@ -100,6 +100,11 @@ final class FuncValue implements GoValue
         throw new \BadMethodCallException('cannot operate');
     }
 
+    public function mutate(Operator $op, GoValue $rhs): never
+    {
+        throw new \BadMethodCallException('cannot operate');
+    }
+
     public function equals(GoValue $rhs): BoolValue
     {
         return BoolValue::False; //fixme add nil

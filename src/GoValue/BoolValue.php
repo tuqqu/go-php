@@ -53,6 +53,11 @@ enum BoolValue: int implements GoValue
         };
     }
 
+    public function mutate(Operator $op, GoValue $rhs): never
+    {
+        throw UnknownOperationError::unknownOperator($op);
+    }
+
     public function equals(GoValue $rhs): self
     {
         return self::fromBool($this === $rhs);

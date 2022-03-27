@@ -8,7 +8,7 @@ use GoPhp\GoValue\SimpleNumber;
 
 abstract class BaseFloatValue extends SimpleNumber
 {
-    public readonly float $value;
+    public float $value;
 
     public function __construct(float $value)
     {
@@ -55,5 +55,30 @@ abstract class BaseFloatValue extends SimpleNumber
     public function mul(self $value): static
     {
         return new static($this->value * $value->value);
+    }
+
+    public function mutAdd(self $value): void
+    {
+        $this->value += $value->value;
+    }
+
+    public function mutSub(self $value): void
+    {
+        $this->value += $value->value;
+    }
+
+    public function mutDiv(self $value): void
+    {
+        $this->value /= $value->value;
+    }
+
+    public function mutMod(self $value): void
+    {
+        $this->value %= $value->value;
+    }
+
+    public function mutMul(self $value): void
+    {
+        $this->value *= $value->value;
     }
 }

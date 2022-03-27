@@ -33,6 +33,7 @@ use GoParser\Ast\Stmt\EmptyStmt;
 use GoParser\Ast\Stmt\ExprStmt;
 use GoParser\Ast\Stmt\FuncDecl;
 use GoParser\Ast\Stmt\IfStmt;
+use GoParser\Ast\Stmt\IncDecStmt;
 use GoParser\Ast\Stmt\ReturnStmt;
 use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
@@ -110,7 +111,6 @@ final class Interpreter
 
     public function run(): ExecCode
     {
-
         $this->curPackage = $this->ast->package->identifier->name;
 
         foreach ($this->ast->decls as $decl) {
@@ -137,6 +137,7 @@ final class Interpreter
                     $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
                     $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
                     $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
+                    $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
                     $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
                     $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
                     $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
@@ -327,6 +328,8 @@ final class Interpreter
     private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtValue
     {
         return $this->evalWithEnvWrap($env, function () use ($blockStmt): StmtValue {
+            $stmtVal = SimpleValue::None;
+
             foreach ($blockStmt->stmtList->stmts as $stmt) {
                 $stmtVal = $this->evalStmt($stmt);
 
@@ -397,6 +400,18 @@ final class Interpreter
         });
     }
 
+    private function evalIncDecStmt(IncDecStmt $stmt): SimpleValue
+    {
+        $this
+            ->evalExpr($stmt->lhs)
+            ->mutate(
+                Operator::fromAst($stmt->op),
+                new UntypedIntValue(1)
+            );
+
+        return SimpleValue::None;
+    }
+
     private function evalAssignmentStmt(AssignmentStmt $stmt): SimpleValue
     {
         $lhs = [];
@@ -438,17 +453,19 @@ final class Interpreter
         }
 
         // fixme duplicated logic
+        $op = Operator::fromAst($stmt->op);
 
         for ($i = 0; $i < $len; ++$i) {
-            $op = Operator::fromAst($stmt->op);
-
-            $newValue = match (true) {
-                $op === Operator::Eq => $rhs[$i],
-                $op->isCompound() => $lhs[$i]->value->operateOn($op->disjoin(), $rhs[$i]),
-                default => throw new \Exception('wrong operator'),
-            };
-
-            $this->env->assign($lhs[$i]->name, $newValue);
+            switch (true) {
+                case $op === Operator::Eq:
+                    $this->env->assign($lhs[$i]->name, $rhs[$i]);
+                    break;
+                case $op->isAssignment():
+                    $lhs[$i]->value->mutate($op, $rhs[$i]);
+                    break;
+                default:
+                    throw new \Exception('wrong operator');
+            }
         }
 
         return SimpleValue::None;

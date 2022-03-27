@@ -11,7 +11,7 @@ abstract class BaseIntValue extends SimpleNumber
     public const MIN = PHP_INT_MIN;
     public const MAX = PHP_INT_MAX;
 
-    public readonly int $value;
+    public int $value;
 
     public function __construct(int $value)
     {
@@ -50,7 +50,7 @@ abstract class BaseIntValue extends SimpleNumber
 
     public function div(self $value): static
     {
-        return self::newWithWrap($this->value / $value->value);
+        return self::newWithWrap((int) ($this->value / $value->value));
     }
 
     public function mod(self $value): static
@@ -61,6 +61,31 @@ abstract class BaseIntValue extends SimpleNumber
     public function mul(self $value): static
     {
         return self::newWithWrap($this->value * $value->value);
+    }
+
+    public function mutAdd(self $value): void
+    {
+        $this->value = self::wrap($this->value + $value->value);
+    }
+
+    public function mutSub(self $value): void
+    {
+        $this->value = self::wrap($this->value - $value->value);
+    }
+
+    public function mutDiv(self $value): void
+    {
+        $this->value = self::wrap((int) ($this->value / $value->value));
+    }
+
+    public function mutMod(self $value): void
+    {
+        $this->value = self::wrap($this->value % $value->value);
+    }
+
+    public function mutMul(self $value): void
+    {
+        $this->value = self::wrap($this->value * $value->value);
     }
 
     final protected static function newWithWrap(int|float $value): static
@@ -78,8 +103,8 @@ abstract class BaseIntValue extends SimpleNumber
     final protected static function wrap(int|float $value): int|float
     {
         return match (true) {
-            $value < static::MIN => self::wrap(static::MAX + $value),
-            $value > static::MAX => self::wrap(-static::MAX + $value),
+            $value < static::MIN => self::wrap($value + static::MAX),
+            $value > static::MAX => self::wrap($value - static::MAX),
             default => $value,
         };
     }

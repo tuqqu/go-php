@@ -13,6 +13,8 @@ interface GoValue
 
     public function operateOn(Operator $op, self $rhs): self;
 
+    public function mutate(Operator $op, self $rhs): void;
+
     public function equals(self $rhs): BoolValue;
 
     public function unwrap(): mixed;

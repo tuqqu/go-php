@@ -23,6 +23,19 @@ enum Operator: string
     case LeftShift = '<<';
     case RightShift = '>>';
 
+    // logic operators
+    case LogicAnd = '&&';
+    case LogicOr = '||';
+    case LogicNot = '!';
+
+    // equality & comparison
+    case EqEq = '==';
+    case NotEq = '!=';
+    case Less = '<';
+    case LessEq = '<=';
+    case Greater = '>';
+    case GreaterEq = '>=';
+
     // assignment
 
     case Eq = '=';
@@ -40,25 +53,15 @@ enum Operator: string
     case LeftShiftEq = '<<=';
     case RightShiftEq = '>>=';
 
-    // logic operators
-    case LogicAnd = '&&';
-    case LogicOr = '||';
-    case LogicNot = '!';
-
-    // equality & comparison
-    case EqEq = '==';
-    case NotEq = '!=';
-    case Less = '<';
-    case LessEq = '<=';
-    case Greater = '>';
-    case GreaterEq = '>=';
+    case Inc = '++';
+    case Dec = '--';
 
     public static function fromAst(AstOperator $op): self
     {
         return self::tryFrom($op->value) ?? throw new \Exception('unknown op');
     }
 
-    public function isCompound(): bool
+    public function isAssignment(): bool
     {
         return match ($this) {
             self::PlusEq,
@@ -71,26 +74,10 @@ enum Operator: string
             self::BitXorEq,
             self::BitAndNotEq,
             self::LeftShiftEq,
-            self::RightShiftEq => true,
+            self::RightShiftEq,
+            self::Inc,
+            self::Dec => true,
             default => false,
-        };
-    }
-
-    public function disjoin(): self
-    {
-        return match ($this) {
-            self::PlusEq => self::Plus,
-            self::MinusEq => self::Minus,
-            self::MulEq => self::Mul,
-            self::DivEq => self::Div,
-            self::ModEq => self::Mod,
-            self::BitAndEq => self::BitAnd,
-            self::BitOrEq => self::BitOr,
-            self::BitXorEq => self::BitXor,
-            self::BitAndNotEq => self::BitAndNot,
-            self::LeftShiftEq => self::LeftShift,
-            self::RightShiftEq => self::RightShift,
-            default => throw new \Exception('not compund'),
         };
     }
 }

@@ -12,7 +12,7 @@ use function GoPhp\assert_type_conforms;
 final class StringValue implements GoValue
 {
     public function __construct(
-        private readonly string $value,
+        private string $value,
     ) {}
 
     public function type(): BasicType
@@ -31,11 +31,21 @@ final class StringValue implements GoValue
 
         return match ($op) {
             Operator::Plus,
-            Operator::PlusEq => $this->add($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
             default => throw UnknownOperationError::unknownOperator($op),
         };
+    }
+
+    public function mutate(Operator $op, GoValue $rhs): void
+    {
+        assert_type_conforms($this, $rhs);
+
+        if ($op === Operator::PlusEq) {
+            $this->mutAdd($rhs);
+        }
+
+        throw UnknownOperationError::unknownOperator($op);
     }
 
     public function unwrap(): string
@@ -46,6 +56,11 @@ final class StringValue implements GoValue
     public function add(self $value): static
     {
         return new self($this->value . $value->value);
+    }
+
+    public function mutAdd(self $value): void
+    {
+        $this->value .= $value->value;
     }
 
     public function equals(GoValue $rhs): BoolValue
