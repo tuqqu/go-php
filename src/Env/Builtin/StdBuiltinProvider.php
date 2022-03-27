@@ -36,7 +36,6 @@ final class StdBuiltinProvider implements BuiltinProvider
      */
     private static function println(StreamProvider $streams, GoValue ...$values): TupleValue|NoValue
     {
-        $stdout = $streams->stdout();
         $output = [];
 
         foreach ($values as $value) {
@@ -44,7 +43,7 @@ final class StdBuiltinProvider implements BuiltinProvider
             $output[] = (string) $value->unwrap();
         }
 
-        \fwrite($stdout, \implode(' ', $output) . "\n");
+        \fwrite($streams->stderr(), \implode(' ', $output) . "\n");
 
         return NoValue::NoValue;
     }
@@ -54,14 +53,13 @@ final class StdBuiltinProvider implements BuiltinProvider
      */
     private static function print(StreamProvider $streams, GoValue ...$values): NoValue|TupleValue
     {
-        $stdout = $streams->stdout();
         $output = [];
 
         foreach ($values as $value) {
             $output[] = (string) $value->unwrap();
         }
 
-        \fwrite($stdout, \implode('', $output));
+        \fwrite($streams->stderr(), \implode('', $output));
 
         return NoValue::NoValue;
     }

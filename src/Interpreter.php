@@ -59,6 +59,7 @@ use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\StmtValue\ReturnValue;
@@ -96,7 +97,10 @@ final class Interpreter
         if ($parser->hasErrors()) {
             // fixme handle errs
             dump('has parse errs');
-            dump($parser->getErrors());
+            foreach ($parser->getErrors() as $error) {
+                dump((string)$error);
+            }
+            die;
         }
 
         return new self($ast, $argv, $streams, $entryPointValidator, $builtin);
@@ -242,8 +246,8 @@ final class Interpreter
                         throw new \Exception('multiple-value in single-value context');
                     }
 
-                    foreach ($value->values as $value) {
-                        $values[] = $value;
+                    foreach ($value->values as $val) {
+                        $values[] = $val;
                     }
 
                     if (\count($values) !== $len) {
@@ -290,7 +294,7 @@ final class Interpreter
         return SimpleValue::None;
     }
 
-    private function evalCallExpr(CallExpr $expr): GoValue
+    private function evalCallExpr(CallExpr $expr): NoValue|TupleValue
     {
         $func = $this->evalExpr($expr->expr);
 
@@ -329,9 +333,6 @@ final class Interpreter
                 }
             }
 
-            //fixme debug
-            dump($this->env);
-
             return $stmtVal;
         });
     }
@@ -351,12 +352,26 @@ final class Interpreter
 
     private function evalReturnStmt(ReturnStmt $stmt): ReturnValue
     {
-        $values = [];
-        foreach ($stmt->exprList->exprs as $expr) {
-            $values[] = $this->evalExpr($expr);
+        if (empty($stmt->exprList->exprs)) {
+            return ReturnValue::fromVoid();
         }
 
-        return new ReturnValue($values);
+        $values = [];
+
+        foreach ($stmt->exprList->exprs as $expr) {
+            $value = $this->evalExpr($expr);
+            if ($value instanceof TupleValue) {
+                if (!empty($values)) {
+                    throw new \Exception('single value context');
+                }
+
+                return ReturnValue::fromTuple($value);
+            }
+
+            $values[] = $value;
+        }
+
+        return ReturnValue::fromValues($values);
     }
 
     private function evalIfStmt(IfStmt $stmt): StmtValue
@@ -565,11 +580,6 @@ final class Interpreter
 
     private function evalIdent(Ident $ident): GoValue
     {
-        // fixme add builtin.go with predefined idents
-        if ($ident->name === 'true') return BoolValue::fromBool(true);
-        if ($ident->name === 'false') return BoolValue::fromBool(false);
-        if ($ident->name === 'iota') return BoolValue::fromBool(false); //todo
-
         return $this->env->get($ident->name)->value;
     }
 
@@ -656,7 +666,9 @@ final class Interpreter
     {
         return new Param(
             self::resolveType($paramDecl->type),
-            self::arrayFromIdents($paramDecl->identList), // fixme maybe anon option for perf
+            $paramDecl->identList === null ?
+                null :
+                self::arrayFromIdents($paramDecl->identList), // fixme maybe anon option for perf
             $paramDecl->ellipsis !== null,
         );
     }

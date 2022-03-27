@@ -19,6 +19,11 @@ final class Params implements \Countable, \ArrayAccess, \Iterator
         $this->len = \count($params);
     }
 
+    public function void(): bool
+    {
+        return $this->len === 0;
+    }
+
     public function count(): int
     {
         return $this->len;

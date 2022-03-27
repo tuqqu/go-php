@@ -9,12 +9,16 @@ use GoPhp\Operator;
 
 final class TupleValue implements GoValue
 {
+    public readonly int $len;
+
     /**
      * @param GoValue[] $values
      */
     public function __construct(
         public readonly array $values,
-    ) {}
+    ) {
+        $this->len = \count($this->values);
+    }
 
     public function operate(Operator $op): self
     {
@@ -41,7 +45,6 @@ final class TupleValue implements GoValue
 
     public function type(): ValueType
     {
-        return $this->values[0]->type();
-        //fixme add
+        throw new \BadMethodCallException(); //fixme
     }
 }

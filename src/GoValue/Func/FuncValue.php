@@ -56,22 +56,28 @@ final class FuncValue implements GoValue
         $stmtValue = ($this->body)($env);
 
         if ($stmtValue->isNone()) {
-            return NoValue::NoValue;
+            return $this->signature->returnArity === 0 ?
+                NoValue::NoValue :
+                throw new \Exception('must return void');
         }
 
-        if (!$stmtValue instanceof ReturnValue) {
+        if (!$stmtValue instanceof ReturnValue) { //fixme 100%? already
             throw new \Exception('wrong return stmt');
+        }
+
+        if ($this->signature->returnArity !== ($stmtValue->values?->len ?? 0)) {
+            throw new \Exception('wrong return count');
         }
 
         $i = 0;
         // fixme add named returns
         foreach ($this->signature->returns as $param) {
-            if (!$param->type->conforms($stmtValue->values[$i]->type())) {
+            if (!$param->type->conforms($stmtValue->values->values[$i]->type())) {
                 throw new \Exception('type error');
             }
         }
 
-        return new TupleValue($stmtValue->values);
+        return $stmtValue->values;
     }
 
     public function unwrap(): callable

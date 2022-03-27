@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 /**
- * Not a real Go type, but an internal representation
+ * Not a real Go type, but an internal marker
  * of a set of types returned from a function call.
  */
 final class TupleType implements ValueType
@@ -37,7 +37,7 @@ final class TupleType implements ValueType
 
     public function reify(): static
     {
-        return $this;
+        throw new \Exception();
     }
 
     public function defaultValue(): never
@@ -47,12 +47,18 @@ final class TupleType implements ValueType
 
     public function equals(ValueType $other): bool
     {
-        return $other instanceof self && $this->name === $other->name;
+        throw new \Exception();
     }
 
-    public function conforms(ValueType $other): bool
+    public function conforms(ValueType ...$other): bool
     {
-        return $this->equals($other);
+        foreach ($this->types as $type) {
+            if (!$type->conforms($type)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
