@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-use GoPhp\GoValue\ArrayValue;
+use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\GoValue;
 
 final class ArrayType implements ValueType

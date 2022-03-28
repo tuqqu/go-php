@@ -8,6 +8,7 @@ use GoParser\Ast\ConstSpec;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
 use GoParser\Ast\Expr\BinaryExpr;
 use GoParser\Ast\Expr\CallExpr;
+use GoParser\Ast\Expr\CompositeLit;
 use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\Expr\FloatLit;
 use GoParser\Ast\Expr\FuncType as AstFuncType;
@@ -52,7 +53,8 @@ use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\TypeFactory;
 use GoPhp\GoType\ValueType;
-use GoPhp\GoValue\ArrayValue;
+use GoPhp\GoValue\Array\ArrayBuilder;
+use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\BuiltinFuncValue;
@@ -537,6 +539,7 @@ final class Interpreter
             $value !== null => $value,
             $expr instanceof CallExpr => $this->evalCallExpr($expr),
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
+            $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
 
             // fixme debug
             default => dd($expr),
@@ -574,6 +577,23 @@ final class Interpreter
             // fixme debug
             default => dd($expr),
         };
+    }
+
+    private function evalCompositeLit(CompositeLit $lit): GoValue //fixme arrayvalye, slice, map, struct etc...
+    {
+        $type = $this->resolveType($lit->type);
+
+        if ($type instanceof ArrayType) {
+            $builder = ArrayBuilder::fromType($type);
+
+            foreach ($lit->elementList->elements as $element) {
+                $builder->push($this->evalExpr($element->element));
+            }
+
+            return $builder->build();
+        }
+
+        throw new \Exception('unknown composite lit');
     }
 
     private function evalRuneLit(RuneLit $lit): Int32Value
@@ -707,9 +727,9 @@ final class Interpreter
         return $resolved;
     }
 
-    private static function resolveTypeFromAstSignature(AstSignature $signature): FuncType
+    private function resolveTypeFromAstSignature(AstSignature $signature): FuncType
     {
-        return new FuncType(...self::resolveParamsFromAstSignature($signature));
+        return new FuncType(...$this->resolveParamsFromAstSignature($signature));
     }
 
     private function resolveArrayType(AstArrayType $arrayType): ArrayType
@@ -728,24 +748,24 @@ final class Interpreter
     /**
      * @return array{Params, Params}
      */
-    private static function resolveParamsFromAstSignature(AstSignature $signature): array
+    private function resolveParamsFromAstSignature(AstSignature $signature): array
     {
         return [
-            new Params(self::resolveParamsFromAstParams($signature->params)),
+            new Params($this->resolveParamsFromAstParams($signature->params)),
             new Params(match (true) {
                 $signature->result === null => [],
                 $signature->result instanceof AstType => [new Param($this->resolveType($signature->result))],
-                $signature->result instanceof AstParams => self::resolveParamsFromAstParams($signature->result),
+                $signature->result instanceof AstParams => $this->resolveParamsFromAstParams($signature->result),
             }),
         ];
     }
 
-    private static function resolveParamsFromAstParams(AstParams $params): array
+    private function resolveParamsFromAstParams(AstParams $params): array
     {
-        return \array_map(self::paramFromAstParamDecl(...), $params->paramList);
+        return \array_map($this->paramFromAstParamDecl(...), $params->paramList);
     }
 
-    private static function paramFromAstParamDecl(ParamDecl $paramDecl): Param
+    private function paramFromAstParamDecl(ParamDecl $paramDecl): Param
     {
         return new Param(
             $this->resolveType($paramDecl->type),

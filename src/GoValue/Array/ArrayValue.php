@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\GoValue;
+namespace GoPhp\GoValue\Array;
 
 use GoPhp\GoType\ArrayType;
+use GoPhp\GoValue\BoolValue;
+use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
 
 final class ArrayValue implements GoValue
@@ -19,6 +21,10 @@ final class ArrayValue implements GoValue
         public readonly ArrayType $type,
     ) {
         $this->len = \count($this->values);
+
+        if ($this->type->len !== $this->len) {
+            throw new \Exception('wrong type');
+        }
     }
 
     public function toString(): string
