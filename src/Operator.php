@@ -64,6 +64,7 @@ enum Operator: string
     public function isAssignment(): bool
     {
         return match ($this) {
+            self::Eq,
             self::PlusEq,
             self::MinusEq,
             self::MulEq,

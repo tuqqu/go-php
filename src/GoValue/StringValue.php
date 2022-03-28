@@ -20,6 +20,11 @@ final class StringValue implements GoValue
         return BasicType::String;
     }
 
+    public function toString(): string
+    {
+        return $this->value;
+    }
+
     public function operate(Operator $op): never
     {
         throw UnknownOperationError::unknownOperator($op);

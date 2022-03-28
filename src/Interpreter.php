@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoParser\Ast\ConstSpec;
+use GoParser\Ast\Expr\ArrayType as AstArrayType;
 use GoParser\Ast\Expr\BinaryExpr;
 use GoParser\Ast\Expr\CallExpr;
 use GoParser\Ast\Expr\Expr;
@@ -12,6 +13,7 @@ use GoParser\Ast\Expr\FloatLit;
 use GoParser\Ast\Expr\FuncType as AstFuncType;
 use GoParser\Ast\Expr\GroupExpr;
 use GoParser\Ast\Expr\Ident;
+use GoParser\Ast\Expr\IndexExpr;
 use GoParser\Ast\Expr\IntLit;
 use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RawStringLit;
@@ -43,24 +45,26 @@ use GoParser\Parser;
 use GoPhp\EntryPoint\EntryPointValidator;
 use GoPhp\EntryPoint\MainEntryPoint;
 use GoPhp\Env\Builtin\BuiltinProvider;
-use GoPhp\Env\Environment;
-use GoPhp\Env\EnvValue\EnvValue;
-use GoPhp\Env\EnvValue\Variable;
 use GoPhp\Env\Builtin\StdBuiltinProvider;
+use GoPhp\Env\Environment;
+use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\TypeFactory;
 use GoPhp\GoType\ValueType;
+use GoPhp\GoValue\ArrayValue;
 use GoPhp\GoValue\BoolValue;
-use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Float\UntypedFloatValue;
+use GoPhp\GoValue\Func\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\NoValue;
+use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\StmtValue\ReturnValue;
@@ -180,7 +184,7 @@ final class Interpreter
             /** @var ConstSpec $spec */
             $type = null;
             if ($spec->type !== null) {
-                $type = self::resolveType($spec->type);
+                $type = $this->resolveType($spec->type);
             }
 
             if (!$type instanceof BasicType) {
@@ -223,7 +227,7 @@ final class Interpreter
             /** @var VarSpec $spec */
             $type = null;
             if ($spec->type !== null) {
-                $type = self::resolveType($spec->type);
+                $type = $this->resolveType($spec->type);
             }
 
             $initWithDefaultValue = false;
@@ -311,6 +315,23 @@ final class Interpreter
         }
 
         return $func($this->streams, ...$argv); //fixme tuple
+    }
+
+    private function evalIndexExpr(IndexExpr $expr): GoValue
+    {
+        $array = $this->evalExpr($expr->expr);
+
+        if (!$array instanceof ArrayValue) {
+            throw new \Exception('array exp');
+        }
+
+        $index = $this->evalExpr($expr->index);
+
+        if (!$index instanceof BaseIntValue) { //fixme check int type
+            throw new \Exception('int exp');
+        }
+
+        return $array->get($index->unwrap());
     }
 
     private function evalEmptyStmt(EmptyStmt $stmt): SimpleValue
@@ -416,12 +437,7 @@ final class Interpreter
     {
         $lhs = [];
         foreach ($stmt->lhs->exprs as $expr) {
-            $envValue = $this->getEnvValue($expr);
-            if (!$envValue instanceof Variable) {
-                throw new \InvalidArgumentException('cannot modify non-vars');
-            }
-
-            $lhs[] = $envValue;
+            $lhs[] = $this->getAssignmentCallable($expr);
         }
 
         $rhs = [];
@@ -444,7 +460,7 @@ final class Interpreter
         } else {
             $rhs[] = $value;
             for ($i = 1; $i < $len; ++$i) {
-                $value = $this->evalExpr($stmt->rhs->exprs[$i++]);
+                $value = $this->evalExpr($stmt->rhs->exprs[$i]);
                 if ($value instanceof TupleValue) {
                     throw new \Exception('multiple-value in single-value context');
                 }
@@ -455,16 +471,15 @@ final class Interpreter
         // fixme duplicated logic
         $op = Operator::fromAst($stmt->op);
 
+        if (!$op->isAssignment()) {
+            throw new \Exception('wrong operator');
+        }
+
         for ($i = 0; $i < $len; ++$i) {
-            switch (true) {
-                case $op === Operator::Eq:
-                    $this->env->assign($lhs[$i]->name, $rhs[$i]);
-                    break;
-                case $op->isAssignment():
-                    $lhs[$i]->value->mutate($op, $rhs[$i]);
-                    break;
-                default:
-                    throw new \Exception('wrong operator');
+            if ($op === Operator::Eq) {
+                $lhs[$i]($rhs[$i]);
+            } else {
+                $lhs[$i]->mutate($op, $rhs[$i]);
             }
         }
 
@@ -521,6 +536,7 @@ final class Interpreter
             // literals
             $value !== null => $value,
             $expr instanceof CallExpr => $this->evalCallExpr($expr),
+            $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
 
             // fixme debug
             default => dd($expr),
@@ -544,12 +560,17 @@ final class Interpreter
         };
     }
 
-    private function getEnvValue(Expr $expr): EnvValue
+    private function evalConstExpr(Expr $expr): GoValue
+    {
+        return $this->tryEvalConstExpr($expr) ?? throw new \Exception('cannot eval const expr');
+    }
+
+    // fixme introduce type maybe
+    private function getAssignmentCallable(Expr $expr): callable
     {
         return match (true) {
-            // pointers
-            $expr instanceof Ident => $this->env->get($expr->name),
-
+            $expr instanceof Ident => $this->evalIdentVariable($expr),
+            $expr instanceof IndexExpr => $this->evalIndexExprVariable($expr),
             // fixme debug
             default => dd($expr),
         };
@@ -602,6 +623,34 @@ final class Interpreter
         return $this->env->get($ident->name)->value;
     }
 
+    private function evalIdentVariable(Ident $ident): callable
+    {
+        return $this->env->getVariable($ident->name)->set(...);
+    }
+
+    private function evalIndexExprVariable(IndexExpr $expr): callable
+    {
+        if (!$expr->expr instanceof Ident) {
+            throw new \Exception('cannot assign');
+        }
+
+        $array = $this->evalIdent($expr->expr);
+
+        if (!$array instanceof ArrayValue) {
+            throw new \Exception('array exp');
+        }
+
+        $index = $this->evalExpr($expr->index);
+
+        if (!$index instanceof BaseIntValue) { //fixme check int type
+            throw new \Exception('int exp');
+        }
+
+        return static function (GoValue $value) use ($array, $index): void {
+            $array->set($value, $index->unwrap());
+        };
+    }
+
     private function isTrue(GoValue $value): bool
     {
         if (!$value instanceof BoolValue) {
@@ -633,7 +682,7 @@ final class Interpreter
     }
 
     // fixme maybe must be done lazily
-    private static function resolveType(AstType $type): ValueType
+    private function resolveType(AstType $type): ValueType
     {
         $resolved = null;
 
@@ -645,12 +694,14 @@ final class Interpreter
                 $resolved = TypeFactory::tryFrom(self::resolveQualifiedTypeName($type));
                 break;
             case $type instanceof AstFuncType:
-                $resolved = self::resolveTypeFromAstSignature($type->signature);
+                $resolved = $this->resolveTypeFromAstSignature($type->signature);
                 break;
-        }
-
-        if ($resolved === null) {
-            throw new \InvalidArgumentException('unresolved type'); //fixme
+            case $type instanceof AstArrayType:
+                $resolved = $this->resolveArrayType($type);
+                break;
+            default:
+                dump($type);
+                throw new \InvalidArgumentException('unresolved type'); //fixme
         }
 
         return $resolved;
@@ -659,6 +710,19 @@ final class Interpreter
     private static function resolveTypeFromAstSignature(AstSignature $signature): FuncType
     {
         return new FuncType(...self::resolveParamsFromAstSignature($signature));
+    }
+
+    private function resolveArrayType(AstArrayType $arrayType): ArrayType
+    {
+        $len = $this->evalConstExpr($arrayType->len);
+        if (!$len instanceof SimpleNumber) {
+            throw new \Exception('expected num');
+        }
+
+        return new ArrayType(
+            $this->resolveType($arrayType->elemType),
+            $len->unwrap(),
+        );
     }
 
     /**
@@ -670,7 +734,7 @@ final class Interpreter
             new Params(self::resolveParamsFromAstParams($signature->params)),
             new Params(match (true) {
                 $signature->result === null => [],
-                $signature->result instanceof AstType => [new Param(self::resolveType($signature->result))],
+                $signature->result instanceof AstType => [new Param($this->resolveType($signature->result))],
                 $signature->result instanceof AstParams => self::resolveParamsFromAstParams($signature->result),
             }),
         ];
@@ -684,7 +748,7 @@ final class Interpreter
     private static function paramFromAstParamDecl(ParamDecl $paramDecl): Param
     {
         return new Param(
-            self::resolveType($paramDecl->type),
+            $this->resolveType($paramDecl->type),
             $paramDecl->identList === null ?
                 null :
                 self::arrayFromIdents($paramDecl->identList), // fixme maybe anon option for perf

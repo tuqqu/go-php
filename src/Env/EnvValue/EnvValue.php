@@ -12,12 +12,9 @@ abstract class EnvValue
     public function __construct(
         public readonly string $name,
         public GoValue $value,
-        public readonly ValueType $type,
+        public readonly ValueType $type, //fixme add mutable, remove others
     ) {
         if (!$this->type->conforms($this->value->type())) {
-            //fixme debug
-            dump($this->type);
-            dump($this->value->type());
             throw new \Exception('type error');
         }
         static::validate($value);

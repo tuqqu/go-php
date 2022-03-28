@@ -20,6 +20,11 @@ final class TupleValue implements GoValue
         $this->len = \count($this->values);
     }
 
+    public function toString(): string
+    {
+        throw new \BadMethodCallException('cannot operate');
+    }
+
     public function operate(Operator $op): self
     {
         throw new \BadMethodCallException(); //fixme

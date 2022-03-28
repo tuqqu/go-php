@@ -9,7 +9,7 @@ use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\VoidType;
 use GoPhp\GoType\ValueType;
-use GoPhp\GoValue\BuiltinFuncValue;
+use GoPhp\GoValue\Func\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
 
@@ -37,6 +37,7 @@ final class Environment
         $this->definedValues->add($var);
     }
 
+    // fixme remove all, make just define()
     public function defineFunc(string $name, FuncValue $value): void
     {
         $func = new Func($name, $value, $value->signature->type);
@@ -56,23 +57,35 @@ final class Environment
             throw new UndefinedValueError($name);
     }
 
-    public function assign(string $name, GoValue $value): void
+    // fixme isMutable();
+    public function getVariable(string $name): Variable
     {
-        $envValue = $this->definedValues->tryGet($name);
-        if ($envValue !== null) {
-            if (!$envValue instanceof Variable) {
-                throw new \Exception('non-var assign');
-            }
+        $value = $this->get($name);
 
-            $envValue->set($value);
-            return;
+        if (!$value instanceof Variable) {
+            throw new \Exception('not var');
         }
 
-        if ($this->enclosing !== null) {
-            $this->enclosing->assign($name, $value);
-            return;
-        }
-
-        throw new \Exception('Assigning to undef');
+        return $value;
     }
+
+//    public function assign(string $name, GoValue $value): void
+//    {
+//        $envValue = $this->definedValues->tryGet($name);
+//        if ($envValue !== null) {
+//            if (!$envValue instanceof Variable) {
+//                throw new \Exception('non-var assign');
+//            }
+//
+//            $envValue->set($value);
+//            return;
+//        }
+//
+//        if ($this->enclosing !== null) {
+//            $this->enclosing->assign($name, $value);
+//            return;
+//        }
+//
+//        throw new \Exception('Assigning to undef');
+//    }
 }

@@ -80,6 +80,11 @@ final class FuncValue implements GoValue
         return $stmtValue->values;
     }
 
+    public function toString(): string
+    {
+        throw new \BadMethodCallException('cannot operate');
+    }
+
     public function unwrap(): callable
     {
         return $this;

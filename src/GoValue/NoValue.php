@@ -41,4 +41,9 @@ enum NoValue implements GoValue
     {
         throw new \BadMethodCallException('cannot operate');
     }
+
+    public function toString(): string
+    {
+        throw new \BadMethodCallException('cannot operate');
+    }
 }

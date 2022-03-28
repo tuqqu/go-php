@@ -20,4 +20,6 @@ interface GoValue
     public function unwrap(): mixed;
 
     public function type(): ValueType;
+
+    public function toString(): string;
 }

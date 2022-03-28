@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\GoValue;
+namespace GoPhp\GoValue\Func;
 
 use GoPhp\GoType\VoidType;
 use GoPhp\GoType\ValueType;
+use GoPhp\GoValue\BoolValue;
+use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NoValue;
+use GoPhp\GoValue\TupleValue;
 use GoPhp\Operator;
 use GoPhp\Stream\StreamProvider;
 
@@ -18,6 +22,11 @@ final class BuiltinFuncValue implements GoValue
     public function __invoke(StreamProvider $streams, GoValue ...$argv): NoValue|TupleValue
     {
         return ($this->function)($streams, ...$argv);
+    }
+
+    public function toString(): string
+    {
+        throw new \BadMethodCallException('cannot operate');
     }
 
     public function unwrap(): callable

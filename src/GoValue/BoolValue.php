@@ -14,6 +14,11 @@ enum BoolValue: int implements GoValue
     case False = 0;
     case True = 1;
 
+    public function toString(): string
+    {
+        return $this->value === 0 ? 'false' : 'true';
+    }
+
     public static function fromBool(bool $value): self
     {
         return self::from((int) $value);

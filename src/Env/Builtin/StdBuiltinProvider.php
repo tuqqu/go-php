@@ -7,7 +7,7 @@ namespace GoPhp\Env\Builtin;
 use GoPhp\Env\Environment;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoValue\BoolValue;
-use GoPhp\GoValue\BuiltinFuncValue;
+use GoPhp\GoValue\Func\BuiltinFuncValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\NoValue;
@@ -39,8 +39,7 @@ final class StdBuiltinProvider implements BuiltinProvider
         $output = [];
 
         foreach ($values as $value) {
-            //fixme stringify
-            $output[] = (string) $value->unwrap();
+            $output[] = $value->toString();
         }
 
         \fwrite($streams->stderr(), \implode(' ', $output) . "\n");
@@ -56,7 +55,7 @@ final class StdBuiltinProvider implements BuiltinProvider
         $output = [];
 
         foreach ($values as $value) {
-            $output[] = (string) $value->unwrap();
+            $output[] = $value->toString();
         }
 
         \fwrite($streams->stderr(), \implode('', $output));

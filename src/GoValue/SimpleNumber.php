@@ -10,24 +10,27 @@ use function GoPhp\assert_type_conforms;
 
 abstract class SimpleNumber implements GoValue
 {
+    public function toString(): string
+    {
+        return (string) $this->value;
+    }
+
     public function operateOn(Operator $op, GoValue $rhs): GoValue
     {
-        $lhs = $this;
-
-        assert_type_conforms($lhs, $rhs);
+        assert_type_conforms($this, $rhs);
 
         return match ($op) {
-            Operator::Plus => $lhs->add($rhs),
-            Operator::Minus => $lhs->sub($rhs),
-            Operator::Mul => $lhs->mul($rhs),
-            Operator::Div => $lhs->div($rhs),
-            Operator::Mod => $lhs->mod($rhs),
-            Operator::EqEq => $lhs->equals($rhs),
-            Operator::NotEq => $lhs->equals($rhs)->invert(),
-            Operator::Greater => $lhs->greater($rhs),
-            Operator::GreaterEq => $lhs->greaterEq($rhs),
-            Operator::Less => $lhs->less($rhs),
-            Operator::LessEq => $lhs->lessEq($rhs),
+            Operator::Plus => $this->add($rhs),
+            Operator::Minus => $this->sub($rhs),
+            Operator::Mul => $this->mul($rhs),
+            Operator::Div => $this->div($rhs),
+            Operator::Mod => $this->mod($rhs),
+            Operator::EqEq => $this->equals($rhs),
+            Operator::NotEq => $this->equals($rhs)->invert(),
+            Operator::Greater => $this->greater($rhs),
+            Operator::GreaterEq => $this->greaterEq($rhs),
+            Operator::Less => $this->less($rhs),
+            Operator::LessEq => $this->lessEq($rhs),
             default => throw UnknownOperationError::unknownOperator($op),
         };
     }
