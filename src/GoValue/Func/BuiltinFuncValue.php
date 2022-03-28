@@ -8,8 +8,6 @@ use GoPhp\GoType\VoidType;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NoValue;
-use GoPhp\GoValue\TupleValue;
 use GoPhp\Operator;
 use GoPhp\Stream\StreamProvider;
 
@@ -19,7 +17,7 @@ final class BuiltinFuncValue implements GoValue
         private readonly \Closure $function,
     ) {}
 
-    public function __invoke(StreamProvider $streams, GoValue ...$argv): NoValue|TupleValue
+    public function __invoke(StreamProvider $streams, GoValue ...$argv): GoValue
     {
         return ($this->function)($streams, ...$argv);
     }

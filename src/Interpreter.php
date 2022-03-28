@@ -303,7 +303,7 @@ final class Interpreter
         return SimpleValue::None;
     }
 
-    private function evalCallExpr(CallExpr $expr): NoValue|TupleValue
+    private function evalCallExpr(CallExpr $expr): GoValue
     {
         $func = $this->evalExpr($expr->expr);
 
@@ -399,7 +399,11 @@ final class Interpreter
             $values[] = $value;
         }
 
-        return ReturnValue::fromValues($values);
+        if (\count($values) === 1) {
+            return ReturnValue::fromSingle($values[0]);
+        }
+
+        return ReturnValue::fromMultiple($values);
     }
 
     private function evalIfStmt(IfStmt $stmt): StmtValue

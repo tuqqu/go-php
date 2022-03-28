@@ -10,25 +10,33 @@ use GoPhp\GoValue\TupleValue;
 final class ReturnValue implements StmtValue
 {
     private function __construct(
-        public readonly ?TupleValue $values
+        public readonly ?GoValue $value,
+        public readonly int $len,
     ) {}
 
     public static function fromVoid(): self
     {
-        return new self(null);
+        return new self(null, 0);
     }
 
     public static function fromTuple(TupleValue $tuple): self
     {
-        return new self($tuple);
+        return new self($tuple, $tuple->len);
+    }
+
+    public static function fromSingle(GoValue $value): self
+    {
+        return new self($value, 1);
     }
 
     /**
      * @param GoValue[] $values
      */
-    public static function fromValues(array $values): self
+    public static function fromMultiple(array $values): self
     {
-        return new self(new TupleValue($values));
+        $tuple = new TupleValue($values);
+
+        return new self($tuple, $tuple->len);
     }
 
     public function isNone(): bool

@@ -9,7 +9,6 @@ use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NoValue;
-use GoPhp\GoValue\TupleValue;
 use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\StmtValue;
@@ -34,7 +33,7 @@ final class FuncValue implements GoValue
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
     }
 
-    public function __invoke(StreamProvider $streams, GoValue ...$argv): NoValue|TupleValue
+    public function __invoke(StreamProvider $streams, GoValue ...$argv): GoValue
     {
         $env = new Environment(enclosing: $this->enclosure);
 
@@ -65,19 +64,34 @@ final class FuncValue implements GoValue
             throw new \Exception('wrong return stmt');
         }
 
-        if ($this->signature->returnArity !== ($stmtValue->values?->len ?? 0)) {
+        if ($this->signature->returnArity !== $stmtValue->len) {
             throw new \Exception('wrong return count');
+        }
+
+        if ($stmtValue->len === 0) {
+            return NoValue::NoValue;
+        }
+
+        //fixme refactor
+        if ($stmtValue->len === 1) {
+            $param = $this->signature->returns[0];
+
+            if (!$param->type->conforms($stmtValue->value->type())) {
+                throw new \Exception('type error');
+            }
+
+            return $stmtValue->value;
         }
 
         $i = 0;
         // fixme add named returns
         foreach ($this->signature->returns as $param) {
-            if (!$param->type->conforms($stmtValue->values->values[$i]->type())) {
+            if (!$param->type->conforms($stmtValue->value->values[$i]->type())) {
                 throw new \Exception('type error');
             }
         }
 
-        return $stmtValue->values;
+        return $stmtValue->value;
     }
 
     public function toString(): string
