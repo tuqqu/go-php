@@ -22,7 +22,9 @@ final class ArrayValue implements GoValue
     ) {
         $this->len = \count($this->values);
 
-        if ($this->type->len !== $this->len) {
+        if ($this->type->isUnfinished()) {
+            $this->type->setLen($this->len);
+        } elseif ($this->type->len !== $this->len) {
             throw new \Exception('wrong type');
         }
     }
@@ -46,14 +48,13 @@ final class ArrayValue implements GoValue
         return $this->values[$at];
     }
 
-    public function set(GoValue $value, ?int $at = null): void
+    public function set(GoValue $value, int $at): void
     {
-        if ($at !== null && $at >= $this->len) {
+        if ($at >= $this->len) {
             throw new \OutOfBoundsException();
         }
 
         if (!$value->type()->conforms($this->type->internalType)) {
-
             throw new \Exception('typeerr');
         }
 

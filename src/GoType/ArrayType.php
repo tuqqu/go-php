@@ -13,9 +13,11 @@ final class ArrayType implements ValueType
 
     public function __construct(
         public readonly ValueType $internalType,
-        public readonly int $len,
+        public ?int $len,
     ) {
-        $this->name = \sprintf('[%d]%s', $this->len, $this->internalType->name());
+        if ($len !== null) {
+            $this->setLen($len);
+        }
     }
 
     public function name(): string
@@ -48,5 +50,16 @@ final class ArrayType implements ValueType
         }
 
         return new ArrayValue($values, $this);
+    }
+
+    public function setLen(int $len): void
+    {
+        $this->len = $len;
+        $this->name = \sprintf('[%d]%s', $this->len, $this->internalType->name());
+    }
+
+    public function isUnfinished(): bool
+    {
+        return $this->len === null;
     }
 }

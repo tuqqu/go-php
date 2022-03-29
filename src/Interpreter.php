@@ -21,6 +21,7 @@ use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\StringLit;
+use GoParser\Ast\Expr\Type;
 use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\File as Ast;
@@ -28,6 +29,7 @@ use GoParser\Ast\GroupSpec;
 use GoParser\Ast\IdentList;
 use GoParser\Ast\ParamDecl;
 use GoParser\Ast\Params as AstParams;
+use GoParser\Ast\Punctuation;
 use GoParser\Ast\Signature as AstSignature;
 use GoParser\Ast\Stmt\AssignmentStmt;
 use GoParser\Ast\Stmt\BlockStmt;
@@ -42,6 +44,7 @@ use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\VarSpec;
+use GoParser\Lexer\Token;
 use GoParser\Parser;
 use GoPhp\EntryPoint\EntryPointValidator;
 use GoPhp\EntryPoint\MainEntryPoint;
@@ -585,7 +588,12 @@ final class Interpreter
 
     private function evalCompositeLit(CompositeLit $lit): GoValue //fixme arrayvalye, slice, map, struct etc...
     {
-        $type = $this->resolveType($lit->type);
+        //fixme change this in parser
+        if (!$lit->type instanceof Type) {
+            throw new \Exception('exp type');
+        }
+
+        $type = $this->resolveType($lit->type, true);
 
         if ($type instanceof ArrayType) {
             $builder = ArrayBuilder::fromType($type);
@@ -708,7 +716,7 @@ final class Interpreter
     }
 
     // fixme maybe must be done lazily
-    private function resolveType(AstType $type): ValueType
+    private function resolveType(AstType $type, bool $composite = false): ValueType
     {
         $resolved = null;
 
@@ -723,7 +731,7 @@ final class Interpreter
                 $resolved = $this->resolveTypeFromAstSignature($type->signature);
                 break;
             case $type instanceof AstArrayType:
-                $resolved = $this->resolveArrayType($type);
+                $resolved = $this->resolveArrayType($type, $composite);
                 break;
             default:
                 dump($type);
@@ -738,16 +746,27 @@ final class Interpreter
         return new FuncType(...$this->resolveParamsFromAstSignature($signature));
     }
 
-    private function resolveArrayType(AstArrayType $arrayType): ArrayType
+    private function resolveArrayType(AstArrayType $arrayType, bool $composite): ArrayType
     {
-        $len = $this->evalConstExpr($arrayType->len);
-        if (!$len instanceof SimpleNumber) {
-            throw new \Exception('expected num');
+        if (
+            $arrayType->len instanceof Punctuation &&
+            $arrayType->len->value === Token::Ellipsis->value &&
+            $composite
+        ) {
+            $len = null;
+        } elseif ($arrayType->len instanceof Expr) {
+            $len = $this->evalConstExpr($arrayType->len);
+
+            if (!$len instanceof SimpleNumber) {
+                throw new \Exception('expected num');
+            }
+        } else {
+            throw new \Exception('expected array type');
         }
 
         return new ArrayType(
-            $this->resolveType($arrayType->elemType),
-            $len->unwrap(),
+            $this->resolveType($arrayType->elemType, $composite),
+            $len?->unwrap(),
         );
     }
 
