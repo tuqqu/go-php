@@ -19,6 +19,8 @@ interface GoValue
 
     public function unwrap(): mixed;
 
+    public function copy(): static;
+
     public function type(): ValueType;
 
     public function toString(): string;

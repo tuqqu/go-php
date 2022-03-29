@@ -56,4 +56,9 @@ final class BuiltinFuncValue implements GoValue
     {
         throw new \BadMethodCallException('cannot operate');
     }
+
+    public function copy(): static
+    {
+        throw new \BadMethodCallException('cannot operate');
+    }
 }

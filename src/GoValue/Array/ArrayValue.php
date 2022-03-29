@@ -53,6 +53,7 @@ final class ArrayValue implements GoValue
         }
 
         if (!$value->type()->conforms($this->type->internalType)) {
+
             throw new \Exception('typeerr');
         }
 
@@ -90,5 +91,10 @@ final class ArrayValue implements GoValue
     public function type(): ArrayType
     {
         return $this->type;
+    }
+
+    public function copy(): static
+    {
+        return clone $this; // fixme iterate and clone all?
     }
 }

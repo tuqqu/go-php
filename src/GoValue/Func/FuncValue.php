@@ -94,6 +94,11 @@ final class FuncValue implements GoValue
         return $stmtValue->value;
     }
 
+    public function copy(): static
+    {
+        return $this;
+    }
+
     public function toString(): string
     {
         throw new \BadMethodCallException('cannot operate');

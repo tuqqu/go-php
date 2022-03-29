@@ -68,6 +68,11 @@ final class StringValue implements GoValue
         $this->value .= $value->value;
     }
 
+    public function copy(): static
+    {
+        return clone $this;
+    }
+
     public function equals(GoValue $rhs): BoolValue
     {
         return BoolValue::fromBool($this->value === $rhs->unwrap());

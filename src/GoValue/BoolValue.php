@@ -67,4 +67,9 @@ enum BoolValue: int implements GoValue
     {
         return self::fromBool($this === $rhs);
     }
+
+    public function copy(): static
+    {
+        return $this;
+    }
 }

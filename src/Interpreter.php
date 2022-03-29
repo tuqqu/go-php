@@ -277,7 +277,7 @@ final class Interpreter
             foreach ($spec->identList->idents as $i => $ident) {
                 $this->env->defineVar(
                     $ident->name,
-                    $values[$i],
+                    $values[$i]->copy(),
                     ($type ?? $values[$i]->type())->reify(),
                 );
             }
@@ -288,7 +288,7 @@ final class Interpreter
 
     private function evalFuncDeclStmt(FuncDecl $decl): SimpleValue
     {
-        [$params, $returns] = self::resolveParamsFromAstSignature($decl->signature);
+        [$params, $returns] = $this->resolveParamsFromAstSignature($decl->signature);
 
         $funcValue = new FuncValue(
             fn (Environment $env) => $this->evalBlockStmt($decl->body, $env),
@@ -483,7 +483,7 @@ final class Interpreter
 
         for ($i = 0; $i < $len; ++$i) {
             if ($op === Operator::Eq) {
-                $lhs[$i]($rhs[$i]);
+                $lhs[$i]($rhs[$i]->copy());
             } else {
                 $lhs[$i]->mutate($op, $rhs[$i]);
             }
@@ -526,7 +526,7 @@ final class Interpreter
         foreach ($stmt->identList->idents as $i => $ident) {
             $this->env->defineVar(
                 $ident->name,
-                $values[$i],
+                $values[$i]->copy(),
                 $values[$i]->type()->reify(),
             );
         }
@@ -654,11 +654,13 @@ final class Interpreter
 
     private function evalIndexExprVariable(IndexExpr $expr): callable
     {
-        if (!$expr->expr instanceof Ident) {
+        if ($expr->expr instanceof IndexExpr) {
+            $array = $this->evalIndexExpr($expr->expr);
+        } elseif ($expr->expr instanceof Ident) {
+            $array = $this->evalIdent($expr->expr);
+        } else {
             throw new \Exception('cannot assign');
         }
-
-        $array = $this->evalIdent($expr->expr);
 
         if (!$array instanceof ArrayValue) {
             throw new \Exception('array exp');
