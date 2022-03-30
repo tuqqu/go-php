@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Error;
 
 use GoPhp\GoType\ValueType;
+use GoPhp\GoValue\GoValue;
 
 final class TypeError extends \RuntimeException
 {
@@ -26,6 +27,17 @@ final class TypeError extends \RuntimeException
                 'Type "%s" cannot be compatible with type "%s"',
                 $a->name(),
                 $b->name(),
+            )
+        );
+    }
+
+    public static function valueOfWrongType(GoValue $value, ValueType|string $expected): self
+    {
+        return new self(
+            \sprintf(
+                'Got value of type "%s", whilst expecting "%s"',
+                $value->type()->name(),
+                \is_string($expected) ? $expected : $expected->name(),
             )
         );
     }

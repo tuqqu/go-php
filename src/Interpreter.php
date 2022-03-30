@@ -51,6 +51,12 @@ use GoPhp\EntryPoint\MainEntryPoint;
 use GoPhp\Env\Builtin\BuiltinProvider;
 use GoPhp\Env\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
+use GoPhp\Error\DefinitionError;
+use GoPhp\Error\InternalError;
+use GoPhp\Error\OperationError;
+use GoPhp\Error\ProgramError;
+use GoPhp\Error\TypeError;
+use GoPhp\Error\ValueError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
@@ -138,44 +144,27 @@ final class Interpreter
 
     private function evalStmt(Stmt $stmt): StmtValue
     {
-        switch ($this->state) {
-            case State::EntryPoint:
-                $value = match (true) {
-                    $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt),
-                    $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
-                    $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
-                    $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
-                    $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
-                    $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
-                    $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
-                    $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
-
-                    $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
-                    $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
-                    $stmt instanceof FuncDecl => throw new \Exception('Func decl in a func scope'),
-
-                    default => null,
-                };
-
-                if ($value) {
-                    return $value;
-                }
-                break;
-            case State::DeclEvaluation:
-                $value = match (true) {
-                    $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
-                    $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
-                    $stmt instanceof FuncDecl => $this->evalFuncDeclStmt($stmt),
-                    default => dd(
-                        'non-declaration statement outside function body',
-                        $stmt
-                    ),
-                };
-
-                if ($value) {
-                    return $value;
-                }
-        }
+        return match ($this->state) {
+            State::EntryPoint => match (true) {
+                $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt),
+                $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
+                $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
+                $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
+                $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
+                $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
+                $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
+                $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
+                $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
+                $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
+                $stmt instanceof FuncDecl => throw new ProgramError('Function declaration in a function scope'),
+             },
+            State::DeclEvaluation => match (true) {
+                $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
+                $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
+                $stmt instanceof FuncDecl => $this->evalFuncDeclStmt($stmt),
+                default => throw new ProgramError('Non-declaration on a top-level'),
+            },
+        };
     }
 
     private function evalConstDeclStmt(ConstDecl $decl): SimpleValue
@@ -192,7 +181,7 @@ final class Interpreter
             }
 
             if (!$type instanceof BasicType) {
-                throw new \Exception('const must be of basic type');
+                throw DefinitionError::constantExpectsBasicType($type);
             }
 
             $singular = \count($spec->identList->idents) === 1;
@@ -211,7 +200,7 @@ final class Interpreter
                 }
 
                 if ($value === null) {
-                    throw new \Exception('const does not have init value');
+                    throw DefinitionError::uninitialisedConstant($ident->name);
                 }
 
                 $this->env->defineConst(
@@ -237,15 +226,15 @@ final class Interpreter
             $initWithDefaultValue = false;
             if ($spec->initList === null) {
                 if ($type === null) {
-                    throw new \Exception('type error: must be either ini or type');
+                    throw DefinitionError::uninitilisedVarWithNoType();
                 }
                 $initWithDefaultValue = true;
             }
 
             $values = [];
-            $len = \count($spec->identList->idents);
+            $identsLen = \count($spec->identList->idents);
             if ($initWithDefaultValue) {
-                for ($i = 0; $i < $len; ++$i) {
+                for ($i = 0; $i < $identsLen; ++$i) {
                     $values[] = $type->defaultValue();
                 }
             } else {
@@ -254,22 +243,23 @@ final class Interpreter
                 if ($value instanceof TupleValue) {
                     $exprLen = \count($spec->initList->exprs);
                     if ($exprLen !== 1) {
-                        throw new \Exception('multiple-value in single-value context');
+                        throw DefinitionError::multipleValueInSingleContext();
                     }
 
                     foreach ($value->values as $val) {
                         $values[] = $val;
                     }
 
-                    if (\count($values) !== $len) {
-                        throw new \Exception('not enough');
+                    $valuesLen = \count($values);
+                    if ($valuesLen !== $identsLen) {
+                        throw DefinitionError::assignmentMismatch($identsLen, $valuesLen);
                     }
                 } else {
                     $values[] = $value;
-                    for ($i = 1; $i < $len; ++$i) {
+                    for ($i = 1; $i < $identsLen; ++$i) {
                         $value = $this->evalExpr($spec->initList->exprs[$i++]);
                         if ($value instanceof TupleValue) {
-                            throw new \Exception('multiple-value in single-value context');
+                            throw ValueError::multipleValueInSingleContext();
                         }
                         $values[] = $value;
                     }
@@ -310,7 +300,7 @@ final class Interpreter
         $func = $this->evalExpr($expr->expr);
 
         if (!$func instanceof FuncValue && !$func instanceof BuiltinFuncValue) {
-            throw new \Exception('call error');
+            throw OperationError::nonFunctionCall($func);
         }
 
         $argv = [];
@@ -326,13 +316,13 @@ final class Interpreter
         $array = $this->evalExpr($expr->expr);
 
         if (!$array instanceof ArrayValue) {
-            throw new \Exception('array exp');
+            throw TypeError::valueOfWrongType($array, 'array');
         }
 
         $index = $this->evalExpr($expr->index);
 
         if (!$index instanceof BaseIntValue) { //fixme check int type
-            throw new \Exception('int exp');
+            throw TypeError::conversionError($index->type(), BasicType::Int);
         }
 
         return $array->get($index->unwrap());
@@ -392,7 +382,7 @@ final class Interpreter
             $value = $this->evalExpr($expr);
             if ($value instanceof TupleValue) {
                 if (!empty($values)) {
-                    throw new \Exception('single value context');
+                    throw ValueError::multipleValueInSingleContext();
                 }
 
                 return ReturnValue::fromTuple($value);
@@ -448,7 +438,7 @@ final class Interpreter
         $compound = $op->isCompound();
 
         if (!$op->isAssignment()) {
-            throw new \Exception('wrong operator');
+            throw OperationError::expectedAssignmentOperator($op);
         }
 
         $lhs = [];
@@ -457,34 +447,35 @@ final class Interpreter
         }
 
         $rhs = [];
-        $len = \count($lhs);
+        $lhsLen = \count($lhs);
         $value = $this->evalExpr($stmt->rhs->exprs[0]);
 
         if ($value instanceof TupleValue) {
             $rhsLen = \count($stmt->rhs->exprs);
             if ($rhsLen !== 1) {
-                throw new \Exception('multiple-value in single-value context');
+                throw ValueError::multipleValueInSingleContext();
             }
 
             foreach ($value->values as $value) {
                 $rhs[] = $value;
             }
 
-            if (\count($rhs) !== $len) {
-                throw new \Exception('not enough');
+            $valuesLen = \count($rhs);
+            if ($valuesLen !== $lhsLen) {
+                throw DefinitionError::assignmentMismatch($lhsLen, $valuesLen);
             }
         } else {
             $rhs[] = $value;
-            for ($i = 1; $i < $len; ++$i) {
+            for ($i = 1; $i < $lhsLen; ++$i) {
                 $value = $this->evalExpr($stmt->rhs->exprs[$i]);
                 if ($value instanceof TupleValue) {
-                    throw new \Exception('multiple-value in single-value context');
+                    throw ValueError::multipleValueInSingleContext();
                 }
                 $rhs[] = $value;
             }
         }
 
-        for ($i = 0; $i < $len; ++$i) {
+        for ($i = 0; $i < $lhsLen; ++$i) {
             if ($op === Operator::Eq) {
                 $lhs[$i]($rhs[$i]->copy());
             } else {
@@ -505,22 +496,23 @@ final class Interpreter
         if ($value instanceof TupleValue) {
             $exprLen = \count($stmt->exprList->exprs);
             if ($exprLen !== 1) {
-                throw new \Exception('multiple-value in single-value context');
+                throw ValueError::multipleValueInSingleContext();
             }
 
             foreach ($value->values as $value) {
                 $values[] = $value;
             }
 
-            if (\count($values) !== $len) {
-                throw new \Exception('not enough');
+            $valuesLen = \count($values);
+            if ($valuesLen !== $len) {
+                throw DefinitionError::assignmentMismatch($len, $valuesLen);
             }
         } else {
             $values[] = $value;
             for ($i = 1; $i < $len; ++$i) {
                 $value = $this->evalExpr($stmt->exprList->exprs[$i++]);
                 if ($value instanceof TupleValue) {
-                    throw new \Exception('multiple-value in single-value context');
+                    throw ValueError::multipleValueInSingleContext();
                 }
                 $values[] = $value;
             }
@@ -675,13 +667,13 @@ final class Interpreter
         }
 
         if (!$array instanceof ArrayValue) {
-            throw new \Exception('array exp');
+            TypeError::valueOfWrongType($array, 'array');
         }
 
         $index = $this->evalExpr($expr->index);
 
         if (!$index instanceof BaseIntValue) { //fixme check int type
-            throw new \Exception('int exp');
+            TypeError::conversionError($index, BasicType::Int);
         }
 
         return $compound ?
@@ -696,7 +688,7 @@ final class Interpreter
     private function isTrue(GoValue $value): bool
     {
         if (!$value instanceof BoolValue) {
-            throw new \InvalidArgumentException('Must be bool'); // fixme
+            throw TypeError::valueOfWrongType($value, BasicType::Bool);
         }
 
         return $value->unwrap();
@@ -765,11 +757,11 @@ final class Interpreter
         } elseif ($arrayType->len instanceof Expr) {
             $len = $this->evalConstExpr($arrayType->len);
 
-            if (!$len instanceof SimpleNumber) {
-                throw new \Exception('expected num');
+            if (!$len instanceof BaseIntValue) {
+                throw TypeError::valueOfWrongType($len, BasicType::Int);
             }
         } else {
-            throw new \Exception('expected array type');
+            throw new InternalError('Unexpected array length value');
         }
 
         return new ArrayType(
