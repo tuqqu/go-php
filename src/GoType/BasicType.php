@@ -7,7 +7,6 @@ namespace GoPhp\GoType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
-use GoPhp\GoValue\FloatValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\Int16Value;
 use GoPhp\GoValue\Int\Int32Value;
@@ -152,6 +151,15 @@ enum BasicType: string implements ValueType
                 default => $this->equals($other),
             },
             default => $this->equals($other),
+        };
+    }
+
+    public function isTyped(): bool
+    {
+        return match ($this) {
+            self::UntypedInt,
+            self::UntypedFloat => false,
+            default => true,
         };
     }
 }

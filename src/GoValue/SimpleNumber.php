@@ -5,11 +5,45 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\UnknownOperationError;
+use GoPhp\GoType\BasicType;
+use GoPhp\GoValue\Float\Float32Value;
+use GoPhp\GoValue\Float\Float64Value;
+use GoPhp\GoValue\Int\Int16Value;
+use GoPhp\GoValue\Int\Int32Value;
+use GoPhp\GoValue\Int\Int64Value;
+use GoPhp\GoValue\Int\Int8Value;
+use GoPhp\GoValue\Int\IntValue;
+use GoPhp\GoValue\Int\Uint16Value;
+use GoPhp\GoValue\Int\Uint32Value;
+use GoPhp\GoValue\Int\Uint64Value;
+use GoPhp\GoValue\Int\Uint8Value;
+use GoPhp\GoValue\Int\UintptrValue;
+use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
 use function GoPhp\assert_type_conforms;
 
 abstract class SimpleNumber implements GoValue
 {
+    final public static function createFrom(BasicType $type, int|float $number): GoValue
+    {
+        return match ($type) {
+            BasicType::Int => new IntValue($number),
+            BasicType::Int8 => new Int8Value($number),
+            BasicType::Int16 => new Int16Value($number),
+            BasicType::Int32 => new Int32Value($number),
+            BasicType::Int64 => new Int64Value($number),
+            BasicType::Uint => new UintValue($number),
+            BasicType::Uint8 => new Uint8Value($number),
+            BasicType::Uint16 => new Uint16Value($number),
+            BasicType::Uint32 => new Uint32Value($number),
+            BasicType::Uint64 => new Uint64Value($number),
+            BasicType::Uintptr => new UintptrValue($number),
+            BasicType::Float32 => new Float32Value($number),
+            BasicType::Float64 => new Float64Value($number),
+            default => throw new \UnhandledMatchError('not a num'),
+        };
+    }
+
     public function toString(): string
     {
         return (string) $this->value;

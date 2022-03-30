@@ -27,26 +27,26 @@ final class Environment
 
     public function defineConst(string $name, GoValue $value, BasicType $type): void
     {
-        $const = new Constant($name, $value, $type);
+        $const = new Constant($name, $type, $value);
         $this->definedValues->add($const);
     }
 
     public function defineVar(string $name, GoValue $value, ValueType $type): void
     {
-        $var = new Variable($name, $value, $type);
+        $var = new Variable($name, $type, $value);
         $this->definedValues->add($var);
     }
 
     // fixme remove all, make just define()
     public function defineFunc(string $name, FuncValue $value): void
     {
-        $func = new Func($name, $value, $value->signature->type);
+        $func = new Func($name, $value->signature->type, $value);
         $this->definedValues->add($func);
     }
 
     public function defineBuiltinFunc(string $name, BuiltinFuncValue $value): void
     {
-        $func = new BuiltinFunc($name, $value, VoidType::Builtin);
+        $func = new BuiltinFunc($name, VoidType::Builtin, $value);
         $this->definedValues->add($func);
     }
 

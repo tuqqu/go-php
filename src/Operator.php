@@ -64,7 +64,14 @@ enum Operator: string
     public function isAssignment(): bool
     {
         return match ($this) {
-            self::Eq,
+            self::Eq => true,
+            default => $this->isCompound(),
+        };
+    }
+
+    public function isCompound(): bool
+    {
+        return match ($this) {
             self::PlusEq,
             self::MinusEq,
             self::MulEq,

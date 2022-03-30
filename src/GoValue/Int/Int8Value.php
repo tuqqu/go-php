@@ -9,7 +9,7 @@ use GoPhp\GoType\BasicType;
 final class Int8Value extends BaseIntValue
 {
     public const MIN = -128;
-    public const MAX = -128;
+    public const MAX = +127;
 
     public function type(): BasicType
     {

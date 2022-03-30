@@ -95,7 +95,7 @@ abstract class BaseIntValue extends SimpleNumber
 
     final protected static function assertInBounds(int|float $value): void
     {
-        if (self::wrap($value) !== $value) {
+        if ($value > static::MAX || $value < static::MIN) {
             throw new \Exception('outofbounds');
         }
     }

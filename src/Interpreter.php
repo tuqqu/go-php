@@ -68,7 +68,6 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
-use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
@@ -444,9 +443,17 @@ final class Interpreter
 
     private function evalAssignmentStmt(AssignmentStmt $stmt): SimpleValue
     {
+        // fixme duplicated logic
+        $op = Operator::fromAst($stmt->op);
+        $compound = $op->isCompound();
+
+        if (!$op->isAssignment()) {
+            throw new \Exception('wrong operator');
+        }
+
         $lhs = [];
         foreach ($stmt->lhs->exprs as $expr) {
-            $lhs[] = $this->getAssignmentCallable($expr);
+            $lhs[] = $this->getAssignmentCallable($expr, $compound);
         }
 
         $rhs = [];
@@ -477,18 +484,11 @@ final class Interpreter
             }
         }
 
-        // fixme duplicated logic
-        $op = Operator::fromAst($stmt->op);
-
-        if (!$op->isAssignment()) {
-            throw new \Exception('wrong operator');
-        }
-
         for ($i = 0; $i < $len; ++$i) {
             if ($op === Operator::Eq) {
                 $lhs[$i]($rhs[$i]->copy());
             } else {
-                $lhs[$i]->mutate($op, $rhs[$i]);
+                $lhs[$i]($op, $rhs[$i]);
             }
         }
 
@@ -576,11 +576,11 @@ final class Interpreter
     }
 
     // fixme introduce type maybe
-    private function getAssignmentCallable(Expr $expr): callable
+    private function getAssignmentCallable(Expr $expr, bool $compound): callable
     {
         return match (true) {
-            $expr instanceof Ident => $this->evalIdentVariable($expr),
-            $expr instanceof IndexExpr => $this->evalIndexExprVariable($expr),
+            $expr instanceof Ident => $this->evalIdentVariable($expr, $compound),
+            $expr instanceof IndexExpr => $this->evalIndexExprVariable($expr, $compound),
             // fixme debug
             default => dd($expr),
         };
@@ -655,12 +655,16 @@ final class Interpreter
         return $this->env->get($ident->name)->value;
     }
 
-    private function evalIdentVariable(Ident $ident): callable
+    private function evalIdentVariable(Ident $ident, bool $compound): callable
     {
-        return $this->env->getVariable($ident->name)->set(...);
+        $var = $this->env->getVariable($ident->name);
+
+        return $compound ?
+            $var->value->mutate(...) :
+            $var->set(...);
     }
 
-    private function evalIndexExprVariable(IndexExpr $expr): callable
+    private function evalIndexExprVariable(IndexExpr $expr, bool $compound): callable
     {
         if ($expr->expr instanceof IndexExpr) {
             $array = $this->evalIndexExpr($expr->expr);
@@ -680,9 +684,13 @@ final class Interpreter
             throw new \Exception('int exp');
         }
 
-        return static function (GoValue $value) use ($array, $index): void {
-            $array->set($value, $index->unwrap());
-        };
+        return $compound ?
+            static function (Operator $op, GoValue $value) use ($array, $index): void {
+                $array->get($index->unwrap())->mutate($op, $value);
+            } :
+            static function (GoValue $value) use ($array, $index): void {
+                $array->set($value, $index->unwrap());
+            };
     }
 
     private function isTrue(GoValue $value): bool
