@@ -136,7 +136,6 @@ final class Interpreter
             return ExecCode::Failure;
         }
 
-
         if ($this->entryPoint !== null) {
             $this->state = State::EntryPoint;
 
@@ -255,7 +254,7 @@ final class Interpreter
                 if ($value instanceof TupleValue) {
                     $exprLen = \count($spec->initList->exprs);
                     if ($exprLen !== 1) {
-                        throw DefinitionError::multipleValueInSingleContext();
+                        throw ValueError::multipleValueInSingleContext();
                     }
 
                     foreach ($value->values as $val) {
@@ -455,7 +454,7 @@ final class Interpreter
 
         $lhs = [];
         foreach ($stmt->lhs->exprs as $expr) {
-            $lhs[] = $this->getAssignmentCallable($expr, $compound);
+            $lhs[] = $this->getValueMutator($expr, $compound);
         }
 
         $rhs = [];
@@ -488,10 +487,10 @@ final class Interpreter
         }
 
         for ($i = 0; $i < $lhsLen; ++$i) {
-            if ($op === Operator::Eq) {
-                $lhs[$i]($rhs[$i]->copy());
+            if ($compound) {
+                $lhs[$i]->mutate($op, $rhs[$i]);
             } else {
-                $lhs[$i]($op, $rhs[$i]);
+                $lhs[$i]->mutate(null, $rhs[$i]->copy());
             }
         }
 
@@ -580,11 +579,11 @@ final class Interpreter
     }
 
     // fixme introduce type maybe
-    private function getAssignmentCallable(Expr $expr, bool $compound): callable
+    private function getValueMutator(Expr $expr, bool $compound): ValueMutator
     {
         return match (true) {
-            $expr instanceof Ident => $this->evalIdentVariable($expr, $compound),
-            $expr instanceof IndexExpr => $this->evalIndexExprVariable($expr, $compound),
+            $expr instanceof Ident => $this->getVarMutator($expr, $compound),
+            $expr instanceof IndexExpr => $this->getArrayMutator($expr, $compound),
             // fixme debug
             default => dd($expr),
         };
@@ -659,16 +658,14 @@ final class Interpreter
         return $this->env->get($ident->name)->value;
     }
 
-    private function evalIdentVariable(Ident $ident, bool $compound): callable
+    private function getVarMutator(Ident $ident, bool $compound): ValueMutator
     {
         $var = $this->env->getVariable($ident->name);
 
-        return $compound ?
-            $var->value->mutate(...) :
-            $var->set(...);
+        return ValueMutator::fromEnvVar($var, $compound);
     }
 
-    private function evalIndexExprVariable(IndexExpr $expr, bool $compound): callable
+    private function getArrayMutator(IndexExpr $expr, bool $compound): ValueMutator
     {
         if ($expr->expr instanceof IndexExpr) {
             $array = $this->evalIndexExpr($expr->expr);
@@ -685,16 +682,10 @@ final class Interpreter
         $index = $this->evalExpr($expr->index);
 
         if (!$index instanceof BaseIntValue) { //fixme check int type
-            TypeError::conversionError($index, BasicType::Int);
+            TypeError::conversionError($index->type(), BasicType::Int);
         }
 
-        return $compound ?
-            static function (Operator $op, GoValue $value) use ($array, $index): void {
-                $array->get($index->unwrap())->mutate($op, $value);
-            } :
-            static function (GoValue $value) use ($array, $index): void {
-                $array->set($value, $index->unwrap());
-            };
+        return ValueMutator::fromArrayValue($array, $index, $compound);
     }
 
     private function isTrue(GoValue $value): bool

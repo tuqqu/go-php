@@ -35,12 +35,9 @@ final class StdStreamProvider implements StreamProvider
     private static function createOutputStream(mixed $resource): OutputStream
     {
         return new class ($resource) implements OutputStream {
-            public function __construct(private mixed $resource) {}
-
-            public function __destruct()
-            {
-                \fclose($this->resource);
-            }
+            public function __construct(
+                private mixed $resource
+            ) {}
 
             public function write(string $str): void
             {
@@ -57,12 +54,9 @@ final class StdStreamProvider implements StreamProvider
     private static function createInputStream(mixed $resource): InputStream
     {
         return new class ($resource) implements InputStream {
-            public function __construct(private mixed $resource) {}
-
-            public function __destruct()
-            {
-                \fclose($this->resource);
-            }
+            public function __construct(
+                private mixed $resource
+            ) {}
 
             public function getChar(): string
             {
