@@ -6,8 +6,8 @@ namespace GoPhp\GoValue;
 
 use GoPhp\Operator;
 use GoPhp\GoType\BasicType;
-use GoPhp\Error\UnknownOperationError;
-use function GoPhp\assert_type_conforms;
+use GoPhp\Error\OperationError;
+use function GoPhp\assert_values_compatible;
 
 enum BoolValue: int implements GoValue
 {
@@ -43,24 +43,24 @@ enum BoolValue: int implements GoValue
     {
         return match ($op) {
             Operator::LogicNot => $this->invert(),
-            default => throw UnknownOperationError::unknownOperator($op),
+            default => throw OperationError::unknownOperator($op, $this),
         };
     }
 
     public function operateOn(Operator $op, GoValue $rhs): self
     {
-        assert_type_conforms($this, $rhs);
+        assert_values_compatible($this, $rhs);
 
         return match ($op) {
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw UnknownOperationError::unknownOperator($op),
+            default => throw OperationError::unknownOperator($op, $this),
         };
     }
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        throw UnknownOperationError::unknownOperator($op);
+        throw OperationError::unknownOperator($op, $this);
     }
 
     public function equals(GoValue $rhs): self

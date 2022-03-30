@@ -6,8 +6,8 @@ namespace GoPhp\GoValue;
 
 use GoPhp\Operator;
 use GoPhp\GoType\BasicType;
-use GoPhp\Error\UnknownOperationError;
-use function GoPhp\assert_type_conforms;
+use GoPhp\Error\OperationError;
+use function GoPhp\assert_values_compatible;
 
 final class StringValue implements GoValue
 {
@@ -27,30 +27,30 @@ final class StringValue implements GoValue
 
     public function operate(Operator $op): never
     {
-        throw UnknownOperationError::unknownOperator($op);
+        throw OperationError::unknownOperator($op, $this);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): self|BoolValue
     {
-        assert_type_conforms($this, $rhs);
+        assert_values_compatible($this, $rhs);
 
         return match ($op) {
             Operator::Plus,
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw UnknownOperationError::unknownOperator($op),
+            default => throw OperationError::unknownOperator($op, $this),
         };
     }
 
     public function mutate(Operator $op, GoValue $rhs): void
     {
-        assert_type_conforms($this, $rhs);
+        assert_values_compatible($this, $rhs);
 
         if ($op === Operator::PlusEq) {
             $this->mutAdd($rhs);
         }
 
-        throw UnknownOperationError::unknownOperator($op);
+        throw OperationError::unknownOperator($op, $this);
     }
 
     public function unwrap(): string

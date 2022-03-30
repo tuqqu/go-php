@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use GoPhp\Error\TypeError;
+use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\GoValue;
 
-function assert_type_conforms(GoValue $a, GoValue $b): void
+function assert_values_compatible(GoValue $a, GoValue $b): void
 {
-    if (!$a->type()->conforms($b->type())) {
-        throw new \Exception('type error');
+    assert_types_compatible($a->type(), $b->type());
+}
+
+function assert_types_compatible(ValueType $a, ValueType $b): void
+{
+    if (!$a->isCompatible($b)) {
+        throw TypeError::incompatibleTypes($a, $b);
     }
 }

@@ -7,6 +7,7 @@ namespace GoPhp\Env\EnvValue;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
+use function GoPhp\assert_types_compatible;
 
 abstract class EnvValue
 {
@@ -18,12 +19,10 @@ abstract class EnvValue
         GoValue $value,
     ) {
         if ($value instanceof SimpleNumber && $this->type->isTyped()) {
-            $value = SimpleNumber::createFrom($this->type, $value->unwrap()); //fixme type
+            $value = $value->convertTo($this->type); //fixme type
         }
 
-        if (!$this->type->conforms($value->type())) {
-            throw new \Exception('type error');
-        }
+        assert_types_compatible($this->type, $value->type());
 
         static::validate($value);
 

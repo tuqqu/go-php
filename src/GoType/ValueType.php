@@ -12,7 +12,7 @@ interface ValueType
 
     public function equals(self $other): bool;
 
-    public function conforms(self $other): bool;
+    public function isCompatible(self $other): bool;
 
     public function reify(): static;
 

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\UnknownOperationError;
+use GoPhp\Error\OperationError;
+use GoPhp\Error\TypeError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
@@ -20,12 +21,14 @@ use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UintptrValue;
 use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
-use function GoPhp\assert_type_conforms;
+use function GoPhp\assert_values_compatible;
 
 abstract class SimpleNumber implements GoValue
 {
-    final public static function createFrom(BasicType $type, int|float $number): GoValue
+    final public function convertTo(BasicType $type): self
     {
+        $number = $this->unwrap();
+
         return match ($type) {
             BasicType::Int => new IntValue($number),
             BasicType::Int8 => new Int8Value($number),
@@ -40,7 +43,7 @@ abstract class SimpleNumber implements GoValue
             BasicType::Uintptr => new UintptrValue($number),
             BasicType::Float32 => new Float32Value($number),
             BasicType::Float64 => new Float64Value($number),
-            default => throw new \UnhandledMatchError('not a num'),
+            default => throw TypeError::conversionError($this->type(), $type),
         };
     }
 
@@ -51,7 +54,7 @@ abstract class SimpleNumber implements GoValue
 
     public function operateOn(Operator $op, GoValue $rhs): GoValue
     {
-        assert_type_conforms($this, $rhs);
+        assert_values_compatible($this, $rhs);
 
         return match ($op) {
             Operator::Plus => $this->add($rhs),
@@ -65,7 +68,7 @@ abstract class SimpleNumber implements GoValue
             Operator::GreaterEq => $this->greaterEq($rhs),
             Operator::Less => $this->less($rhs),
             Operator::LessEq => $this->lessEq($rhs),
-            default => throw UnknownOperationError::unknownOperator($op),
+            default => throw OperationError::unknownOperator($op, $this),
         };
     }
 
@@ -80,13 +83,13 @@ abstract class SimpleNumber implements GoValue
                 // fixme move to ints
                 return $this->bitwiseComplement();
             default:
-                throw UnknownOperationError::unknownOperator($op);
+                throw OperationError::unknownOperator($op, $this);
         }
     }
 
     public function mutate(Operator $op, GoValue $rhs): void
     {
-        assert_type_conforms($this, $rhs);
+        assert_values_compatible($this, $rhs);
 
         match ($op) {
             Operator::PlusEq,
@@ -96,7 +99,7 @@ abstract class SimpleNumber implements GoValue
             Operator::MulEq => $this->mutMul($rhs),
             Operator::DivEq => $this->mutDiv($rhs),
             Operator::ModEq => $this->mutMod($rhs),
-            default => throw UnknownOperationError::unknownOperator($op),
+            default => throw OperationError::unknownOperator($op, $this),
         };
     }
 

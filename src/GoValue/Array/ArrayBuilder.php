@@ -6,6 +6,7 @@ namespace GoPhp\GoValue\Array;
 
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoValue\GoValue;
+use function GoPhp\assert_types_compatible;
 
 final class ArrayBuilder
 {
@@ -22,9 +23,7 @@ final class ArrayBuilder
 
     public function push(GoValue $value): void
     {
-        if (!$this->type->internalType->conforms($value->type())) {
-            throw new \Exception('wrong type');
-        }
+        assert_types_compatible($this->type->internalType, $value->type());
 
         $this->values[] = $value;
     }

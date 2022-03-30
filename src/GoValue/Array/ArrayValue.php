@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Array;
 
+use GoPhp\Error\DefinitionError;
+use GoPhp\Error\TypeError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
+use function GoPhp\assert_types_compatible;
 
 final class ArrayValue implements GoValue
 {
@@ -25,7 +28,7 @@ final class ArrayValue implements GoValue
         if ($this->type->isUnfinished()) {
             $this->type->setLen($this->len);
         } elseif ($this->type->len !== $this->len) {
-            throw new \Exception('wrong type');
+            throw new TypeError(\sprintf('Expected array of length %d, got %d', $this->type->len, $this->len));
         }
     }
 
@@ -39,10 +42,10 @@ final class ArrayValue implements GoValue
         return \sprintf('[%s]', \implode(' ', $str));
     }
 
-    public function get(?int $at = null): GoValue
+    public function get(int $at): GoValue
     {
-        if ($at !== null && $at >= $this->len) {
-            throw new \OutOfBoundsException();
+        if ($at >= $this->len || $at < 0) {
+            throw DefinitionError::undefinedArrayKey($at);
         }
 
         return $this->values[$at];
@@ -50,13 +53,11 @@ final class ArrayValue implements GoValue
 
     public function set(GoValue $value, int $at): void
     {
-        if ($at >= $this->len) {
-            throw new \OutOfBoundsException();
+        if ($at >= $this->len || $at < 0) {
+            throw DefinitionError::undefinedArrayKey($at);
         }
 
-        if (!$value->type()->conforms($this->type->internalType)) {
-            throw new \Exception('typeerr');
-        }
+        assert_types_compatible($value->type(), $this->type->internalType);
 
         $this->values[$at] = $value;
     }

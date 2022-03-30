@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
+use GoPhp\Error\InternalError;
+
 final class Params implements \Countable, \ArrayAccess, \Iterator
 {
     private readonly array $params;
@@ -66,11 +68,11 @@ final class Params implements \Countable, \ArrayAccess, \Iterator
 
     public function offsetSet(mixed $offset, mixed $value): never
     {
-        throw new \BadMethodCallException('cannot modify params object');
+        throw new InternalError('Cannot modify params object');
     }
 
     public function offsetUnset(mixed $offset): void
     {
-        throw new \BadMethodCallException('cannot modify params object');
+        throw new InternalError('Cannot modify params object');
     }
 }

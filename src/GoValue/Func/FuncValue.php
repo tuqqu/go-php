@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Func;
 
 use GoPhp\Env\Environment;
+use GoPhp\Error\OperationError;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
@@ -13,6 +14,7 @@ use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\StmtValue;
 use GoPhp\Stream\StreamProvider;
+use function GoPhp\assert_types_compatible;
 
 final class FuncValue implements GoValue
 {
@@ -43,9 +45,8 @@ final class FuncValue implements GoValue
 
         $i = 0;
         foreach ($this->signature->params as $param) {
-            if (!$param->type->conforms($argv[$i]->type())) {
-                throw new \Exception('type error');
-            }
+            assert_types_compatible($param->type, $argv[$i]->type());
+
             foreach ($param->names ?? [] as $name) {
                 $env->defineVar($name, $argv[$i++], $param->type);
             }
@@ -75,10 +76,7 @@ final class FuncValue implements GoValue
         //fixme refactor
         if ($stmtValue->len === 1) {
             $param = $this->signature->returns[0];
-
-            if (!$param->type->conforms($stmtValue->value->type())) {
-                throw new \Exception('type error');
-            }
+            assert_types_compatible($param->type, $stmtValue->value->type());
 
             return $stmtValue->value;
         }
@@ -86,9 +84,7 @@ final class FuncValue implements GoValue
         $i = 0;
         // fixme add named returns
         foreach ($this->signature->returns as $param) {
-            if (!$param->type->conforms($stmtValue->value->values[$i]->type())) {
-                throw new \Exception('type error');
-            }
+            assert_types_compatible($param->type, $stmtValue->value->values[$i]->type());
         }
 
         return $stmtValue->value;
@@ -101,7 +97,7 @@ final class FuncValue implements GoValue
 
     public function toString(): string
     {
-        throw new \BadMethodCallException('cannot operate');
+        throw OperationError::unsupportedOperation(__METHOD__, $this);
     }
 
     public function unwrap(): callable
@@ -116,17 +112,17 @@ final class FuncValue implements GoValue
 
     public function operate(Operator $op): never
     {
-        throw new \BadMethodCallException('cannot operate');
+        throw OperationError::unknownOperator($op, $this);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): never
     {
-        throw new \BadMethodCallException('cannot operate');
+        throw OperationError::unknownOperator($op, $this);
     }
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        throw new \BadMethodCallException('cannot operate');
+        throw OperationError::unknownOperator($op, $this);
     }
 
     public function equals(GoValue $rhs): BoolValue

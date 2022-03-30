@@ -108,7 +108,7 @@ enum BasicType: string implements ValueType
         };
     }
 
-    public function conforms(ValueType $other): bool
+    public function isCompatible(ValueType $other): bool
     {
         if (!$other instanceof self) {
             return false;

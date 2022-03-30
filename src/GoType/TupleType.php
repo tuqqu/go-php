@@ -50,10 +50,10 @@ final class TupleType implements ValueType
         throw new \Exception();
     }
 
-    public function conforms(ValueType ...$other): bool
+    public function isCompatible(ValueType ...$other): bool
     {
         foreach ($this->types as $type) {
-            if (!$type->conforms($type)) {
+            if (!$type->isCompatible($type)) {
                 return false;
             }
         }

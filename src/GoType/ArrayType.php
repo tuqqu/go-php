@@ -32,7 +32,7 @@ final class ArrayType implements ValueType
             $this->len === $other->len;
     }
 
-    public function conforms(ValueType $other): bool
+    public function isCompatible(ValueType $other): bool
     {
         return $this->equals($other);
     }

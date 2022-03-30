@@ -33,7 +33,7 @@ final class FuncType implements ValueType
         return $other instanceof self && $this->fullType === $other->fullType;
     }
 
-    public function conforms(ValueType $other): bool
+    public function isCompatible(ValueType $other): bool
     {
         return $this->equals($other);
     }

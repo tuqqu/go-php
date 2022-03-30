@@ -19,7 +19,7 @@ enum VoidType implements ValueType
         return $this === $other;
     }
 
-    public function conforms(ValueType $other): bool
+    public function isCompatible(ValueType $other): bool
     {
         return $this === $other;
     }

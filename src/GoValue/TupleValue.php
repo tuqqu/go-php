@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Error\OperationError;
 use GoPhp\GoType\ValueType;
 use GoPhp\Operator;
 
@@ -22,7 +23,7 @@ final class TupleValue implements GoValue
 
     public function toString(): string
     {
-        throw new \BadMethodCallException('cannot operate');
+        throw OperationError::unsupportedOperation(__METHOD__, $this);
     }
 
     public function operate(Operator $op): self
