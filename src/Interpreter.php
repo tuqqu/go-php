@@ -74,7 +74,6 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
-use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\StmtValue\ReturnValue;
@@ -127,14 +126,27 @@ final class Interpreter
     {
         $this->curPackage = $this->ast->package->identifier->name;
 
-        foreach ($this->ast->decls as $decl) {
-            $this->evalStmt($decl);
+        try {
+            foreach ($this->ast->decls as $decl) {
+                $this->evalStmt($decl);
+            }
+        } catch (\Throwable $throwable) {
+            $this->streams->stderr()->writeln($throwable->getMessage());
+
+            return ExecCode::Failure;
         }
+
 
         if ($this->entryPoint !== null) {
             $this->state = State::EntryPoint;
-            ($this->entryPoint)($this->streams, ...$this->argv);
-            dump('entry success'); die; // fixme debug
+
+            try {
+                ($this->entryPoint)($this->streams, ...$this->argv);
+            } catch (\Throwable $throwable) {
+                $this->streams->stderr()->writeln($throwable->getMessage());
+
+                return ExecCode::Failure;
+            }
         } else {
             dd($this->env, 'no entry'); // fixme debug
         }

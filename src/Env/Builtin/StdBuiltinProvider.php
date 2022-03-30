@@ -45,7 +45,7 @@ final class StdBuiltinProvider implements BuiltinProvider
             $output[] = $value->toString();
         }
 
-        \fwrite($streams->stderr(), \implode(' ', $output) . "\n");
+        $streams->stderr()->writeln(\implode(' ', $output));
 
         return NoValue::NoValue;
     }
@@ -61,7 +61,7 @@ final class StdBuiltinProvider implements BuiltinProvider
             $output[] = $value->toString();
         }
 
-        \fwrite($streams->stderr(), \implode('', $output));
+        $streams->stderr()->write(\implode('', $output));
 
         return NoValue::NoValue;
     }

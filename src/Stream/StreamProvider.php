@@ -6,18 +6,9 @@ namespace GoPhp\Stream;
 
 interface StreamProvider
 {
-    /**
-     * @return resource
-     */
-    public function stdout(): mixed;
+    public function stdout(): OutputStream;
 
-    /**
-     * @return resource
-     */
-    public function stderr(): mixed;
+    public function stderr(): OutputStream;
 
-    /**
-     * @return resource
-     */
-    public function stdin(): mixed;
+    public function stdin(): InputStream;
 }
