@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\Error\DefinitionError;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\GoValue;
 
@@ -55,6 +56,12 @@ final class ArrayType implements ValueType
     public function setLen(int $len): void
     {
         $this->len = $len;
+
+        // fixme maybe introduce CompositeType interface
+        if ($this->internalType instanceof self && $this->internalType->isUnfinished()) {
+            throw new DefinitionError('invalid use of [...] array (outside a composite literal)');
+        }
+
         $this->name = \sprintf('[%d]%s', $this->len, $this->internalType->name());
     }
 

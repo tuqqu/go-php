@@ -2,35 +2,29 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\GoValue\Array;
+namespace GoPhp\GoValue\Slice;
 
 use GoPhp\Error\DefinitionError;
-use GoPhp\Error\TypeError;
 use GoPhp\GoType\ArrayType;
+use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\Operator;
 use function GoPhp\assert_types_compatible;
 
-final class ArrayValue implements Sequence, GoValue
+final class SliceValue implements Sequence, GoValue
 {
-    private readonly int $len;
+    private int $len;
 
     /**
      * @param GoValue[] $values
      */
     public function __construct(
         public array $values,
-        public readonly ArrayType $type,
+        public readonly SliceType $type,
     ) {
         $this->len = \count($this->values);
-
-        if ($this->type->isUnfinished()) {
-            $this->type->setLen($this->len);
-        } elseif ($this->type->len !== $this->len) {
-            throw new TypeError(\sprintf('Expected array of length %d, got %d', $this->type->len, $this->len));
-        }
     }
 
     public function toString(): string
@@ -68,6 +62,13 @@ final class ArrayValue implements Sequence, GoValue
         return $this->len;
     }
 
+    public function append(GoValue $value): void
+    {
+        assert_types_compatible($value->type(), $this->type->internalType);
+
+        $this->values[] = $value;
+    }
+
     public function operate(Operator $op): self
     {
         throw new \BadMethodCallException(); //fixme
@@ -96,13 +97,18 @@ final class ArrayValue implements Sequence, GoValue
         return $this->values;
     }
 
-    public function type(): ArrayType
+    public function type(): SliceType
     {
         return $this->type;
     }
 
     public function copy(): static
     {
-        return clone $this; // fixme iterate and clone all?
+        return $this;
+    }
+
+    public function clone(): self
+    {
+        return clone $this;
     }
 }

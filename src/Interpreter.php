@@ -6,6 +6,7 @@ namespace GoPhp;
 
 use GoParser\Ast\ConstSpec;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
+use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\BinaryExpr;
 use GoParser\Ast\Expr\CallExpr;
 use GoParser\Ast\Expr\CompositeLit;
@@ -60,6 +61,7 @@ use GoPhp\Error\ValueError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
+use GoPhp\GoType\SliceType;
 use GoPhp\GoType\TypeFactory;
 use GoPhp\GoType\ValueType;
 use GoPhp\GoValue\Array\ArrayBuilder;
@@ -74,6 +76,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\StmtValue\ReturnValue;
@@ -142,6 +145,7 @@ final class Interpreter
             try {
                 ($this->entryPoint)($this->streams, ...$this->argv);
             } catch (\Throwable $throwable) {
+                dump($throwable->getTraceAsString());
                 $this->streams->stderr()->writeln($throwable->getMessage());
 
                 return ExecCode::Failure;
@@ -316,7 +320,7 @@ final class Interpreter
 
         $argv = [];
         foreach ($expr->args->exprs as $arg) {
-            $argv[] = $this->evalExpr($arg);
+            $argv[] = $this->evalExpr($arg)->copy();
         }
 
         return $func($this->streams, ...$argv); //fixme tuple
@@ -606,6 +610,14 @@ final class Interpreter
             }
 
             return $builder->build();
+        } elseif ($type instanceof SliceType) {
+            $builder = SliceBuilder::fromType($type);
+
+            foreach ($lit->elementList->elements as $element) {
+                $builder->push($this->evalExpr($element->element));
+            }
+
+            return $builder->build();
         }
 
         throw new \Exception('unknown composite lit');
@@ -736,6 +748,9 @@ final class Interpreter
             case $type instanceof AstArrayType:
                 $resolved = $this->resolveArrayType($type, $composite);
                 break;
+            case $type instanceof AstSliceType:
+                $resolved = $this->resolveSliceType($type, $composite);
+                break;
             default:
                 dump($type);
                 throw new \InvalidArgumentException('unresolved type'); //fixme
@@ -771,6 +786,11 @@ final class Interpreter
             $this->resolveType($arrayType->elemType, $composite),
             $len?->unwrap(),
         );
+    }
+
+    private function resolveSliceType(AstSliceType $sliceType, bool $composite): SliceType
+    {
+        return new SliceType($this->resolveType($sliceType->elemType, $composite));
     }
 
     /**

@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Operator;
-use GoPhp\GoType\BasicType;
+use GoPhp\Error\DefinitionError;
 use GoPhp\Error\OperationError;
+use GoPhp\GoType\BasicType;
+use GoPhp\GoValue\Int\Int32Value;
+use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 
-final class StringValue implements GoValue
+final class StringValue implements Sequence, GoValue
 {
+    private int $len;
+
     public function __construct(
         private string $value,
-    ) {}
+    ) {
+        $this->len = \strlen($this->value);
+    }
 
     public function type(): BasicType
     {
@@ -66,6 +72,7 @@ final class StringValue implements GoValue
     public function mutAdd(self $value): void
     {
         $this->value .= $value->value;
+        $this->len += \strlen($value->value);
     }
 
     public function copy(): static
@@ -96,5 +103,24 @@ final class StringValue implements GoValue
     public function lessEq(self $other): BoolValue
     {
         // TODO: Implement lessEq() method.
+    }
+
+    public function get(int $at): Int32Value
+    {
+        if ($at >= $this->len || $at < 0) {
+            throw DefinitionError::indexOutOfRange($at, $this->len);
+        }
+
+        return Int32Value::fromRune($this->value[$at]);
+    }
+
+    public function set(GoValue $value, int $at): void
+    {
+        throw new \Exception('cannot assign to %s (value of type byte)');
+    }
+
+    public function len(): int
+    {
+        return $this->len;
     }
 }

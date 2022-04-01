@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Env\Builtin;
 
 use GoPhp\Env\Environment;
+use GoPhp\Error\OperationError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
@@ -13,7 +14,10 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\NoValue;
+use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\Stream\StreamProvider;
+use function GoPhp\assert_argc;
 
 final class StdBuiltinProvider implements BuiltinProvider
 {
@@ -30,6 +34,7 @@ final class StdBuiltinProvider implements BuiltinProvider
         $env->defineBuiltinFunc('print', new BuiltinFuncValue(self::print(...)));
         $env->defineBuiltinFunc('len', new BuiltinFuncValue(self::len(...)));
         $env->defineBuiltinFunc('cap', new BuiltinFuncValue(self::cap(...)));
+        $env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
 
         return $env;
     }
@@ -71,19 +76,15 @@ final class StdBuiltinProvider implements BuiltinProvider
      */
     private static function len(StreamProvider $streams, GoValue ...$values): IntValue
     {
-        $argc = \count($values);
-
-        if ($argc !== 1) {
-            throw new \Exception('unmatched argc count');
-        }
+        assert_argc($values, 1);
 
         $value = $values[0];
 
-        if ($value instanceof ArrayValue) {
-            return new IntValue(\count($values));
+        if (!$value instanceof Sequence) {
+            OperationError::wrongArgumentType($value->type(), 'slice, array, string', 1);
         }
 
-        throw new \Exception('invalid arg type');
+        return new IntValue($value->len());
     }
 
     /**
@@ -91,18 +92,40 @@ final class StdBuiltinProvider implements BuiltinProvider
      */
     private static function cap(StreamProvider $streams, GoValue ...$values): IntValue
     {
-        $argc = \count($values);
-
-        if ($argc !== 1) {
-            throw new \Exception('unmatched argc count');
-        }
+        assert_argc($values, 1);
 
         $value = $values[0];
 
         if ($value instanceof ArrayValue) {
-            return new IntValue(\count($values));
+            return new IntValue($value->len());
         }
 
-        throw new \Exception('invalid arg type');
+        if ($value instanceof SliceValue) {
+            return new IntValue($value->len()); //fixme
+        }
+
+        throw OperationError::wrongArgumentType($value->type(), 'slice, array', 1);
+    }
+
+    /**
+     * @see https://pkg.go.dev/builtin#append
+     */
+    private static function append(StreamProvider $streams, GoValue ...$values): SliceValue
+    {
+        assert_argc($values, 1, variadic: true);
+
+        $slice = $values[0];
+        if (!$slice instanceof SliceValue) {
+            throw OperationError::wrongArgumentType($slice->type(), 'slice', 1);
+        }
+
+        $slice = $slice->clone();
+        unset($values[0]);
+        foreach ($values as $value) {
+            // fixme think of types
+            $slice->append($value);
+        }
+
+        return $slice;
     }
 }

@@ -51,4 +51,28 @@ final class OperationError extends \RuntimeException
             )
         );
     }
+
+    //fixme move from here
+    public static function wrongArgumentNumber(int $expected, int $actual): self
+    {
+        if ($expected < $actual) {
+            $msg = 'not enough arguments in call, expected %d, but got %d';
+        } else {
+            $msg = 'too many arguments in call, expected %d, but got %d';
+        }
+
+        return new self(\sprintf($msg, $expected, $actual));
+    }
+
+    public static function wrongArgumentType(ValueType $actual, string|ValueType $expected, int $pos)
+    {
+        return new self(
+            \sprintf(
+                'invalid argument %d (%s), expected %s',
+                $pos,
+                $actual->name(),
+                \is_string($expected) ? $expected : $expected->name(),
+            )
+        );
+    }
 }

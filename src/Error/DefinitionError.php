@@ -8,9 +8,9 @@ use GoPhp\GoType\ValueType;
 
 final class DefinitionError extends \LogicException
 {
-    public static function undefinedArrayKey(int $key): self
+    public static function indexOutOfRange(int $key, int $len): self
     {
-        return new self(\sprintf('Undefined array key %d', $key));
+        return new self(\sprintf('index out of range [%d] with length %d', $key, $len));
     }
 
     public static function uninitialisedConstant(string $name): self

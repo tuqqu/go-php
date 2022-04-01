@@ -15,6 +15,7 @@ use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\StmtValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_types_compatible;
+use function GoPhp\assert_argc;
 
 final class FuncValue implements GoValue
 {
@@ -35,17 +36,16 @@ final class FuncValue implements GoValue
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
     }
 
+    //fixme move streams to env
     public function __invoke(StreamProvider $streams, GoValue ...$argv): GoValue
     {
         $env = new Environment(enclosing: $this->enclosure);
 
-        if ($this->signature->arity !== \count($argv)) {
-            throw new \Exception('wrong number of params');
-        }
+        assert_argc($argv, $this->signature->arity);
 
         $i = 0;
         foreach ($this->signature->params as $param) {
-            assert_types_compatible($param->type, $argv[$i]->type());
+            assert_types_compatible($param->type, $argv[$i]->type()); //fixme error
 
             foreach ($param->names ?? [] as $name) {
                 $env->defineVar($name, $argv[$i++], $param->type);
