@@ -69,9 +69,8 @@ use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Float\UntypedFloatValue;
-use GoPhp\GoValue\Func\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
-use GoPhp\GoValue\Func\Invocable;
+use GoPhp\GoValue\Invocable;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
@@ -670,12 +669,12 @@ final class Interpreter
 
     private function evalIdent(Ident $ident): GoValue
     {
-        return $this->env->get($ident->name)->value;
+        return $this->env->get($ident->name)->unwrap();
     }
 
     private function getVarMutator(Ident $ident, bool $compound): ValueMutator
     {
-        $var = $this->env->getVariable($ident->name);
+        $var = $this->env->getMut($ident->name);
 
         return ValueMutator::fromEnvVar($var, $compound);
     }

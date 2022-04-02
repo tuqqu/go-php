@@ -18,7 +18,7 @@ use function GoPhp\assert_arg_type;
 use function GoPhp\assert_types_compatible;
 use function GoPhp\assert_argc;
 
-final class FuncValue implements Invocable, GoValue
+final class FuncValue implements Func, GoValue
 {
     public readonly Signature $signature;
     public readonly Environment $enclosure;

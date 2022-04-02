@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
-use GoPhp\Env\EnvValue\Variable;
+use GoPhp\Env\EnvValue\MutableValue;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
@@ -16,11 +16,11 @@ final class ValueMutator
         private readonly bool $compound,
     ) {}
 
-    public static function fromEnvVar(Variable $var, bool $compound): self
+    public static function fromEnvVar(MutableValue $var, bool $compound): self
     {
         return new self(
             $compound ?
-                $var->value->mutate(...) :
+                $var->unwrap()->mutate(...) :
                 $var->set(...),
             $compound,
         );

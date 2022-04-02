@@ -7,7 +7,7 @@ namespace GoPhp\Env\EnvValue;
 use GoPhp\GoValue\GoValue;
 use function GoPhp\assert_types_compatible;
 
-final class Variable extends EnvValue
+final class MutableValue extends EnvValue
 {
     public function set(GoValue $value): void
     {

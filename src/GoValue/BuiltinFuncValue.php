@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\GoValue\Func;
+namespace GoPhp\GoValue;
 
-use GoPhp\GoType\VoidType;
 use GoPhp\GoType\ValueType;
-use GoPhp\GoValue\BoolValue;
-use GoPhp\GoValue\GoValue;
+use GoPhp\GoType\VoidType;
 use GoPhp\Operator;
 use GoPhp\Stream\StreamProvider;
 

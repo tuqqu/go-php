@@ -7,7 +7,7 @@ namespace GoPhp\Env;
 use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\Error\{AlreadyDefinedError, UndefinedValueError};
 
-final class EnvValuesTable
+final class ValueTable
 {
     /** @var array<string, EnvValue> */
     private array $values = [];

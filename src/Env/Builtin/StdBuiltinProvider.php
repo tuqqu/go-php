@@ -9,7 +9,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
-use GoPhp\GoValue\Func\BuiltinFuncValue;
+use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
@@ -22,7 +22,7 @@ use function GoPhp\assert_arg_type;
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
 
-final class StdBuiltinProvider implements BuiltinProvider
+class StdBuiltinProvider implements BuiltinProvider
 {
     public function provide(): Environment
     {
@@ -45,7 +45,7 @@ final class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#println
      */
-    private static function println(StreamProvider $streams, GoValue ...$values): NoValue
+    protected static function println(StreamProvider $streams, GoValue ...$values): NoValue
     {
         $output = [];
 
@@ -61,7 +61,7 @@ final class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#print
      */
-    private static function print(StreamProvider $streams, GoValue ...$values): NoValue
+    protected static function print(StreamProvider $streams, GoValue ...$values): NoValue
     {
         $output = [];
 
@@ -77,7 +77,7 @@ final class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#len
      */
-    private static function len(StreamProvider $streams, GoValue ...$values): IntValue
+    protected static function len(StreamProvider $streams, GoValue ...$values): IntValue
     {
         assert_argc($values, 1);
         assert_arg_value($values[0], Sequence::class, 'slice, array, string', 1);
@@ -88,7 +88,7 @@ final class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#cap
      */
-    private static function cap(StreamProvider $streams, GoValue ...$values): IntValue
+    protected static function cap(StreamProvider $streams, GoValue ...$values): IntValue
     {
         assert_argc($values, 1);
 
@@ -108,7 +108,7 @@ final class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#append
      */
-    private static function append(StreamProvider $streams, GoValue ...$values): SliceValue
+    protected static function append(StreamProvider $streams, GoValue ...$values): SliceValue
     {
         assert_argc($values, 1, variadic: true);
         assert_arg_value($values[0], SliceValue::class, SliceValue::NAME, 1);
