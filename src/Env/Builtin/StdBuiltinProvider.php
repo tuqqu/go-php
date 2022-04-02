@@ -15,8 +15,11 @@ use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\Stream\StreamProvider;
+use function GoPhp\assert_arg_type;
+use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
 
 final class StdBuiltinProvider implements BuiltinProvider
@@ -77,14 +80,9 @@ final class StdBuiltinProvider implements BuiltinProvider
     private static function len(StreamProvider $streams, GoValue ...$values): IntValue
     {
         assert_argc($values, 1);
+        assert_arg_value($values[0], Sequence::class, 'slice, array, string', 1);
 
-        $value = $values[0];
-
-        if (!$value instanceof Sequence) {
-            OperationError::wrongArgumentType($value->type(), 'slice, array, string', 1);
-        }
-
-        return new IntValue($value->len());
+        return new IntValue($values[0]->len());
     }
 
     /**
@@ -113,19 +111,18 @@ final class StdBuiltinProvider implements BuiltinProvider
     private static function append(StreamProvider $streams, GoValue ...$values): SliceValue
     {
         assert_argc($values, 1, variadic: true);
+        assert_arg_value($values[0], SliceValue::class, SliceValue::NAME, 1);
 
+        /** @var SliceValue $slice */
         $slice = $values[0];
-        if (!$slice instanceof SliceValue) {
-            throw OperationError::wrongArgumentType($slice->type(), 'slice', 1);
-        }
+        $sliceBuilder = SliceBuilder::fromValue($slice);
 
-        $slice = $slice->clone();
         unset($values[0]);
-        foreach ($values as $value) {
-            // fixme think of types
-            $slice->append($value);
+        foreach ($values as $i => $value) {
+            assert_arg_type($value, $slice->type(), $i + 1);
+            $sliceBuilder->pushBlindly($value);
         }
 
-        return $slice;
+        return $sliceBuilder->build();
     }
 }

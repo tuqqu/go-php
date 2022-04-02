@@ -10,7 +10,7 @@ final class Param
 {
     public function __construct(
         public readonly ValueType $type,
-        public readonly ?array $names = null, //fixme maybe just []
+        public readonly array $names = [],
         public readonly bool $variadic = false,
     ) {}
 }

@@ -11,7 +11,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
 use GoPhp\Stream\StreamProvider;
 
-final class BuiltinFuncValue implements GoValue
+final class BuiltinFuncValue implements Invocable, GoValue
 {
     public function __construct(
         private readonly \Closure $function,

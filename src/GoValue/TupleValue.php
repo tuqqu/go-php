@@ -8,6 +8,10 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\ValueType;
 use GoPhp\Operator;
 
+/**
+ * Not a real Go type, but an internal representation
+ * of a set of types returned from a function call.
+ */
 final class TupleValue implements GoValue
 {
     public readonly int $len;

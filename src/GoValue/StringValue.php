@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\DefinitionError;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\Operator;
+use function GoPhp\assert_index_exists;
 use function GoPhp\assert_values_compatible;
 
 final class StringValue implements Sequence, GoValue
@@ -107,9 +107,7 @@ final class StringValue implements Sequence, GoValue
 
     public function get(int $at): Int32Value
     {
-        if ($at >= $this->len || $at < 0) {
-            throw DefinitionError::indexOutOfRange($at, $this->len);
-        }
+        assert_index_exists($at, $this->len);
 
         return Int32Value::fromRune($this->value[$at]);
     }

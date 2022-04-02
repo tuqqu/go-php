@@ -32,6 +32,7 @@ use GoParser\Ast\ParamDecl;
 use GoParser\Ast\Params as AstParams;
 use GoParser\Ast\Punctuation;
 use GoParser\Ast\Signature as AstSignature;
+use GoParser\Ast\Spec;
 use GoParser\Ast\Stmt\AssignmentStmt;
 use GoParser\Ast\Stmt\BlockStmt;
 use GoParser\Ast\Stmt\ConstDecl;
@@ -70,12 +71,14 @@ use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
+use GoPhp\GoValue\Func\Invocable;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
@@ -195,7 +198,7 @@ final class Interpreter
                 $type = $this->resolveType($spec->type);
             }
 
-            if (!$type instanceof BasicType) {
+            if ($type !== null && !$type instanceof BasicType) {
                 throw DefinitionError::constantExpectsBasicType($type);
             }
 
@@ -314,7 +317,7 @@ final class Interpreter
     {
         $func = $this->evalExpr($expr->expr);
 
-        if (!$func instanceof FuncValue && !$func instanceof BuiltinFuncValue) {
+        if (!$func instanceof Invocable) {
             throw OperationError::nonFunctionCall($func);
         }
 
@@ -330,13 +333,13 @@ final class Interpreter
     {
         $array = $this->evalExpr($expr->expr);
 
-        if (!$array instanceof ArrayValue) {
+        if (!$array instanceof Sequence) {
             throw TypeError::valueOfWrongType($array, 'array');
         }
 
         $index = $this->evalExpr($expr->index);
 
-        if (!$index instanceof BaseIntValue) { //fixme check int type
+        if (!$index instanceof BaseIntValue) {
             throw TypeError::conversionError($index->type(), BasicType::Int);
         }
 
@@ -395,11 +398,11 @@ final class Interpreter
 
         foreach ($stmt->exprList->exprs as $expr) {
             $value = $this->evalExpr($expr);
+
             if ($value instanceof TupleValue) {
                 if (!empty($values)) {
                     throw ValueError::multipleValueInSingleContext();
                 }
-
                 return ReturnValue::fromTuple($value);
             }
 
@@ -723,6 +726,9 @@ final class Interpreter
         }
     }
 
+    /**
+     * @return iterable<Spec>
+     */
     private static function wrapSpecs(VarSpec|ConstSpec|GroupSpec $spec): iterable
     {
         return $spec->isGroup() ?
@@ -818,7 +824,7 @@ final class Interpreter
         return new Param(
             $this->resolveType($paramDecl->type),
             $paramDecl->identList === null ?
-                null :
+                [] :
                 self::arrayFromIdents($paramDecl->identList), // fixme maybe anon option for perf
             $paramDecl->ellipsis !== null,
         );

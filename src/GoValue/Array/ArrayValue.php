@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Array;
 
-use GoPhp\Error\DefinitionError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\Operator;
+use function GoPhp\assert_index_exists;
 use function GoPhp\assert_types_compatible;
 
 final class ArrayValue implements Sequence, GoValue
@@ -45,19 +45,14 @@ final class ArrayValue implements Sequence, GoValue
 
     public function get(int $at): GoValue
     {
-        if ($at >= $this->len || $at < 0) {
-            throw DefinitionError::indexOutOfRange($at, $this->len);
-        }
+        assert_index_exists($at, $this->len);
 
         return $this->values[$at];
     }
 
     public function set(GoValue $value, int $at): void
     {
-        if ($at >= $this->len || $at < 0) {
-            throw DefinitionError::indexOutOfRange($at, $this->len);
-        }
-
+        assert_index_exists($at, $this->len);
         assert_types_compatible($value->type(), $this->type->internalType);
 
         $this->values[$at] = $value;

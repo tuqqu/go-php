@@ -14,10 +14,11 @@ use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\StmtValue;
 use GoPhp\Stream\StreamProvider;
+use function GoPhp\assert_arg_type;
 use function GoPhp\assert_types_compatible;
 use function GoPhp\assert_argc;
 
-final class FuncValue implements GoValue
+final class FuncValue implements Invocable, GoValue
 {
     public readonly Signature $signature;
     public readonly Environment $enclosure;
@@ -45,9 +46,9 @@ final class FuncValue implements GoValue
 
         $i = 0;
         foreach ($this->signature->params as $param) {
-            assert_types_compatible($param->type, $argv[$i]->type()); //fixme error
+            assert_arg_type($argv[$i], $param->type, $i);
 
-            foreach ($param->names ?? [] as $name) {
+            foreach ($param->names as $name) {
                 $env->defineVar($name, $argv[$i++], $param->type);
             }
         }
