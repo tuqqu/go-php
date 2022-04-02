@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
 interface GoValue
@@ -21,7 +21,7 @@ interface GoValue
 
     public function copy(): static;
 
-    public function type(): ValueType;
+    public function type(): GoType;
 
     public function toString(): string;
 }

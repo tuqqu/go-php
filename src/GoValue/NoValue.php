@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoType\VoidType;
 use GoPhp\Operator;
 
@@ -17,7 +17,7 @@ enum NoValue implements GoValue
         throw new \BadMethodCallException('cannot operate');
     }
 
-    public function type(): ValueType
+    public function type(): GoType
     {
         return VoidType::NoValue;
     }

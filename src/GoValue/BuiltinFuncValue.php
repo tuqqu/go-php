@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoType\VoidType;
 use GoPhp\Operator;
 use GoPhp\Stream\StreamProvider;
@@ -30,7 +30,7 @@ final class BuiltinFuncValue implements Invocable, GoValue
         throw new \BadMethodCallException('cannot operate');
     }
 
-    public function type(): ValueType
+    public function type(): GoType
     {
         return VoidType::Builtin;
     }

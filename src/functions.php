@@ -7,7 +7,7 @@ namespace GoPhp;
 use GoPhp\Error\DefinitionError;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoValue\GoValue;
 
 function assert_values_compatible(GoValue $a, GoValue $b): void
@@ -15,7 +15,7 @@ function assert_values_compatible(GoValue $a, GoValue $b): void
     assert_types_compatible($a->type(), $b->type());
 }
 
-function assert_types_compatible(ValueType $a, ValueType $b): void
+function assert_types_compatible(GoType $a, GoType $b): void
 {
     if (!$a->isCompatible($b)) {
         throw TypeError::incompatibleTypes($a, $b);
@@ -40,7 +40,7 @@ function assert_arg_value(GoValue $arg, string $value, string $name, int $pos): 
     }
 }
 
-function assert_arg_type(GoValue $arg, ValueType $type, int $pos): void
+function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
 {
     if (!$arg->type()->isCompatible($type)) {
         throw OperationError::wrongArgumentType($arg->type(), $type->name(), $pos);

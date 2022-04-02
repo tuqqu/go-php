@@ -6,12 +6,12 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoValue\GoValue;
 
-final class SliceType implements ValueType
+final class SliceType implements GoType
 {
     public readonly string $name;
 
     public function __construct(
-        public readonly ValueType $internalType,
+        public readonly GoType $internalType,
     ) {
         $this->name = \sprintf('[]%s', $this->internalType->name());
     }
@@ -21,13 +21,13 @@ final class SliceType implements ValueType
         return $this->name;
     }
 
-    public function equals(ValueType $other): bool
+    public function equals(GoType $other): bool
     {
         return $other instanceof self &&
             $this->internalType->equals($other->internalType);
     }
 
-    public function isCompatible(ValueType $other): bool
+    public function isCompatible(GoType $other): bool
     {
         return $this->equals($other);
     }

@@ -69,10 +69,11 @@ use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoType\TypeFactory;
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
+use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Invocable;
@@ -86,6 +87,7 @@ use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
+use GoPhp\GoValue\TypeValue;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\SimpleValue;
 use GoPhp\StmtValue\StmtValue;
@@ -330,8 +332,18 @@ final class Interpreter
         }
 
         $argv = [];
-        foreach ($expr->args->exprs as $arg) {
-            $argv[] = $this->evalExpr($arg)->copy();
+        $exprLen = \count($expr->args->exprs);
+
+        if (
+            $func instanceof BuiltinFuncValue
+            && $exprLen > 0
+            && $expr->args->exprs[0] instanceof AstType
+        ) {
+            $argv[] = new TypeValue($this->resolveType($expr->args->exprs[0]));
+        }
+
+        for ($i = \count($argv); $i < $exprLen; ++$i) {
+            $argv[] = $this->evalExpr($expr->args->exprs[$i])->copy();
         }
 
         return $func($this->streams, ...$argv); //fixme tuple
@@ -821,7 +833,7 @@ final class Interpreter
     }
 
     // fixme maybe must be done lazily
-    private function resolveType(AstType $type, bool $composite = false): ValueType
+    private function resolveType(AstType $type, bool $composite = false): GoType
     {
         $resolved = null;
 

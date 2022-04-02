@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 
 final class DefinitionError extends \LogicException
 {
@@ -18,7 +18,7 @@ final class DefinitionError extends \LogicException
         return new self(\sprintf('Constant "%s" must have default value', $name));
     }
 
-    public static function constantExpectsBasicType(ValueType $type): self
+    public static function constantExpectsBasicType(GoType $type): self
     {
         return new self(\sprintf('Constant must of basic type, got "%s"', $type->name()));
     }

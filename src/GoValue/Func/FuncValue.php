@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Func;
 
 use GoPhp\Env\Environment;
 use GoPhp\Error\OperationError;
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NoValue;
@@ -107,7 +107,7 @@ final class FuncValue implements Func, GoValue
         return $this;
     }
 
-    public function type(): ValueType
+    public function type(): GoType
     {
         return $this->signature->type;
     }

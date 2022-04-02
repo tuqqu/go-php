@@ -7,16 +7,19 @@ namespace GoPhp\Env\Builtin;
 use GoPhp\Env\Environment;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\BasicType;
+use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
+use GoPhp\GoValue\TypeValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_type;
 use function GoPhp\assert_arg_value;
@@ -38,6 +41,7 @@ class StdBuiltinProvider implements BuiltinProvider
         $env->defineBuiltinFunc('len', new BuiltinFuncValue(self::len(...)));
         $env->defineBuiltinFunc('cap', new BuiltinFuncValue(self::cap(...)));
         $env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
+        $env->defineBuiltinFunc('make', new BuiltinFuncValue(self::make(...)));
 
         return $env;
     }
@@ -124,5 +128,46 @@ class StdBuiltinProvider implements BuiltinProvider
         }
 
         return $sliceBuilder->build();
+    }
+
+    /**
+     * @see https://pkg.go.dev/builtin#make
+     */
+    protected static function make(StreamProvider $streams, GoValue ...$values): SliceValue
+    {
+        assert_argc($values, 1, variadic: true);
+        assert_arg_value($values[0], TypeValue::class, 'type', 1);
+
+        /** @var TypeValue $type */
+        $type = $values[0];
+        $argc = \count($values);
+
+        if ($type->type instanceof SliceType) {
+            if ($argc > 3) {
+                throw OperationError::wrongArgumentNumber('2 or 3', $argc);
+            }
+
+            // fixme float .0 truncation allowed
+            if (isset($values[1])) {
+                assert_arg_value($values[1], BaseIntValue::class, 'int', 2);
+                $len = $values[1]->unwrap();
+            } else {
+                $len = 0;
+            }
+
+            if (isset($values[2])) {
+                // we do not use this value, just validating it
+                assert_arg_value($values[2], BaseIntValue::class, 'int', 3);
+            }
+
+            $builder = SliceBuilder::fromType($type->type);
+            for ($i = 0; $i < $len; ++$i) {
+                $builder->pushBlindly($type->type->internalType->defaultValue());
+            }
+
+            return $builder->build();
+        }
+
+        throw OperationError::wrongArgumentType($type->type, 'slice, map or channel', 1);
     }
 }

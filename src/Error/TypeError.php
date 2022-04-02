@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoValue\GoValue;
 
 final class TypeError extends \RuntimeException
 {
-    public static function conversionError(ValueType $from, ValueType $to): self
+    public static function conversionError(GoType $from, GoType $to): self
     {
         return new self(
             \sprintf(
@@ -20,7 +20,7 @@ final class TypeError extends \RuntimeException
         );
     }
 
-    public static function incompatibleTypes(ValueType $a, ValueType $b): self
+    public static function incompatibleTypes(GoType $a, GoType $b): self
     {
         return new self(
             \sprintf(
@@ -31,7 +31,7 @@ final class TypeError extends \RuntimeException
         );
     }
 
-    public static function valueOfWrongType(GoValue $value, ValueType|string $expected): self
+    public static function valueOfWrongType(GoValue $value, GoType|string $expected): self
     {
         return new self(
             \sprintf(

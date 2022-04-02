@@ -7,7 +7,7 @@ namespace GoPhp\GoType;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 
-final class FuncType implements ValueType
+final class FuncType implements GoType
 {
     public readonly string $name;
 
@@ -28,12 +28,12 @@ final class FuncType implements ValueType
         return $this->name;
     }
 
-    public function equals(ValueType $other): bool
+    public function equals(GoType $other): bool
     {
         return $other instanceof self && $this->name === $other->name;
     }
 
-    public function isCompatible(ValueType $other): bool
+    public function isCompatible(GoType $other): bool
     {
         return $this->equals($other);
     }

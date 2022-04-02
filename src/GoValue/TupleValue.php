@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
 /**
  * Not a real Go type, but an internal representation
- * of a set of types returned from a function call.
+ * of a set of values returned from a function call.
  */
 final class TupleValue implements GoValue
 {
@@ -63,7 +63,7 @@ final class TupleValue implements GoValue
         return $this->values;
     }
 
-    public function type(): ValueType
+    public function type(): GoType
     {
         throw new \BadMethodCallException(); //fixme
     }

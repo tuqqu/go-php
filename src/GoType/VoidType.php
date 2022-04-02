@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-enum VoidType implements ValueType
+enum VoidType implements GoType
 {
     case NoValue;
     case Builtin;
@@ -14,12 +14,12 @@ enum VoidType implements ValueType
         throw new \Exception('(built-in) must be called');
     }
 
-    public function equals(ValueType $other): bool
+    public function equals(GoType $other): bool
     {
         return $this === $other;
     }
 
-    public function isCompatible(ValueType $other): bool
+    public function isCompatible(GoType $other): bool
     {
         return $this === $other;
     }

@@ -21,7 +21,7 @@ use GoPhp\GoValue\Int\UintptrValue;
 use GoPhp\GoValue\Int\UintValue;
 use GoPhp\GoValue\StringValue;
 
-enum BasicType: string implements ValueType
+enum BasicType: string implements GoType
 {
     case UntypedInt = 'untyped_int';
     case UntypedFloat = 'untyped_float';
@@ -69,7 +69,7 @@ enum BasicType: string implements ValueType
         return $this->value;
     }
 
-    public function equals(ValueType $type): bool
+    public function equals(GoType $type): bool
     {
         return $this === $type;
     }
@@ -108,7 +108,7 @@ enum BasicType: string implements ValueType
         };
     }
 
-    public function isCompatible(ValueType $other): bool
+    public function isCompatible(GoType $other): bool
     {
         if (!$other instanceof self) {
             return false;

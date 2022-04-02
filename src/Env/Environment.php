@@ -11,7 +11,7 @@ use GoPhp\Env\Error\CannotBeMutatedError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\VoidType;
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
@@ -34,7 +34,7 @@ final class Environment
         $this->definedValues->add($const);
     }
 
-    public function defineVar(string $name, GoValue $value, ValueType $type): void
+    public function defineVar(string $name, GoValue $value, GoType $type): void
     {
         $var = new MutableValue($name, $type, $value);
         $this->definedValues->add($var);

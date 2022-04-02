@@ -6,7 +6,7 @@ namespace GoPhp\GoType;
 
 final class TypeFactory
 {
-    public static function tryFrom(mixed $value): ?ValueType
+    public static function tryFrom(mixed $value): ?GoType
     {
         if (\is_string($value)) {
             return BasicType::tryFrom($value);

@@ -6,7 +6,7 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoValue\GoValue;
 
-interface ValueType
+interface GoType
 {
     public function name(): string;
 

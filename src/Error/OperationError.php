@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
-use GoPhp\GoType\ValueType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
 
@@ -53,18 +53,18 @@ final class OperationError extends \RuntimeException
     }
 
     //fixme move from here
-    public static function wrongArgumentNumber(int $expected, int $actual): self
+    public static function wrongArgumentNumber(int|string $expected, int $actual): self
     {
         if ($expected < $actual) {
-            $msg = 'not enough arguments in call, expected %d, but got %d';
+            $msg = 'not enough arguments in call, expected %s, but got %d';
         } else {
-            $msg = 'too many arguments in call, expected %d, but got %d';
+            $msg = 'too many arguments in call, expected %s, but got %d';
         }
 
         return new self(\sprintf($msg, $expected, $actual));
     }
 
-    public static function wrongArgumentType(ValueType $actual, string|ValueType $expected, int $pos)
+    public static function wrongArgumentType(GoType $actual, string|GoType $expected, int $pos)
     {
         return new self(
             \sprintf(

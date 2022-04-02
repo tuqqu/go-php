@@ -8,12 +8,12 @@ use GoPhp\Error\DefinitionError;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\GoValue;
 
-final class ArrayType implements ValueType
+final class ArrayType implements GoType
 {
     public readonly string $name;
 
     public function __construct(
-        public readonly ValueType $internalType,
+        public readonly GoType $internalType,
         public ?int $len,
     ) {
         if ($len !== null) {
@@ -26,14 +26,14 @@ final class ArrayType implements ValueType
         return $this->name;
     }
 
-    public function equals(ValueType $other): bool
+    public function equals(GoType $other): bool
     {
         return $other instanceof self &&
             $this->internalType->equals($other->internalType) &&
             $this->len === $other->len;
     }
 
-    public function isCompatible(ValueType $other): bool
+    public function isCompatible(GoType $other): bool
     {
         return $this->equals($other);
     }
