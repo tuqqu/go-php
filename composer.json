@@ -2,17 +2,9 @@
     "name": "tuqqu/go-php",
     "type": "library",
     "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "GoPhp\\": "src/"
-        },
-        "files": [
-            "src/functions.php"
-        ]
-    },
     "authors": [
         {
-            "name": "tuqqu",
+            "name": "Arthur Kurbidaev",
             "email": "artkurbidaev@gmail.com"
         }
     ],
@@ -22,12 +14,30 @@
     },
     "require-dev": {
         "symfony/var-dumper": "^6.0",
-        "friendsofphp/php-cs-fixer": "^3.8"
+        "friendsofphp/php-cs-fixer": "^3.8",
+        "phpunit/phpunit": "^9"
+    },
+    "autoload": {
+        "psr-4": {
+            "GoPhp\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GoPhp\\Tests\\": "src/"
+        }
     },
     "scripts": {
         "fix-cs": "vendor/bin/php-cs-fixer fix --diff --allow-risky=yes",
         "lint": [
-          "vendor/bin/php-cs-fixer fix --dry-run --verbose --diff --using-cache=no --allow-risky=yes"
+            "vendor/bin/php-cs-fixer fix --dry-run --verbose --diff --using-cache=no --allow-risky=yes"
+        ],
+        "test-unit": "vendor/bin/phpunit --testsuite=unit",
+        "test": [
+            "@test-unit"
         ]
     }
 }
