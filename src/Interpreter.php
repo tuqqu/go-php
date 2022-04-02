@@ -26,18 +26,23 @@ use GoParser\Ast\Expr\Type;
 use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\File as Ast;
+use GoParser\Ast\ForClause;
 use GoParser\Ast\GroupSpec;
 use GoParser\Ast\IdentList;
 use GoParser\Ast\ParamDecl;
 use GoParser\Ast\Params as AstParams;
 use GoParser\Ast\Punctuation;
+use GoParser\Ast\RangeClause;
 use GoParser\Ast\Signature as AstSignature;
 use GoParser\Ast\Spec;
 use GoParser\Ast\Stmt\AssignmentStmt;
 use GoParser\Ast\Stmt\BlockStmt;
+use GoParser\Ast\Stmt\BreakStmt;
 use GoParser\Ast\Stmt\ConstDecl;
+use GoParser\Ast\Stmt\ContinueStmt;
 use GoParser\Ast\Stmt\EmptyStmt;
 use GoParser\Ast\Stmt\ExprStmt;
+use GoParser\Ast\Stmt\ForStmt;
 use GoParser\Ast\Stmt\FuncDecl;
 use GoParser\Ast\Stmt\IfStmt;
 use GoParser\Ast\Stmt\IncDecStmt;
@@ -147,7 +152,7 @@ final class Interpreter
             try {
                 ($this->entryPoint)($this->streams, ...$this->argv);
             } catch (\Throwable $throwable) {
-                dump($throwable->getTraceAsString());
+                dump($throwable);
                 $this->streams->stderr()->writeln($throwable->getMessage());
 
                 return ExecCode::Failure;
@@ -164,9 +169,12 @@ final class Interpreter
         return match ($this->state) {
             State::EntryPoint => match (true) {
                 $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt),
+                $stmt instanceof BreakStmt => $this->evalBreakStmt($stmt),
+                $stmt instanceof ContinueStmt => $this->evalContinueStmt($stmt),
                 $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
                 $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
                 $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
+                $stmt instanceof ForStmt => $this->evalForStmt($stmt),
                 $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
                 $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
                 $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
@@ -174,6 +182,7 @@ final class Interpreter
                 $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
                 $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
                 $stmt instanceof FuncDecl => throw new ProgramError('Function declaration in a function scope'),
+                default => throw new ProgramError(\sprintf('Unknown statement %s', $stmt::class)),
              },
             State::DeclEvaluation => match (true) {
                 $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
@@ -350,6 +359,16 @@ final class Interpreter
         return SimpleValue::None;
     }
 
+    private function evalBreakStmt(BreakStmt $stmt): SimpleValue
+    {
+        return SimpleValue::Break;
+    }
+
+    private function evalContinueStmt(ContinueStmt $stmt): SimpleValue
+    {
+        return SimpleValue::Continue;
+    }
+
     private function evalExprStmt(ExprStmt $stmt): SimpleValue
     {
         $this->evalExpr($stmt->expr);
@@ -365,7 +384,7 @@ final class Interpreter
             foreach ($blockStmt->stmtList->stmts as $stmt) {
                 $stmtVal = $this->evalStmt($stmt);
 
-                if (!$stmtVal->isNone()) {
+                if ($stmtVal !== SimpleValue::None) {
                     break;
                 }
             }
@@ -424,12 +443,78 @@ final class Interpreter
 
             $condition = $this->evalExpr($stmt->condition);
 
-            if ($this->isTrue($condition)) {
+            if (self::isTrue($condition)) {
                 return $this->evalBlockStmt($stmt->ifBody);
             }
 
             if ($stmt->elseBody !== null) {
                 return $this->evalStmt($stmt->elseBody);
+            }
+
+            return SimpleValue::None;
+        });
+    }
+
+    private function evalForStmt(ForStmt $stmt): StmtValue
+    {
+        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtValue {
+            switch (true) {
+                // for {}
+                case $stmt->iteration === null:
+                   $condition = null;
+                   $post = null;
+                   break;
+               // for expr {}
+                case $stmt->iteration instanceof Expr:
+                    $condition = $stmt->iteration;
+                    $post = null;
+                    break;
+                // for expr; expr; expr {}
+                case $stmt->iteration instanceof ForClause:
+                    if ($stmt->iteration->init !== null) {
+                        $this->evalStmt($stmt->iteration->init);
+                    }
+
+                    $condition = match (true) {
+                        $stmt->iteration->condition === null => null,
+                        $stmt->iteration->condition instanceof ExprStmt => $stmt->iteration->condition->expr,
+                        default => throw new ProgramError('Unknown for loop condition'),
+                    };
+
+                    $post = $stmt->iteration->post ?? null;
+                    break;
+                // for range {}
+                case $stmt->iteration instanceof RangeClause:
+                    // todo
+                default:
+                    throw new ProgramError('Unknown for loop structure');
+            }
+
+            while (
+                $condition === null
+                || self::isTrue($this->evalExpr($condition))
+            ) {
+                $stmtValue = $this->evalBlockStmt($stmt->body);
+
+                switch (true) {
+                    case $stmtValue === SimpleValue::None:
+                        break;
+                    case $stmtValue === SimpleValue::Continue:
+                        if ($post !== null) {
+                            $this->evalStmt($post);
+                        }
+                        continue 2;
+                    case $stmtValue === SimpleValue::Break:
+                        return SimpleValue::None;
+                    case $stmtValue instanceof ReturnValue:
+                        return $stmtValue;
+                    default:
+                        throw new InternalError('Unknown statement value');
+                }
+
+                if ($post !== null) {
+                    $this->evalStmt($post);
+                }
             }
 
             return SimpleValue::None;
@@ -702,7 +787,7 @@ final class Interpreter
         return ValueMutator::fromArrayValue($array, $index, $compound);
     }
 
-    private function isTrue(GoValue $value): bool
+    private static function isTrue(GoValue $value): bool
     {
         if (!$value instanceof BoolValue) {
             throw TypeError::valueOfWrongType($value, BasicType::Bool);

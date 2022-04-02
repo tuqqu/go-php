@@ -12,6 +12,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
+use GoPhp\StmtValue\SimpleValue;
 use GoPhp\StmtValue\StmtValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_type;
@@ -56,7 +57,7 @@ final class FuncValue implements Func, GoValue
         /** @var StmtValue $stmtValue */
         $stmtValue = ($this->body)($env);
 
-        if ($stmtValue->isNone()) {
+        if ($stmtValue === SimpleValue::None) {
             return $this->signature->returnArity === 0 ?
                 NoValue::NoValue :
                 throw new \Exception('must return void');

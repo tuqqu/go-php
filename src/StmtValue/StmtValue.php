@@ -6,5 +6,4 @@ namespace GoPhp\StmtValue;
 
 interface StmtValue
 {
-    public function isNone(): bool;
 }

@@ -10,9 +10,4 @@ enum SimpleValue implements StmtValue
     case Break;
     case Continue;
 //    case Goto; //fixme
-
-    public function isNone(): bool
-    {
-        return $this === self::None;
-    }
 }

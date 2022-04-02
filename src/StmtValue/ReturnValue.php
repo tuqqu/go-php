@@ -38,9 +38,4 @@ final class ReturnValue implements StmtValue
 
         return new self($tuple, $tuple->len);
     }
-
-    public function isNone(): bool
-    {
-        return false;
-    }
 }
