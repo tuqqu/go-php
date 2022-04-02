@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoPhp\Env\EnvValue\MutableValue;
-use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Sequence;
 
 final class ValueMutator
 {
@@ -26,7 +26,7 @@ final class ValueMutator
         );
     }
 
-    public static function fromArrayValue(ArrayValue $array, BaseIntValue $index, bool $compound): self
+    public static function fromArrayValue(Sequence $array, BaseIntValue $index, bool $compound): self
     {
         return new self(
             $compound ?

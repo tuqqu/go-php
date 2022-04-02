@@ -23,8 +23,8 @@ final class ValueTableTest extends TestCase
         parent::setUp();
 
         $this->table = new ValueTable();
-        $this->valueA = $this->createEnvValue('a');
-        $this->valueB = $this->createEnvValue('b');
+        $this->valueA = self::createEnvValue('a');
+        $this->valueB = self::createEnvValue('b');
 
         $this->table->add($this->valueA);
         $this->table->add($this->valueB);
@@ -40,8 +40,8 @@ final class ValueTableTest extends TestCase
 
     public function testGet(): void
     {
-        self::assertEquals($this->valueA, $this->table->tryGet('a'));
-        self::assertEquals($this->valueB, $this->table->get('b'));
+        self::assertSame($this->valueA, $this->table->tryGet('a'));
+        self::assertSame($this->valueB, $this->table->get('b'));
 
         self::assertNull($this->table->tryGet('c'));
 
@@ -52,10 +52,10 @@ final class ValueTableTest extends TestCase
     public function testAdd(): void
     {
         $this->expectException(AlreadyDefinedError::class);
-        $this->table->add($this->createEnvValue('a'));
+        $this->table->add(self::createEnvValue('a'));
     }
 
-    private function createEnvValue(string $name): EnvValue
+    private static function createEnvValue(string $name): EnvValue
     {
         return new ImmutableValue(
             $name,

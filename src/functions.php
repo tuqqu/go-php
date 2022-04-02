@@ -26,7 +26,9 @@ function assert_argc(array $actualArgv, int $expectedArgc, bool $variadic = fals
 {
     $actualArgc = \count($actualArgv);
     if (
-        $actualArgc < $expectedArgc || (!$variadic && $actualArgc > $expectedArgc)) {
+        $actualArgc < $expectedArgc
+        || (!$variadic && $actualArgc > $expectedArgc)
+    ) {
         throw OperationError::wrongArgumentNumber($expectedArgc, $actualArgc);
     }
 }

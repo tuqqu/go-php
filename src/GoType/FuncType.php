@@ -9,14 +9,14 @@ use GoPhp\GoValue\GoValue;
 
 final class FuncType implements ValueType
 {
-    public readonly string $fullType;
+    public readonly string $name;
 
     public function __construct(
         Params $params,
         Params $returns,
     )
     {
-        $this->fullType = \sprintf(
+        $this->name = \sprintf(
             'func(%s)(%s)',
             self::paramsToString($params),
             self::paramsToString($returns)
@@ -25,12 +25,12 @@ final class FuncType implements ValueType
 
     public function name(): string
     {
-        return $this->fullType;
+        return $this->name;
     }
 
     public function equals(ValueType $other): bool
     {
-        return $other instanceof self && $this->fullType === $other->fullType;
+        return $other instanceof self && $this->name === $other->name;
     }
 
     public function isCompatible(ValueType $other): bool

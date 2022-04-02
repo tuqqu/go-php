@@ -19,12 +19,9 @@ abstract class EnvValue
         public readonly ValueType $type,
         GoValue $value,
     ) {
-        if ($value instanceof SimpleNumber && $type->isTyped()) {
-            /** @var BasicType $type */
-            $value = $value->convertTo($type);
-        }
+        $value = static::convertIfNeeded($value, $type);
 
-        assert_types_compatible($this->type, $value->type());
+        assert_types_compatible($type, $value->type());
 
         $this->value = $value;
     }
@@ -37,5 +34,19 @@ abstract class EnvValue
     public function getType(): ValueType
     {
         return $this->type;
+    }
+
+    protected static function convertIfNeeded(GoValue $value, ValueType $type): GoValue
+    {
+        if (
+            $value instanceof SimpleNumber
+            && !($vtype = $value->type())->isTyped()
+        ) {
+            /** @var BasicType $type */
+            $type = $type->isTyped() ? $type : $vtype->reify();
+            $value = $value->convertTo($type);
+        }
+
+        return $value;
     }
 }

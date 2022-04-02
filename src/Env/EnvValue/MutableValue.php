@@ -13,6 +13,6 @@ final class MutableValue extends EnvValue
     {
         assert_types_compatible($this->getType(), $value->type());
 
-        $this->value = $value;
+        $this->value = self::convertIfNeeded($value, $this->type);
     }
 }
