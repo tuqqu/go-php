@@ -7,6 +7,7 @@ namespace GoPhp\Env\Builtin;
 use GoPhp\Env\Environment;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\BasicType;
+use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
@@ -15,8 +16,10 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\Map\MapValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\TypeValue;
@@ -133,7 +136,7 @@ class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#make
      */
-    protected static function make(StreamProvider $streams, GoValue ...$values): SliceValue
+    protected static function make(StreamProvider $streams, GoValue ...$values): SliceValue|MapValue
     {
         assert_argc($values, 1, variadic: true);
         assert_arg_value($values[0], TypeValue::class, 'type', 1);
@@ -166,6 +169,19 @@ class StdBuiltinProvider implements BuiltinProvider
             }
 
             return $builder->build();
+        }
+
+        if ($type->type instanceof MapType) {
+            if ($argc > 2) {
+                throw OperationError::wrongArgumentNumber(2, $argc);
+            }
+
+            if (isset($values[1])) {
+                // we do not use this value, just validating it
+                assert_arg_value($values[1], BaseIntValue::class, 'int', 3);
+            }
+
+            return MapBuilder::fromType($type->type)->build();
         }
 
         throw OperationError::wrongArgumentType($type->type, 'slice, map or channel', 1);

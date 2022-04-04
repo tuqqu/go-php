@@ -7,6 +7,7 @@ namespace GoPhp;
 use GoParser\Ast\ConstSpec;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
 use GoParser\Ast\Expr\SliceType as AstSliceType;
+use GoParser\Ast\Expr\MapType as AstMapType;
 use GoParser\Ast\Expr\BinaryExpr;
 use GoParser\Ast\Expr\CallExpr;
 use GoParser\Ast\Expr\CompositeLit;
@@ -67,6 +68,7 @@ use GoPhp\Error\ValueError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
+use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoType\TypeFactory;
 use GoPhp\GoType\GoType;
@@ -839,7 +841,7 @@ final class Interpreter
 
         switch (true) {
             case $type instanceof SingleTypeName:
-                $resolved = TypeFactory::tryFrom($type->name);
+                $resolved = TypeFactory::tryFrom($type->name->name);
                 break;
             case $type instanceof QualifiedTypeName:
                 $resolved = TypeFactory::tryFrom(self::resolveQualifiedTypeName($type));
@@ -853,8 +855,11 @@ final class Interpreter
             case $type instanceof AstSliceType:
                 $resolved = $this->resolveSliceType($type, $composite);
                 break;
+            case $type instanceof AstMapType:
+                $resolved = $this->resolveMapType($type, $composite);
+                break;
             default:
-                dump($type);
+                dump($type);die;
                 throw new \InvalidArgumentException('unresolved type'); //fixme
         }
 
@@ -895,6 +900,14 @@ final class Interpreter
         return new SliceType($this->resolveType($sliceType->elemType, $composite));
     }
 
+    private function resolveMapType(AstMapType $mapType, bool $composite): MapType
+    {
+        return new MapType(
+            $this->resolveType($mapType->keyType, $composite),
+            $this->resolveType($mapType->elemType, $composite),
+        );
+    }
+
     /**
      * @return array{Params, Params}
      */
@@ -933,6 +946,6 @@ final class Interpreter
 
     private static function resolveQualifiedTypeName(QualifiedTypeName $typeName): string
     {
-        return \sprintf('%s.%s', $typeName->packageName->name, $typeName->typeName->name);
+        return \sprintf('%s.%s', $typeName->packageName->name, $typeName->typeName->name->name);
     }
 }

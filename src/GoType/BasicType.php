@@ -23,6 +23,7 @@ use GoPhp\GoValue\StringValue;
 
 enum BasicType: string implements GoType
 {
+    //fixme change names from value to method
     case UntypedInt = 'untyped_int';
     case UntypedFloat = 'untyped_float';
 
@@ -71,7 +72,27 @@ enum BasicType: string implements GoType
 
     public function equals(GoType $type): bool
     {
-        return $this === $type;
+        return match ($this) {
+            self::UntypedInt => match ($type) {
+                self::Int,
+                self::Int8,
+                self::Int32,
+                self::Int64,
+                self::Uint,
+                self::Uint8,
+                self::Uint16,
+                self::Uint32,
+                self::Uint64,
+                self::Uintptr, => true,
+                default => false,
+            },
+            self::UntypedFloat => match ($type) {
+                self::Float32,
+                self::Float64 => true,
+                default => false,
+            },
+            default => $this === $type,
+        };
     }
 
     public function reify(): static
