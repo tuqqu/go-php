@@ -6,13 +6,17 @@ namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\BasicType;
+use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
+use function GoPhp\assert_index_value;
 use function GoPhp\assert_values_compatible;
 
 final class StringValue implements Sequence, GoValue
 {
+    public const NAME = 'string';
+
     private int $len;
 
     public function __construct(
@@ -105,14 +109,15 @@ final class StringValue implements Sequence, GoValue
         // TODO: Implement lessEq() method.
     }
 
-    public function get(int $at): Int32Value
+    public function get(GoValue $at): Int32Value
     {
-        assert_index_exists($at, $this->len);
+        assert_index_value($at, BaseIntValue::class, self::NAME);
+        assert_index_exists($int = $at->unwrap(), $this->len);
 
-        return Int32Value::fromRune($this->value[$at]);
+        return Int32Value::fromRune($this->value[$int]);
     }
 
-    public function set(GoValue $value, int $at): void
+    public function set(GoValue $value, GoValue $at): void
     {
         throw new \Exception('cannot assign to %s (value of type byte)');
     }

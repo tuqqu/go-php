@@ -7,9 +7,11 @@ namespace GoPhp\GoValue\Slice;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
+use function GoPhp\assert_index_value;
 use function GoPhp\assert_types_compatible;
 
 final class SliceValue implements Sequence, GoValue
@@ -38,19 +40,21 @@ final class SliceValue implements Sequence, GoValue
         return \sprintf('[%s]', \implode(' ', $str));
     }
 
-    public function get(int $at): GoValue
+    public function get(GoValue $at): GoValue
     {
-        assert_index_exists($at, $this->len);
+        assert_index_value($at, BaseIntValue::class, self::NAME);
+        assert_index_exists($int = $at->unwrap(), $this->len);
 
-        return $this->values[$at];
+        return $this->values[$int];
     }
 
-    public function set(GoValue $value, int $at): void
+    public function set(GoValue $value, GoValue $at): void
     {
-        assert_index_exists($at, $this->len);
+        assert_index_value($at, BaseIntValue::class, self::NAME);
+        assert_index_exists($int = $at->unwrap(), $this->len);
         assert_types_compatible($value->type(), $this->type->internalType);
 
-        $this->values[$at] = $value;
+        $this->values[$int] = $value;
     }
 
     public function len(): int
@@ -63,6 +67,7 @@ final class SliceValue implements Sequence, GoValue
         assert_types_compatible($value->type(), $this->type->internalType);
 
         $this->values[] = $value;
+        ++$this->len;
     }
 
     public function operate(Operator $op): self

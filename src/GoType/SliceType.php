@@ -23,8 +23,8 @@ final class SliceType implements GoType
 
     public function equals(GoType $other): bool
     {
-        return $other instanceof self &&
-            $this->internalType->equals($other->internalType);
+        return $other instanceof self
+            && $this->internalType->equals($other->internalType);
     }
 
     public function isCompatible(GoType $other): bool

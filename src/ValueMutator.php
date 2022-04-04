@@ -31,10 +31,10 @@ final class ValueMutator
         return new self(
             $compound ?
                 static function (Operator $op, GoValue $value) use ($array, $index): void {
-                    $array->get($index->unwrap())->mutate($op, $value);
+                    $array->get($index)->mutate($op, $value);
                 } :
                 static function (GoValue $value) use ($array, $index): void {
-                    $array->set($value, $index->unwrap());
+                    $array->set($value, $index);
                 },
             $compound,
         );

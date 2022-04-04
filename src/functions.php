@@ -53,3 +53,17 @@ function assert_index_exists(int $index, int $max): void
         throw DefinitionError::indexOutOfRange($index, $max);
     }
 }
+
+function assert_index_value(GoValue $index, string $value, string $where): void
+{
+    if (!$index instanceof $value) {
+        throw DefinitionError::indexOfWrongType($index, $value, $where);
+    }
+}
+
+function assert_index_type(GoValue $index, GoType $type, string $where): void
+{
+    if (!$index->type()->equals($type)) {
+        throw DefinitionError::indexOfWrongType($index, $type, $where);
+    }
+}

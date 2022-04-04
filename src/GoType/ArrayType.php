@@ -28,9 +28,9 @@ final class ArrayType implements GoType
 
     public function equals(GoType $other): bool
     {
-        return $other instanceof self &&
-            $this->internalType->equals($other->internalType) &&
-            $this->len === $other->len;
+        return $other instanceof self
+            && $this->internalType->equals($other->internalType)
+            && $this->len === $other->len;
     }
 
     public function isCompatible(GoType $other): bool
