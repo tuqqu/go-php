@@ -14,8 +14,7 @@ final class FuncType implements GoType
     public function __construct(
         Params $params,
         Params $returns,
-    )
-    {
+    ) {
         $this->name = \sprintf(
             'func(%s)(%s)',
             self::paramsToString($params),

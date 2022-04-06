@@ -7,10 +7,10 @@ namespace GoPhp\GoValue\Map;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\StringValue;
 use GoPhp\Operator;
+use GoPhp\StmtValue\SimpleValue;
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_types_compatible;
 
@@ -28,6 +28,15 @@ final class MapValue implements Sequence, GoValue
         public readonly MapType $type,
     ) {
         $this->len = \count($this->values);
+    }
+
+    public static function keyify(GoValue $value): int|string
+    {
+        return match (true) {
+            $value instanceof SimpleValue => $value->unwrap(),
+            $value instanceof StringValue => $value->unwrap(),
+            default => throw new \Exception('non-supported key value')
+        };
     }
 
     public function toString(): string
@@ -107,14 +116,5 @@ final class MapValue implements Sequence, GoValue
     public function clone(): self
     {
         return clone $this;
-    }
-
-    public static function keyify(GoValue $value): int|string
-    {
-        return match (true) {
-            $value instanceof BaseIntValue => $value->unwrap(),
-            $value instanceof StringValue => $value->unwrap(),
-            default => throw new \Exception('non-supported key value')
-        };
     }
 }
