@@ -12,15 +12,17 @@ use function GoPhp\assert_types_compatible;
 final class MapBuilder
 {
     public const NAME = 'map';
+    private readonly \SplObjectStorage $values;
 
     private function __construct(
         private readonly MapType $type,
-        private array $values,
-    ) {}
+    ) {
+        $this->values = new \SplObjectStorage();
+    }
 
     public static function fromType(MapType $type): self
     {
-        return new self($type, []);
+        return new self($type);
     }
 
     public function set(GoValue $value, GoValue $key): void
@@ -28,7 +30,7 @@ final class MapBuilder
         assert_index_type($key, $this->type->keyType, self::NAME);
         assert_types_compatible($this->type->elemType, $value->type());
 
-        $this->values[MapValue::keyify($key)] = $value;
+        $this->values->attach($value, $key);
     }
 
     public function build(): MapValue
