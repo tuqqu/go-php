@@ -23,12 +23,7 @@ final class MapBuilder
         return new self($type, []);
     }
 
-    public static function fromValue(MapValue $value): self
-    {
-         return new self($value->type, $value->values);
-    }
-
-    public function set(GoValue $key, GoValue $value): void
+    public function set(GoValue $value, GoValue $key): void
     {
         assert_index_type($key, $this->type->keyType, self::NAME);
         assert_types_compatible($this->type->elemType, $value->type());

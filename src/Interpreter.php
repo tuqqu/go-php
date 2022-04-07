@@ -85,6 +85,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\StringValue;
@@ -703,22 +704,35 @@ final class Interpreter
 
         $type = $this->resolveType($lit->type, true);
 
-        if ($type instanceof ArrayType) {
-            $builder = ArrayBuilder::fromType($type);
+        // fixme introduce a builder interface
+        switch (true) {
+            case $type instanceof ArrayType:
+                $builder = ArrayBuilder::fromType($type);
+                foreach ($lit->elementList->elements ?? [] as $element) {
+                    $builder->push($this->evalExpr($element->element));
+                }
 
-            foreach ($lit->elementList->elements as $element) {
-                $builder->push($this->evalExpr($element->element));
-            }
+                return $builder->build();
 
-            return $builder->build();
-        } elseif ($type instanceof SliceType) {
-            $builder = SliceBuilder::fromType($type);
+            case $type instanceof SliceType:
+                $builder = SliceBuilder::fromType($type);
+                foreach ($lit->elementList->elements ?? [] as $element) {
+                    $builder->push($this->evalExpr($element->element));
+                }
 
-            foreach ($lit->elementList->elements as $element) {
-                $builder->push($this->evalExpr($element->element));
-            }
+                return $builder->build();
 
-            return $builder->build();
+            case $type instanceof MapType:
+                $builder = MapBuilder::fromType($type);
+
+                foreach ($lit->elementList->elements ?? [] as $element) {
+                    $builder->set(
+                        $this->evalExpr($element->element),
+                        $this->evalExpr($element->key ?? throw new \Exception('expected a key')),
+                    );
+                }
+
+                return $builder->build();
         }
 
         throw new \Exception('unknown composite lit');

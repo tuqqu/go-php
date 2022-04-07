@@ -7,10 +7,10 @@ namespace GoPhp\GoValue\Map;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\StringValue;
 use GoPhp\Operator;
-use GoPhp\StmtValue\SimpleValue;
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_types_compatible;
 
@@ -24,17 +24,18 @@ final class MapValue implements Sequence, GoValue
      * @param GoValue[] $values
      */
     public function __construct(
-        public array $values,
+        public array $values, //fixme think of array object store
         public readonly MapType $type,
     ) {
         $this->len = \count($this->values);
     }
 
-    public static function keyify(GoValue $value): int|string
+    public static function keyify(GoValue $value): int|string|bool
     {
         return match (true) {
-            $value instanceof SimpleValue => $value->unwrap(),
+            $value instanceof BaseIntValue => $value->unwrap(),
             $value instanceof StringValue => $value->unwrap(),
+            $value instanceof BoolValue => $value->unwrap(),
             default => throw new \Exception('non-supported key value')
         };
     }
@@ -42,8 +43,8 @@ final class MapValue implements Sequence, GoValue
     public function toString(): string
     {
         $str = [];
-        foreach ($this->values as $value) {
-            $str[] = $value->toString();
+        foreach ($this->values as $key => $value) {
+            $str[] = \sprintf('%s:%s', $key, $value->toString());
         }
 
         return \sprintf('map[%s]', \implode(' ', $str));

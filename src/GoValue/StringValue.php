@@ -17,11 +17,12 @@ final class StringValue implements Sequence, GoValue
 {
     public const NAME = 'string';
 
+    private string $value;
     private int $len;
 
-    public function __construct(
-        private string $value,
-    ) {
+    public function __construct(string $value)
+    {
+        $this->value = \trim($value, '"'); //fixme think of quotes
         $this->len = \strlen($this->value);
     }
 
