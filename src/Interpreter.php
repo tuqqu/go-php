@@ -689,7 +689,7 @@ final class Interpreter
     {
         return match (true) {
             $expr instanceof Ident => $this->getVarMutator($expr, $compound),
-            $expr instanceof IndexExpr => $this->getArrayMutator($expr, $compound),
+            $expr instanceof IndexExpr => $this->getSequenceMutator($expr, $compound),
             // fixme debug
             default => dd($expr),
         };
@@ -792,27 +792,21 @@ final class Interpreter
         return ValueMutator::fromEnvVar($var, $compound);
     }
 
-    private function getArrayMutator(IndexExpr $expr, bool $compound): ValueMutator
+    private function getSequenceMutator(IndexExpr $expr, bool $compound): ValueMutator
     {
-        if ($expr->expr instanceof IndexExpr) {
-            $array = $this->evalIndexExpr($expr->expr);
-        } elseif ($expr->expr instanceof Ident) {
-            $array = $this->evalIdent($expr->expr);
-        } else {
-            throw new \Exception('cannot assign');
-        }
+        $sequence = match (true) {
+            $expr->expr instanceof IndexExpr => $this->evalIndexExpr($expr->expr),
+            $expr->expr instanceof Ident => $this->evalIdent($expr->expr),
+            default => throw new \Exception('cannot assign'),
+        };
 
-        if (!$array instanceof ArrayValue) {
-            TypeError::valueOfWrongType($array, 'array');
+        if (!$sequence instanceof Sequence) {
+            throw TypeError::valueOfWrongType($sequence, 'array, slice or map');
         }
 
         $index = $this->evalExpr($expr->index);
 
-        if (!$index instanceof BaseIntValue) { //fixme check int type
-            TypeError::conversionError($index->type(), BasicType::Int);
-        }
-
-        return ValueMutator::fromArrayValue($array, $index, $compound);
+        return ValueMutator::fromSequenceValue($sequence, $index, $compound);
     }
 
     private static function isTrue(GoValue $value): bool

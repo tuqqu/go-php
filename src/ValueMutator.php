@@ -26,15 +26,15 @@ final class ValueMutator
         );
     }
 
-    public static function fromArrayValue(Sequence $array, BaseIntValue $index, bool $compound): self
+    public static function fromSequenceValue(Sequence $sequence, GoValue $index, bool $compound): self
     {
         return new self(
             $compound ?
-                static function (Operator $op, GoValue $value) use ($array, $index): void {
-                    $array->get($index)->mutate($op, $value);
+                static function (Operator $op, GoValue $value) use ($sequence, $index): void {
+                    $sequence->get($index)->mutate($op, $value);
                 } :
-                static function (GoValue $value) use ($array, $index): void {
-                    $array->set($value, $index);
+                static function (GoValue $value) use ($sequence, $index): void {
+                    $sequence->set($value, $index);
                 },
             $compound,
         );
