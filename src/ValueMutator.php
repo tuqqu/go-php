@@ -6,7 +6,6 @@ namespace GoPhp;
 
 use GoPhp\Env\EnvValue\MutableValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Sequence;
 
 final class ValueMutator

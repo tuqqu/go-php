@@ -69,6 +69,11 @@ final class ArrayValue implements Sequence, GoValue
         return $this->len;
     }
 
+    public function iter(): iterable
+    {
+        yield from $this->values;
+    }
+
     public function operate(Operator $op): self
     {
         throw new \BadMethodCallException(); //fixme

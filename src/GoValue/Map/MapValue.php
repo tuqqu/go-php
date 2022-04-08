@@ -16,27 +16,23 @@ final class MapValue implements Sequence, GoValue
 {
     public const NAME = 'map';
 
-    private int $len;
-
     public function __construct(
-        private readonly \SplObjectStorage $values,
+        private readonly Map $map,
         public readonly MapType $type,
-    ) {
-        $this->len = \count($this->values);
-    }
+    ) {}
 
     public function toString(): string
     {
         $str = [];
-        for ($i = 0; $i < $this->len; ++$i) {
-            /**
-             * @var GoValue $key
-             * @var GoValue $value
-             */
-            $value = $this->values->current();
-            $key = $this->values->getInfo();
 
-            $str[] = \sprintf('%s:%s', $key->toString(), $value->toString());
+        foreach ($this->iter() as $key => $value) {
+            $str[] = \sprintf(
+                '%s:%s',
+                $key instanceof GoValue ?
+                    $key->toString() :
+                    $key,
+                $value->toString()
+            );
         }
 
         return \sprintf('map[%s]', \implode(' ', $str));
@@ -46,7 +42,9 @@ final class MapValue implements Sequence, GoValue
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
 
-        return $this->values[$at] ?? $this->type->keyType->defaultValue(); //fixme prob set here as well
+        return $this->map->has($at) ?
+            $this->map->get($at) :
+            $this->type->elemType->defaultValue(); //fixme prob set here as well
     }
 
     public function set(GoValue $value, GoValue $at): void
@@ -54,18 +52,17 @@ final class MapValue implements Sequence, GoValue
         assert_index_type($at, $this->type->keyType, self::NAME);
         assert_types_compatible($value->type(), $this->type->elemType);
 
-        $key = $at->unwrap();
-
-        if (!isset($this->values[$key])) {
-            ++$this->len;
-        }
-
-        $this->values->attach($at, $value);
+        $this->map->set($value, $at);
     }
 
     public function len(): int
     {
-        return $this->len;
+        return $this->map->len();
+    }
+
+    public function iter(): iterable
+    {
+        yield from $this->map->iter();
     }
 
     public function operate(Operator $op): self

@@ -11,4 +11,6 @@ interface Sequence
     public function set(GoValue $value, GoValue $at): void;
 
     public function len(): int;
+
+    public function iter(): iterable;
 }

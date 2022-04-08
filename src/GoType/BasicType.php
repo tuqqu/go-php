@@ -70,29 +70,9 @@ enum BasicType: string implements GoType
         return $this->value;
     }
 
-    public function equals(GoType $type): bool
+    public function equals(GoType $other): bool
     {
-        return match ($this) {
-            self::UntypedInt => match ($type) {
-                self::Int,
-                self::Int8,
-                self::Int32,
-                self::Int64,
-                self::Uint,
-                self::Uint8,
-                self::Uint16,
-                self::Uint32,
-                self::Uint64,
-                self::Uintptr, => true,
-                default => false,
-            },
-            self::UntypedFloat => match ($type) {
-                self::Float32,
-                self::Float64 => true,
-                default => false,
-            },
-            default => $this === $type,
-        };
+        return $this === $other;
     }
 
     public function reify(): static

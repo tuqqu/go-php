@@ -127,4 +127,11 @@ final class StringValue implements Sequence, GoValue
     {
         return $this->len;
     }
+
+    public function iter(): iterable
+    {
+        for ($i = 0; $i < $this->len; ++$i) {
+            yield $this->value[$i];
+        }
+    }
 }
