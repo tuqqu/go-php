@@ -6,10 +6,11 @@ namespace GoPhp\Env\Builtin;
 
 use GoPhp\Env\Environment;
 use GoPhp\Error\OperationError;
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
@@ -39,7 +40,7 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->iota = new class (0) extends BaseIntValue implements Iota {
             public function type(): GoType
             {
-                return BasicType::UntypedInt;
+                return UntypedType::UntypedInt;
             }
 
             public function setValue(int $value): void
@@ -69,9 +70,9 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineStdConsts(): void
     {
-        $this->env->defineConst('true', BoolValue::True, BasicType::Bool); //fixme untyped bool?
-        $this->env->defineConst('false', BoolValue::False, BasicType::Bool); //fixme untyped bool?
-        $this->env->defineConst('iota', $this->iota, BasicType::UntypedInt);
+        $this->env->defineConst('true', BoolValue::True, NamedType::Bool); //fixme untyped bool?
+        $this->env->defineConst('false', BoolValue::False, NamedType::Bool); //fixme untyped bool?
+        $this->env->defineConst('iota', $this->iota, UntypedType::UntypedInt);
         // $this->env->defineConst('nil', new UntypedIntValue(0), BasicType::UntypedInt); //fixme
     }
 

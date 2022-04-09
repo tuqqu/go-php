@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Int;
 
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 
 final class Uint16Value extends BaseIntValue
 {
     public const MIN = 0;
     public const MAX = 65_535;
 
-    public function type(): BasicType
+    public function type(): NamedType
     {
-        return BasicType::Uint16;
+        return NamedType::Uint16;
     }
 }

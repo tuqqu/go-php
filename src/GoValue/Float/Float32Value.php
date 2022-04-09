@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Float;
 
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 
 final class Float32Value extends BaseFloatValue
 {
-    public function type(): BasicType
+    public function type(): NamedType
     {
-        return BasicType::Float32;
+        return NamedType::Float32;
     }
 }

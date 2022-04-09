@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\Operator;
@@ -26,9 +26,9 @@ final class StringValue implements Sequence, GoValue
         $this->len = \strlen($this->value);
     }
 
-    public function type(): BasicType
+    public function type(): NamedType
     {
-        return BasicType::String;
+        return NamedType::String;
     }
 
     public function toString(): string

@@ -9,7 +9,7 @@ use GoPhp\Env\EnvValue\ImmutableValue;
 use GoPhp\Env\Error\AlreadyDefinedError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Env\ValueTable;
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use PHPUnit\Framework\TestCase;
 
 final class ValueTableTest extends TestCase
@@ -59,8 +59,8 @@ final class ValueTableTest extends TestCase
     {
         return new ImmutableValue(
             $name,
-            BasicType::Int,
-            BasicType::Int->defaultValue(),
+            NamedType::Int,
+            NamedType::Int->defaultValue(),
         );
     }
 }

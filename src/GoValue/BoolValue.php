@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Operator;
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use GoPhp\Error\OperationError;
 use function GoPhp\assert_values_compatible;
 
@@ -24,9 +24,9 @@ enum BoolValue: int implements GoValue
         return self::from((int) $value);
     }
 
-    public function type(): BasicType
+    public function type(): NamedType
     {
-        return BasicType::Bool;
+        return NamedType::Bool;
     }
 
     public function unwrap(): bool

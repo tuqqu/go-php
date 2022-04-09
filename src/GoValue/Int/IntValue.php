@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Int;
 
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 
 final class IntValue extends BaseIntValue
 {
-    public function type(): BasicType
+    public function type(): NamedType
     {
-        return BasicType::Int;
+        return NamedType::Int;
     }
 }

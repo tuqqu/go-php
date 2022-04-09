@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\Env\EnvValue;
 
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
 use function GoPhp\assert_types_compatible;
@@ -38,11 +39,11 @@ abstract class EnvValue
 
     protected static function convertIfNeeded(GoValue $value, GoType $type): GoValue
     {
-        /** @var BasicType $type */
+        /** @var NamedType $type */
         if (
             $value instanceof SimpleNumber
-            && $type->isTyped()
-            && !$value->type()->isTyped()
+            && $type instanceof NamedType
+            && $value->type() instanceof UntypedType
         ) {
             $value = $value->convertTo($type);
         }

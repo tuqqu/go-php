@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Int;
 
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 
 final class Int32Value extends BaseIntValue
 {
@@ -16,8 +16,8 @@ final class Int32Value extends BaseIntValue
         return new self(\mb_ord(\trim($rune, '\''), 'UTF-8'));
     }
 
-    public function type(): BasicType
+    public function type(): NamedType
     {
-        return BasicType::Int32;
+        return NamedType::Int32;
     }
 }

@@ -6,7 +6,7 @@ namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
 use GoPhp\GoValue\Int\Int16Value;
@@ -25,24 +25,24 @@ use function GoPhp\assert_values_compatible;
 
 abstract class SimpleNumber implements GoValue
 {
-    final public function convertTo(BasicType $type): self
+    final public function convertTo(NamedType $type): self
     {
         $number = $this->unwrap();
 
         return match ($type) {
-            BasicType::Int => new IntValue($number),
-            BasicType::Int8 => new Int8Value($number),
-            BasicType::Int16 => new Int16Value($number),
-            BasicType::Int32 => new Int32Value($number),
-            BasicType::Int64 => new Int64Value($number),
-            BasicType::Uint => new UintValue($number),
-            BasicType::Uint8 => new Uint8Value($number),
-            BasicType::Uint16 => new Uint16Value($number),
-            BasicType::Uint32 => new Uint32Value($number),
-            BasicType::Uint64 => new Uint64Value($number),
-            BasicType::Uintptr => new UintptrValue($number),
-            BasicType::Float32 => new Float32Value($number),
-            BasicType::Float64 => new Float64Value($number),
+            NamedType::Int => new IntValue($number),
+            NamedType::Int8 => new Int8Value($number),
+            NamedType::Int16 => new Int16Value($number),
+            NamedType::Int32 => new Int32Value($number),
+            NamedType::Int64 => new Int64Value($number),
+            NamedType::Uint => new UintValue($number),
+            NamedType::Uint8 => new Uint8Value($number),
+            NamedType::Uint16 => new Uint16Value($number),
+            NamedType::Uint32 => new Uint32Value($number),
+            NamedType::Uint64 => new Uint64Value($number),
+            NamedType::Uintptr => new UintptrValue($number),
+            NamedType::Float32 => new Float32Value($number),
+            NamedType::Float64 => new Float64Value($number),
             default => throw TypeError::conversionError($this->type(), $type),
         };
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Int;
 
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\UntypedType;
 
 final class UntypedIntValue extends BaseIntValue
 {
@@ -13,8 +13,8 @@ final class UntypedIntValue extends BaseIntValue
         return new self((int) $digits);
     }
 
-    public function type(): BasicType
+    public function type(): UntypedType
     {
-        return BasicType::UntypedInt;
+        return UntypedType::UntypedInt;
     }
 }

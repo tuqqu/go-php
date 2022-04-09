@@ -9,7 +9,7 @@ final class TypeFactory
     public static function tryFrom(mixed $value): ?GoType
     {
         if (\is_string($value)) {
-            return BasicType::tryFrom($value);
+            return NamedType::tryFromName($value);
         }
 
         return null;

@@ -14,7 +14,7 @@ interface GoType
 
     public function isCompatible(self $other): bool;
 
-    public function reify(): static;
+    public function reify(): self;
 
     public function defaultValue(): GoValue;
 }

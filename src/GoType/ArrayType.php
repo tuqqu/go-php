@@ -57,8 +57,10 @@ final class ArrayType implements GoType
     {
         $this->len = $len;
 
-        // fixme maybe introduce CompositeType interface
-        if ($this->internalType instanceof self && $this->internalType->isUnfinished()) {
+        if (
+            $this->internalType instanceof self
+            && $this->internalType->isUnfinished()
+        ) {
             throw new DefinitionError('invalid use of [...] array (outside a composite literal)');
         }
 

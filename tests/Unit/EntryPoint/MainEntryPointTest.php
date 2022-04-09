@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Tests\Unit\EntryPoint;
 
 use GoPhp\EntryPoint\MainEntryPoint;
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\Func\Signature;
@@ -28,8 +28,8 @@ final class MainEntryPointTest extends TestCase
     {
         $validator = new MainEntryPoint();
         $signature = new Signature(
-            new Params([new Param(BasicType::Int)]),
-            new Params([new Param(BasicType::Int)]),
+            new Params([new Param(NamedType::Int)]),
+            new Params([new Param(NamedType::Int)]),
         );
 
         self::assertFalse($validator->validate('main', 'main', $signature));

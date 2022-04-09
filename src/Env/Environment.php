@@ -10,6 +10,7 @@ use GoPhp\Env\EnvValue\MutableValue;
 use GoPhp\Env\Error\CannotBeMutatedError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\VoidType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BuiltinFuncValue;

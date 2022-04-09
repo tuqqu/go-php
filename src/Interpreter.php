@@ -66,7 +66,7 @@ use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
 use GoPhp\Error\ValueError;
 use GoPhp\GoType\ArrayType;
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
@@ -215,7 +215,7 @@ final class Interpreter
                 $type = $this->resolveType($spec->type);
             }
 
-            if ($type !== null && !$type instanceof BasicType) {
+            if ($type !== null && !$type instanceof NamedType) {
                 throw DefinitionError::constantExpectsBasicType($type);
             }
 
@@ -367,7 +367,7 @@ final class Interpreter
         $index = $this->evalExpr($expr->index);
 
         if (!$index instanceof BaseIntValue) {
-            throw TypeError::conversionError($index->type(), BasicType::Int);
+            throw TypeError::conversionError($index->type(), NamedType::Int);
         }
 
         return $array->get($index->unwrap());
@@ -631,7 +631,7 @@ final class Interpreter
         } else {
             $values[] = $value;
             for ($i = 1; $i < $len; ++$i) {
-                $value = $this->evalExpr($stmt->exprList->exprs[$i++]);
+                $value = $this->evalExpr($stmt->exprList->exprs[$i]);
                 if ($value instanceof TupleValue) {
                     throw ValueError::multipleValueInSingleContext();
                 }
@@ -822,7 +822,7 @@ final class Interpreter
     private static function isTrue(GoValue $value): bool
     {
         if (!$value instanceof BoolValue) {
-            throw TypeError::valueOfWrongType($value, BasicType::Bool);
+            throw TypeError::valueOfWrongType($value, NamedType::Bool);
         }
 
         return $value->unwrap();
@@ -901,7 +901,7 @@ final class Interpreter
             $len = $this->evalConstExpr($arrayType->len);
 
             if (!$len instanceof BaseIntValue) {
-                throw TypeError::valueOfWrongType($len, BasicType::Int);
+                throw TypeError::valueOfWrongType($len, NamedType::Int);
             }
         } else {
             throw new InternalError('Unexpected array length value');

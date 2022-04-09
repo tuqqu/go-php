@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Float;
 
-use GoPhp\GoType\BasicType;
+use GoPhp\GoType\UntypedType;
 
 final class UntypedFloatValue extends BaseFloatValue
 {
@@ -13,8 +13,8 @@ final class UntypedFloatValue extends BaseFloatValue
         return new self((float) $digits);
     }
 
-    public function type(): BasicType
+    public function type(): UntypedType
     {
-        return BasicType::UntypedFloat;
+        return UntypedType::UntypedFloat;
     }
 }
