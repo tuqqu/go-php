@@ -7,6 +7,7 @@ namespace GoPhp\Env\Builtin;
 use GoPhp\Env\Environment;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\BasicType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\Array\ArrayValue;
@@ -15,11 +16,11 @@ use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\IntValue;
-use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\Int\Iota;
+use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\Sequence;
-use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\TypeValue;
@@ -30,24 +31,60 @@ use function GoPhp\assert_argc;
 
 class StdBuiltinProvider implements BuiltinProvider
 {
-    public function provide(): Environment
+    private Iota $iota;
+    private Environment $env;
+
+    public function __construct()
     {
-        $env = new Environment();
+        $this->iota = new class (0) extends BaseIntValue implements Iota {
+            public function type(): GoType
+            {
+                return BasicType::UntypedInt;
+            }
 
-        $env->defineConst('true', BoolValue::True, BasicType::Bool); //fixme untyped bool?
-        $env->defineConst('false', BoolValue::False, BasicType::Bool); //fixme untyped bool?
-        $env->defineConst('iota', new UntypedIntValue(0), BasicType::UntypedInt); //fixme add ordinal feature
-        // $env->defineConst('nil', new UntypedIntValue(0), BasicType::UntypedInt); //fixme
-
-        $env->defineBuiltinFunc('println', new BuiltinFuncValue(self::println(...)));
-        $env->defineBuiltinFunc('print', new BuiltinFuncValue(self::print(...)));
-        $env->defineBuiltinFunc('len', new BuiltinFuncValue(self::len(...)));
-        $env->defineBuiltinFunc('cap', new BuiltinFuncValue(self::cap(...)));
-        $env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
-        $env->defineBuiltinFunc('make', new BuiltinFuncValue(self::make(...)));
-
-        return $env;
+            public function setValue(int $value): void
+            {
+                $this->value = $value;
+            }
+        };
+        $this->env = new Environment();
+        $this->buildStdEnv();
     }
+
+    public function iota(): Iota
+    {
+        return $this->iota;
+    }
+
+    public function env(): Environment
+    {
+        return $this->env;
+    }
+
+    protected function buildStdEnv(): void
+    {
+        $this->defineStdConsts();
+        $this->defineFuncs();
+    }
+
+    protected function defineStdConsts(): void
+    {
+        $this->env->defineConst('true', BoolValue::True, BasicType::Bool); //fixme untyped bool?
+        $this->env->defineConst('false', BoolValue::False, BasicType::Bool); //fixme untyped bool?
+        $this->env->defineConst('iota', $this->iota, BasicType::UntypedInt);
+        // $this->env->defineConst('nil', new UntypedIntValue(0), BasicType::UntypedInt); //fixme
+    }
+
+    protected function defineFuncs(): void
+    {
+        $this->env->defineBuiltinFunc('println', new BuiltinFuncValue(self::println(...)));
+        $this->env->defineBuiltinFunc('print', new BuiltinFuncValue(self::print(...)));
+        $this->env->defineBuiltinFunc('len', new BuiltinFuncValue(self::len(...)));
+        $this->env->defineBuiltinFunc('cap', new BuiltinFuncValue(self::cap(...)));
+        $this->env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
+        $this->env->defineBuiltinFunc('make', new BuiltinFuncValue(self::make(...)));
+    }
+
 
     /**
      * @see https://pkg.go.dev/builtin#println

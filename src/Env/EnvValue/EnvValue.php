@@ -38,12 +38,12 @@ abstract class EnvValue
 
     protected static function convertIfNeeded(GoValue $value, GoType $type): GoValue
     {
+        /** @var BasicType $type */
         if (
             $value instanceof SimpleNumber
-            && !($vtype = $value->type())->isTyped()
+            && $type->isTyped()
+            && !$value->type()->isTyped()
         ) {
-            /** @var BasicType $type */
-            $type = $type->isTyped() ? $type : $vtype->reify();
             $value = $value->convertTo($type);
         }
 

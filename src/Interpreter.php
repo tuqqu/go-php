@@ -6,8 +6,6 @@ namespace GoPhp;
 
 use GoParser\Ast\ConstSpec;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
-use GoParser\Ast\Expr\SliceType as AstSliceType;
-use GoParser\Ast\Expr\MapType as AstMapType;
 use GoParser\Ast\Expr\BinaryExpr;
 use GoParser\Ast\Expr\CallExpr;
 use GoParser\Ast\Expr\CompositeLit;
@@ -18,10 +16,12 @@ use GoParser\Ast\Expr\GroupExpr;
 use GoParser\Ast\Expr\Ident;
 use GoParser\Ast\Expr\IndexExpr;
 use GoParser\Ast\Expr\IntLit;
+use GoParser\Ast\Expr\MapType as AstMapType;
 use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SingleTypeName;
+use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\Type;
 use GoParser\Ast\Expr\Type as AstType;
@@ -68,23 +68,23 @@ use GoPhp\Error\ValueError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\FuncType;
+use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoType\TypeFactory;
-use GoPhp\GoType\GoType;
 use GoPhp\GoValue\Array\ArrayBuilder;
-use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
-use GoPhp\GoValue\Invocable;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
+use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\Invocable;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
@@ -101,8 +101,10 @@ final class Interpreter
 {
     private State $state = State::DeclEvaluation;
     private Environment $env;
+    private Iota $iota;
     private ?string $curPackage = null;
     private ?FuncValue $entryPoint = null;
+    private bool $constDefinition = false;
 
     public function __construct(
         private readonly Ast $ast,
@@ -111,7 +113,8 @@ final class Interpreter
         private readonly EntryPointValidator $entryPointValidator = new MainEntryPoint(),
         BuiltinProvider $builtin = new StdBuiltinProvider(),
     ) {
-        $this->env = new Environment($builtin->provide());
+        $this->iota = $builtin->iota();
+        $this->env = new Environment($builtin->env());
     }
 
     public static function fromString(
@@ -200,11 +203,12 @@ final class Interpreter
 
     private function evalConstDeclStmt(ConstDecl $decl): SimpleValue
     {
-        // fixme add iota support
+        $this->constDefinition = true;
+        $initExprs = [];
 
-        $lastValue = null;
+        foreach (self::wrapSpecs($decl->spec) as $j => $spec) {
+            $this->iota->setValue($j);
 
-        foreach (self::wrapSpecs($decl->spec) as $spec) {
             /** @var ConstSpec $spec */
             $type = null;
             if ($spec->type !== null) {
@@ -215,20 +219,18 @@ final class Interpreter
                 throw DefinitionError::constantExpectsBasicType($type);
             }
 
-            $singular = \count($spec->identList->idents) === 1;
+            if (!empty($spec->initList->exprs)) {
+                $initExprs = $spec->initList->exprs;
+            }
+
+            if (\count($initExprs) > \count($spec->identList->idents)) {
+                throw new \Exception('extra init expr');
+            }
 
             foreach ($spec->identList->idents as $i => $ident) {
-                $value = isset($spec->initList->exprs[$i]) ?
-                    $this->tryEvalConstExpr($spec->initList->exprs[$i]) :
+                $value = isset($initExprs[$i]) ?
+                    $this->tryEvalConstExpr($initExprs[$i]) :
                     null;
-
-                if ($singular) {
-                    if ($value === null) {
-                        $value = $lastValue;
-                    } else {
-                        $lastValue = $value;
-                    }
-                }
 
                 if ($value === null) {
                     throw DefinitionError::uninitialisedConstant($ident->name);
@@ -241,6 +243,8 @@ final class Interpreter
                 );
             }
         }
+
+        $this->constDefinition = false;
 
         return SimpleValue::None;
     }
@@ -782,7 +786,13 @@ final class Interpreter
 
     private function evalIdent(Ident $ident): GoValue
     {
-        return $this->env->get($ident->name)->unwrap();
+        $value = $this->env->get($ident->name)->unwrap();
+
+        if ($value === $this->iota && !$this->constDefinition) {
+            throw new \Exception('cannot use iota outside constant declaration');
+        }
+
+        return $value;
     }
 
     private function getVarMutator(Ident $ident, bool $compound): ValueMutator

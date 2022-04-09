@@ -24,7 +24,6 @@ final class MapValue implements Sequence, GoValue
     public function toString(): string
     {
         $str = [];
-
         foreach ($this->iter() as $key => $value) {
             $str[] = \sprintf(
                 '%s:%s',
