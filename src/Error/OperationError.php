@@ -12,6 +12,7 @@ final class OperationError extends \RuntimeException
 {
     public static function unknownOperator(Operator $op, GoValue $value): self
     {
+        // fixme operator not defined for
         return new self(
             \sprintf(
                 'Unknown operator "%s" for value of type "%s"',

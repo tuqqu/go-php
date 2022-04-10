@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
+use GoPhp\Error\OperationError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\Operator;
 use function GoPhp\assert_index_type;
+use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
 
 final class MapValue implements Sequence, GoValue
@@ -69,14 +71,20 @@ final class MapValue implements Sequence, GoValue
         throw new \BadMethodCallException(); //fixme
     }
 
-    public function operateOn(Operator $op, GoValue $rhs): self
+    public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        throw new \BadMethodCallException(); //fixme
+        assert_nil_comparison($this, $rhs);
+
+        return match ($op) {
+            Operator::EqEq => $this->equals($rhs),
+            Operator::NotEq => $this->equals($rhs)->invert(),
+            default => throw OperationError::unknownOperator($op, $this),
+        };
     }
 
     public function equals(GoValue $rhs): BoolValue
     {
-        throw new \BadMethodCallException(); //fixme
+        return BoolValue::False;
     }
 
     public function mutate(Operator $op, GoValue $rhs): never

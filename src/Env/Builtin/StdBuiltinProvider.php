@@ -10,6 +10,7 @@ use GoPhp\GoType\NamedType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoType\UntypedNilType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
@@ -20,6 +21,7 @@ use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapValue;
+use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
@@ -65,6 +67,7 @@ class StdBuiltinProvider implements BuiltinProvider
     protected function buildStdEnv(): void
     {
         $this->defineStdConsts();
+        $this->defineStdVars();
         $this->defineFuncs();
     }
 
@@ -73,7 +76,11 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->env->defineConst('true', BoolValue::True, NamedType::Bool); //fixme untyped bool?
         $this->env->defineConst('false', BoolValue::False, NamedType::Bool); //fixme untyped bool?
         $this->env->defineConst('iota', $this->iota, UntypedType::UntypedInt);
-        // $this->env->defineConst('nil', new UntypedIntValue(0), BasicType::UntypedInt); //fixme
+    }
+
+    protected function defineStdVars(): void
+    {
+        $this->env->defineImmutableVar('nil', new NilValue(UntypedNilType::Nil), UntypedNilType::Nil);
     }
 
     protected function defineFuncs(): void
@@ -85,7 +92,6 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
         $this->env->defineBuiltinFunc('make', new BuiltinFuncValue(self::make(...)));
     }
-
 
     /**
      * @see https://pkg.go.dev/builtin#println

@@ -10,7 +10,6 @@ use GoPhp\Env\EnvValue\MutableValue;
 use GoPhp\Env\Error\CannotBeMutatedError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoType\BasicType;
-use GoPhp\GoType\NamedType;
 use GoPhp\GoType\VoidType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BuiltinFuncValue;
@@ -38,6 +37,12 @@ final class Environment
     public function defineVar(string $name, GoValue $value, GoType $type): void
     {
         $var = new MutableValue($name, $type, $value);
+        $this->definedValues->add($var);
+    }
+
+    public function defineImmutableVar(string $name, GoValue $value, GoType $type): void
+    {
+        $var = new ImmutableValue($name, $type, $value);
         $this->definedValues->add($var);
     }
 

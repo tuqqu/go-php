@@ -41,4 +41,14 @@ final class TypeError extends \RuntimeException
             )
         );
     }
+
+    public static function onlyComparableToNil(GoValue $value): self
+    {
+        return new self(
+            \sprintf(
+                'Invalid operation. %s can only be compared to nil',
+                $value->type()->name(),
+            )
+        );
+    }
 }

@@ -68,9 +68,4 @@ enum UntypedType implements BasicType
             self::UntypedBool => $this->equals($other)
         };
     }
-
-    public function isTyped(): bool
-    {
-        return false;
-    }
 }

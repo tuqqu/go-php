@@ -9,10 +9,20 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NilValue;
 
 function assert_values_compatible(GoValue $a, GoValue $b): void
 {
     assert_types_compatible($a->type(), $b->type());
+}
+
+function assert_nil_comparison(GoValue $a, GoValue $b): void
+{
+    if (!$b instanceof NilValue) {
+        throw TypeError::onlyComparableToNil($a);
+    }
+
+    assert_values_compatible($a, $b);
 }
 
 function assert_types_compatible(GoType $a, GoType $b): void

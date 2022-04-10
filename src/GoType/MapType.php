@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NilValue;
 
-final class MapType implements GoType
+final class MapType implements RefType
 {
     public readonly string $name;
 
@@ -31,7 +32,7 @@ final class MapType implements GoType
 
     public function isCompatible(GoType $other): bool
     {
-        return $this->equals($other);
+        return $other instanceof UntypedNilType || $this->equals($other);
     }
 
     public function reify(): static
@@ -41,6 +42,6 @@ final class MapType implements GoType
 
     public function defaultValue(): GoValue
     {
-        //fixme nil
+        return new NilValue($this);
     }
 }

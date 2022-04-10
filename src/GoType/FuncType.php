@@ -6,8 +6,9 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NilValue;
 
-final class FuncType implements GoType
+final class FuncType implements RefType
 {
     public readonly string $name;
 
@@ -34,7 +35,7 @@ final class FuncType implements GoType
 
     public function isCompatible(GoType $other): bool
     {
-        return $this->equals($other);
+        return $other instanceof UntypedNilType || $this->equals($other);
     }
 
     public function reify(): static
@@ -44,7 +45,7 @@ final class FuncType implements GoType
 
     public function defaultValue(): GoValue
     {
-        //fixme
+        return new NilValue($this);
     }
 
     private static function paramsToString(Params $params): string

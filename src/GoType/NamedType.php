@@ -142,9 +142,4 @@ enum NamedType: string implements BasicType
             default => $this->equals($other),
         };
     }
-
-    public function isTyped(): bool
-    {
-        return true;
-    }
 }

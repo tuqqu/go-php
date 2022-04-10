@@ -9,6 +9,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
@@ -16,8 +17,9 @@ use GoPhp\StmtValue\SimpleValue;
 use GoPhp\StmtValue\StmtValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_type;
-use function GoPhp\assert_types_compatible;
 use function GoPhp\assert_argc;
+use function GoPhp\assert_nil_comparison;
+use function GoPhp\assert_types_compatible;
 
 final class FuncValue implements Func, GoValue
 {
@@ -117,9 +119,15 @@ final class FuncValue implements Func, GoValue
         throw OperationError::unknownOperator($op, $this);
     }
 
-    public function operateOn(Operator $op, GoValue $rhs): never
+    public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        throw OperationError::unknownOperator($op, $this);
+        assert_nil_comparison($this, $rhs);
+
+        return match ($op) {
+            Operator::EqEq => $this->equals($rhs),
+            Operator::NotEq => $this->equals($rhs)->invert(),
+            default => throw OperationError::unknownOperator($op, $this),
+        };
     }
 
     public function mutate(Operator $op, GoValue $rhs): never
@@ -129,6 +137,6 @@ final class FuncValue implements Func, GoValue
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return BoolValue::False; //fixme add nil
+        return BoolValue::False;
     }
 }
