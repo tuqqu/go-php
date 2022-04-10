@@ -15,7 +15,7 @@ interface GoValue
 
     public function mutate(Operator $op, self $rhs): void;
 
-    public function equals(self $rhs): BoolValue; //fixme remove
+    public function equals(self $rhs): BoolValue;
 
     public function unwrap(): mixed;
 

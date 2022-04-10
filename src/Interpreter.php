@@ -111,8 +111,12 @@ final class Interpreter
         private array $argv = [],
         private readonly StreamProvider $streams = new StdStreamProvider(),
         private readonly EntryPointValidator $entryPointValidator = new MainEntryPoint(),
-        BuiltinProvider $builtin = new StdBuiltinProvider(),
+        ?BuiltinProvider $builtin = null,
     ) {
+        if ($builtin === null) {
+            $builtin = new StdBuiltinProvider($this->streams);
+        }
+
         $this->iota = $builtin->iota();
         $this->env = new Environment($builtin->env());
     }
@@ -122,7 +126,7 @@ final class Interpreter
         array $argv = [],
         StreamProvider $streams = new StdStreamProvider(),
         EntryPointValidator $entryPointValidator = new MainEntryPoint(),
-        BuiltinProvider $builtin = new StdBuiltinProvider(),
+        ?BuiltinProvider $builtin = null,
     ): self {
         // fixme add onerror
         $parser = new Parser($src);
@@ -158,7 +162,7 @@ final class Interpreter
             $this->state = State::EntryPoint;
 
             try {
-                ($this->entryPoint)($this->streams, ...$this->argv);
+                ($this->entryPoint)(...$this->argv);
             } catch (\Throwable $throwable) {
                 dump($throwable);
                 $this->streams->stderr()->writeln($throwable->getMessage());
@@ -321,7 +325,8 @@ final class Interpreter
             fn (Environment $env) => $this->evalBlockStmt($decl->body, $env),
             $params,
             $returns,
-            $this->env
+            $this->env,
+            $this->streams,
         ); //fixme body null
         $this->env->defineFunc($decl->name->name, $funcValue);
 
@@ -353,7 +358,7 @@ final class Interpreter
             $argv[] = $this->evalExpr($expr->args->exprs[$i])->copy();
         }
 
-        return $func($this->streams, ...$argv); //fixme tuple
+        return $func(...$argv); //fixme tuple
     }
 
     private function evalIndexExpr(IndexExpr $expr): GoValue

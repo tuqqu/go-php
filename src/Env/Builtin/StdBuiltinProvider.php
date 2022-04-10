@@ -36,8 +36,9 @@ class StdBuiltinProvider implements BuiltinProvider
 {
     private Iota $iota;
     private Environment $env;
+    private StreamProvider $streams;
 
-    public function __construct()
+    public function __construct(StreamProvider $streams)
     {
         $this->iota = new class (0) extends BaseIntValue implements Iota {
             public function type(): GoType
@@ -51,6 +52,7 @@ class StdBuiltinProvider implements BuiltinProvider
             }
         };
         $this->env = new Environment();
+        $this->streams = $streams;
         $this->buildStdEnv();
     }
 
@@ -85,12 +87,17 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineFuncs(): void
     {
-        $this->env->defineBuiltinFunc('println', new BuiltinFuncValue(self::println(...)));
-        $this->env->defineBuiltinFunc('print', new BuiltinFuncValue(self::print(...)));
-        $this->env->defineBuiltinFunc('len', new BuiltinFuncValue(self::len(...)));
-        $this->env->defineBuiltinFunc('cap', new BuiltinFuncValue(self::cap(...)));
-        $this->env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
-        $this->env->defineBuiltinFunc('make', new BuiltinFuncValue(self::make(...)));
+        $this->env->defineBuiltinFunc('println', $this->createBuiltinFunc(self::println(...)));
+        $this->env->defineBuiltinFunc('print', $this->createBuiltinFunc(self::print(...)));
+        $this->env->defineBuiltinFunc('len', $this->createBuiltinFunc(self::len(...)));
+        $this->env->defineBuiltinFunc('cap', $this->createBuiltinFunc(self::cap(...)));
+        $this->env->defineBuiltinFunc('append', $this->createBuiltinFunc(self::append(...)));
+        $this->env->defineBuiltinFunc('make', $this->createBuiltinFunc(self::make(...)));
+    }
+
+    final protected function createBuiltinFunc(callable $func): BuiltinFuncValue
+    {
+        return new BuiltinFuncValue($func, $this->streams);
     }
 
     /**

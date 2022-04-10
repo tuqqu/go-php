@@ -87,8 +87,8 @@ final class SliceValue implements Sequence, GoValue
         assert_nil_comparison($this, $rhs);
 
         return match ($op) {
-            Operator::EqEq => $this->equals($rhs),
-            Operator::NotEq => $this->equals($rhs)->invert(),
+            Operator::EqEq => BoolValue::False,
+            Operator::NotEq => BoolValue::True,
             default => throw OperationError::unknownOperator($op, $this),
         };
     }

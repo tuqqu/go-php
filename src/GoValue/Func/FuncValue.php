@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Func;
 
 use GoPhp\Env\Environment;
+use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BoolValue;
@@ -25,6 +26,7 @@ final class FuncValue implements Func, GoValue
 {
     public readonly Signature $signature;
     public readonly Environment $enclosure;
+    public readonly StreamProvider $streams;
 
     /** @var \Closure(?Environment): StmtValue */
     public readonly \Closure $body;
@@ -34,18 +36,20 @@ final class FuncValue implements Func, GoValue
         Params $params,
         Params $returns,
         Environment $enclosure,
+        StreamProvider $streams,
     ) {
         $this->body = $body;
+        $this->streams = $streams;
         $this->signature = new Signature($params, $returns);
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
     }
 
     //fixme move streams to env
-    public function __invoke(StreamProvider $streams, GoValue ...$argv): GoValue
+    public function __invoke(GoValue ...$argv): GoValue
     {
-        $env = new Environment(enclosing: $this->enclosure);
-
         assert_argc($argv, $this->signature->arity);
+
+        $env = new Environment(enclosing: $this->enclosure);
 
         $i = 0;
         foreach ($this->signature->params as $param) {
@@ -65,19 +69,20 @@ final class FuncValue implements Func, GoValue
                 throw new \Exception('must return void');
         }
 
-        if (!$stmtValue instanceof ReturnValue) { //fixme 100%? already
-            throw new \Exception('wrong return stmt');
+        if (!$stmtValue instanceof ReturnValue) {
+            throw new InternalError('Unexpected return statement');
         }
 
         if ($this->signature->returnArity !== $stmtValue->len) {
             throw new \Exception('wrong return count');
         }
 
+        // void return
         if ($stmtValue->len === 0) {
             return NoValue::NoValue;
         }
 
-        //fixme refactor
+        // single value return
         if ($stmtValue->len === 1) {
             $param = $this->signature->returns[0];
             assert_types_compatible($param->type, $stmtValue->value->type());
@@ -85,8 +90,8 @@ final class FuncValue implements Func, GoValue
             return $stmtValue->value;
         }
 
+        // tuple value return
         $i = 0;
-        // fixme add named returns
         foreach ($this->signature->returns as $param) {
             assert_types_compatible($param->type, $stmtValue->value->values[$i]->type());
         }
@@ -124,8 +129,8 @@ final class FuncValue implements Func, GoValue
         assert_nil_comparison($this, $rhs);
 
         return match ($op) {
-            Operator::EqEq => $this->equals($rhs),
-            Operator::NotEq => $this->equals($rhs)->invert(),
+            Operator::EqEq => BoolValue::False,
+            Operator::NotEq => BoolValue::True,
             default => throw OperationError::unknownOperator($op, $this),
         };
     }

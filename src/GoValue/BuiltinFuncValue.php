@@ -13,11 +13,12 @@ final class BuiltinFuncValue implements Invocable, GoValue
 {
     public function __construct(
         private readonly \Closure $function,
+        private readonly StreamProvider $streams,
     ) {}
 
-    public function __invoke(StreamProvider $streams, GoValue ...$argv): GoValue
+    public function __invoke(GoValue ...$argv): GoValue
     {
-        return ($this->function)($streams, ...$argv);
+        return ($this->function)($this->streams, ...$argv);
     }
 
     public function toString(): string

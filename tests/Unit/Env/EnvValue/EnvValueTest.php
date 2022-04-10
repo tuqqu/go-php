@@ -38,12 +38,12 @@ final class EnvValueTest extends TestCase
         self::assertSame('a', $envValue->name);
         self::assertEquals(NamedType::Uint, $envValue->type);
 
-        // untyped value, typed type
+        // untyped value, named type
         $valueB = new UntypedIntValue(1);
-        $envValue = new MutableValue('a', NamedType::Uint32, $valueA);
+        $envValue = new MutableValue('a', NamedType::Uint32, $valueB);
 
         self::assertInstanceOf(Uint32Value::class, $envValue->unwrap());
-        self::assertSame($valueA->unwrap(), $envValue->unwrap()->unwrap());
+        self::assertSame($valueB->unwrap(), $envValue->unwrap()->unwrap());
         self::assertSame('a', $envValue->name);
         self::assertEquals(NamedType::Uint32, $envValue->type);
     }
