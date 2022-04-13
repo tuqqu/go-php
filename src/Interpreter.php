@@ -94,7 +94,6 @@ use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\StmtValue\GotoValue;
-use GoPhp\StmtValue\LabelValue;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\SimpleValue;
 use GoPhp\StmtValue\StmtValue;
@@ -373,7 +372,7 @@ final class Interpreter
 
     private function callFunc(callable $fn): GoValue
     {
-        $jh = new LabelJump();
+        $jh = new JumpHandler();
         $this->jumpStack->push($jh);
 
         $value = $fn();
@@ -424,46 +423,34 @@ final class Interpreter
 
     private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtValue
     {
-        $jh = $this->jumpStack->peek();
-        $jh->setContext($blockStmt);
+        $jump = $this->jumpStack->peek();
+        $jump->setContext($blockStmt);
 
-        return $this->evalWithEnvWrap($env, function () use ($blockStmt, $jh): StmtValue {
+        return $this->evalWithEnvWrap($env, function () use ($blockStmt, $jump): StmtValue {
             $stmtVal = SimpleValue::None;
             $len = \count($blockStmt->stmtList->stmts);
 
             for ($i = 0; $i < $len; ++$i) {
                 $stmt = $blockStmt->stmtList->stmts[$i];
 
-                if ($jh->isSeeking()) {
-                    $label = $this->tryFindLabel($stmt);
-                    if ($label === null || !$jh->isSought($label)) {
+                // fixme refactor
+                if ($jump->isSeeking()) {
+                    $stmt = $jump->tryFindLabel($stmt);
+                    if ($stmt === null) {
                         continue;
                     }
-
-                    $jh->stopSeeking();
-                    $stmt = $stmt->stmt;
                 }
 
-                try {
-                    $stmtVal = $this->evalStmt($stmt);
-                } catch (GotoValue $gotoValue) {
-                    $stmtVal = $gotoValue;
-                }
-
-                if ($stmtVal instanceof LabelValue) {
-                    $jh->addLabel($stmtVal->label);
-                    $stmtVal = $stmtVal->stmtValue;
-                }
+                $stmtVal = $this->evalStmt($stmt);
 
                 if ($stmtVal instanceof GotoValue) {
-                    $jh->startSeeking($stmtVal->label);
-
-                    if ($jh->isSameContext($blockStmt)) {
+                    $jump->startSeeking($stmtVal->label);
+                    if ($jump->isSameContext($blockStmt)) {
                         $i = -1;
                         continue;
                     }
 
-                    throw $stmtVal;
+                    return $stmtVal;
                 }
 
                 if (
@@ -473,6 +460,10 @@ final class Interpreter
                 ) {
                     break;
                 }
+            }
+
+            if ($stmtVal instanceof GotoValue) {
+                throw DefinitionError::undefinedLabel($jump->getLabel());
             }
 
             return $stmtVal;
@@ -520,12 +511,11 @@ final class Interpreter
         return ReturnValue::fromMultiple($values);
     }
 
-    private function evalLabeledStmt(LabeledStmt $stmt): LabelValue
+    private function evalLabeledStmt(LabeledStmt $stmt): StmtValue
     {
-        return new LabelValue(
-            $stmt->label->name,
-            $this->evalStmt($stmt->stmt),
-        );
+        $this->jumpStack->peek()->addLabel($stmt->label->name);
+
+        return $this->evalStmt($stmt->stmt);
     }
 
     private function evalGotoStmt(GotoStmt $stmt): GotoValue
@@ -622,7 +612,8 @@ final class Interpreter
                         continue 2;
                     case $stmtValue === SimpleValue::Break:
                         return SimpleValue::None;
-                    case $stmtValue instanceof ReturnValue:
+                    case $stmtValue instanceof ReturnValue
+                        || $stmtValue instanceof GotoValue:
                         return $stmtValue;
                     default:
                         throw new InternalError('Unknown statement value');

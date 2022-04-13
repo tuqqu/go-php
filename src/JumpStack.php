@@ -6,20 +6,20 @@ namespace GoPhp;
 
 final class JumpStack
 {
-    /** @var LabelJump[] */
+    /** @var JumpHandler[] */
     private array $stack = [];
 
-    public function push(LabelJump $jump): void
+    public function push(JumpHandler $jump): void
     {
         $this->stack[] = $jump;
     }
 
-    public function peek(): LabelJump
+    public function peek(): JumpHandler
     {
         return $this->stack[\array_key_last($this->stack)] ?? throw new \Exception('stack underflow');
     }
 
-    public function pop(): LabelJump
+    public function pop(): JumpHandler
     {
         return \array_pop($this->stack) ?? throw new \Exception('stack underflow');
     }
