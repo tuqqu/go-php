@@ -45,8 +45,10 @@ use GoParser\Ast\Stmt\EmptyStmt;
 use GoParser\Ast\Stmt\ExprStmt;
 use GoParser\Ast\Stmt\ForStmt;
 use GoParser\Ast\Stmt\FuncDecl;
+use GoParser\Ast\Stmt\GotoStmt;
 use GoParser\Ast\Stmt\IfStmt;
 use GoParser\Ast\Stmt\IncDecStmt;
+use GoParser\Ast\Stmt\LabeledStmt;
 use GoParser\Ast\Stmt\ReturnStmt;
 use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
@@ -91,6 +93,8 @@ use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\TypeValue;
+use GoPhp\StmtValue\GotoValue;
+use GoPhp\StmtValue\LabelValue;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\SimpleValue;
 use GoPhp\StmtValue\StmtValue;
@@ -105,6 +109,7 @@ final class Interpreter
     private ?string $curPackage = null;
     private ?FuncValue $entryPoint = null;
     private bool $constDefinition = false;
+    private JumpStack $jumpStack;
 
     public function __construct(
         private readonly Ast $ast,
@@ -118,6 +123,7 @@ final class Interpreter
         }
 
         $this->iota = $builtin->iota();
+        $this->jumpStack = new JumpStack();
         $this->env = new Environment($builtin->env());
     }
 
@@ -162,7 +168,9 @@ final class Interpreter
             $this->state = State::EntryPoint;
 
             try {
-                ($this->entryPoint)(...$this->argv);
+                $this->callFunc(
+                    fn (): GoValue => ($this->entryPoint)(...$this->argv)
+                );
             } catch (\Throwable $throwable) {
                 dump($throwable);
                 $this->streams->stderr()->writeln($throwable->getMessage());
@@ -189,6 +197,8 @@ final class Interpreter
                 $stmt instanceof ForStmt => $this->evalForStmt($stmt),
                 $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
                 $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
+                $stmt instanceof LabeledStmt => $this->evalLabeledStmt($stmt),
+                $stmt instanceof GotoStmt => $this->evalGotoStmt($stmt),
                 $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
                 $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
                 $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
@@ -328,8 +338,8 @@ final class Interpreter
             $this->env,
             $this->streams,
         ); //fixme body null
-        $this->env->defineFunc($decl->name->name, $funcValue);
 
+        $this->env->defineFunc($decl->name->name, $funcValue);
         $this->checkEntryPoint($decl->name->name, $funcValue);
 
         return SimpleValue::None;
@@ -358,7 +368,19 @@ final class Interpreter
             $argv[] = $this->evalExpr($expr->args->exprs[$i])->copy();
         }
 
-        return $func(...$argv); //fixme tuple
+        return $this->callFunc(static fn (): GoValue => $func(...$argv));
+    }
+
+    private function callFunc(callable $fn): GoValue
+    {
+        $jh = new LabelJump();
+        $this->jumpStack->push($jh);
+
+        $value = $fn();
+
+        $this->jumpStack->pop();
+
+        return $value;
     }
 
     private function evalIndexExpr(IndexExpr $expr): GoValue
@@ -402,13 +424,53 @@ final class Interpreter
 
     private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtValue
     {
-        return $this->evalWithEnvWrap($env, function () use ($blockStmt): StmtValue {
+        $jh = $this->jumpStack->peek();
+        $jh->setContext($blockStmt);
+
+        return $this->evalWithEnvWrap($env, function () use ($blockStmt, $jh): StmtValue {
             $stmtVal = SimpleValue::None;
+            $len = \count($blockStmt->stmtList->stmts);
 
-            foreach ($blockStmt->stmtList->stmts as $stmt) {
-                $stmtVal = $this->evalStmt($stmt);
+            for ($i = 0; $i < $len; ++$i) {
+                $stmt = $blockStmt->stmtList->stmts[$i];
 
-                if ($stmtVal !== SimpleValue::None) {
+                if ($jh->isSeeking()) {
+                    $label = $this->tryFindLabel($stmt);
+                    if ($label === null || !$jh->isSought($label)) {
+                        continue;
+                    }
+
+                    $jh->stopSeeking();
+                    $stmt = $stmt->stmt;
+                }
+
+                try {
+                    $stmtVal = $this->evalStmt($stmt);
+                } catch (GotoValue $gotoValue) {
+                    $stmtVal = $gotoValue;
+                }
+
+                if ($stmtVal instanceof LabelValue) {
+                    $jh->addLabel($stmtVal->label);
+                    $stmtVal = $stmtVal->stmtValue;
+                }
+
+                if ($stmtVal instanceof GotoValue) {
+                    $jh->startSeeking($stmtVal->label);
+
+                    if ($jh->isSameContext($blockStmt)) {
+                        $i = -1;
+                        continue;
+                    }
+
+                    throw $stmtVal;
+                }
+
+                if (
+                    $stmtVal instanceof ReturnValue
+                    || $stmtVal === SimpleValue::Continue
+                    || $stmtVal === SimpleValue::Break
+                ) {
                     break;
                 }
             }
@@ -456,6 +518,36 @@ final class Interpreter
         }
 
         return ReturnValue::fromMultiple($values);
+    }
+
+    private function evalLabeledStmt(LabeledStmt $stmt): LabelValue
+    {
+        return new LabelValue(
+            $stmt->label->name,
+            $this->evalStmt($stmt->stmt),
+        );
+    }
+
+    private function evalGotoStmt(GotoStmt $stmt): GotoValue
+    {
+        return new GotoValue($stmt->label->name);
+    }
+
+    private function tryFindLabel(Stmt $stmt): ?string
+    {
+        if ($stmt instanceof LabeledStmt) {
+            return $stmt->label->name;
+        }
+
+        if (
+            $stmt instanceof ShortVarDecl
+            || $stmt instanceof VarDecl
+            || $stmt instanceof ConstDecl
+        ) {
+            throw new InternalError('goto jumps over declaration');
+        }
+
+        return null;
     }
 
     private function evalIfStmt(IfStmt $stmt): StmtValue

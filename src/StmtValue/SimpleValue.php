@@ -9,5 +9,4 @@ enum SimpleValue implements StmtValue
     case None;
     case Break;
     case Continue;
-//    case Goto; //fixme
 }

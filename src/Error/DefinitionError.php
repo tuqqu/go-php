@@ -46,4 +46,14 @@ final class DefinitionError extends \LogicException
     {
         return new self('Assignment mismatch: %d variables, but got %d values', $expected, $actual);
     }
+
+    public static function labelAlreadyDefined(string $label): self
+    {
+        return new self(\sprintf('label %s already defined', $label));
+    }
+
+    public static function undefinedLabel(string $label): self
+    {
+        return new self(\sprintf('label %s not defined', $label));
+    }
 }
