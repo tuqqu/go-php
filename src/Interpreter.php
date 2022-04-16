@@ -523,23 +523,6 @@ final class Interpreter
         return new GotoValue($stmt->label->name);
     }
 
-    private function tryFindLabel(Stmt $stmt): ?string
-    {
-        if ($stmt instanceof LabeledStmt) {
-            return $stmt->label->name;
-        }
-
-        if (
-            $stmt instanceof ShortVarDecl
-            || $stmt instanceof VarDecl
-            || $stmt instanceof ConstDecl
-        ) {
-            throw new InternalError('goto jumps over declaration');
-        }
-
-        return null;
-    }
-
     private function evalIfStmt(IfStmt $stmt): StmtValue
     {
         return $this->evalWithEnvWrap(null, function () use ($stmt): StmtValue {
