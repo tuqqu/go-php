@@ -52,6 +52,8 @@ enum BoolValue: int implements GoValue
         assert_values_compatible($this, $rhs);
 
         return match ($op) {
+            Operator::LogicAnd => $this->logicAnd($rhs),
+            Operator::LogicOr => $this->logicOr($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
             default => throw OperationError::unknownOperator($op, $this),
@@ -71,5 +73,15 @@ enum BoolValue: int implements GoValue
     public function copy(): static
     {
         return $this;
+    }
+
+    private function logicOr(self $other): self
+    {
+        return self::fromBool($this->unwrap() || $other->unwrap());
+    }
+
+    private function logicAnd(self $other): self
+    {
+        return self::fromBool($this->unwrap() && $other->unwrap());
     }
 }
