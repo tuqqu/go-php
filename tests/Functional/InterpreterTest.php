@@ -44,13 +44,15 @@ final class InterpreterTest extends TestCase
             'variable_decl',
             'const_decl',
             'iota',
+            'if',
+            'for',
         ];
 
         foreach ($files as $file) {
             $goProgram = file_get_contents(\sprintf('%s%s.go', self::SRC_FILES_PATH, $file));
             $expectedOutput = file_get_contents(\sprintf('%s%s', self::OUTPUT_FILES_PATH, $file));
 
-            yield [$goProgram, $expectedOutput];
+            yield $file => [$goProgram, $expectedOutput];
         }
     }
 }
