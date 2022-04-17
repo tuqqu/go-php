@@ -305,7 +305,7 @@ final class Interpreter
                 } else {
                     $values[] = $value;
                     for ($i = 1; $i < $identsLen; ++$i) {
-                        $value = $this->evalExpr($spec->initList->exprs[$i++]);
+                        $value = $this->evalExpr($spec->initList->exprs[$i]);
                         if ($value instanceof TupleValue) {
                             throw ValueError::multipleValueInSingleContext();
                         }

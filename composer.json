@@ -36,8 +36,10 @@
             "vendor/bin/php-cs-fixer fix --dry-run --verbose --diff --using-cache=no --allow-risky=yes"
         ],
         "test-unit": "vendor/bin/phpunit --testsuite=unit",
+        "test-functional": "vendor/bin/phpunit --testsuite=functional",
         "test": [
-            "@test-unit"
+            "@test-unit",
+            "@test-functional"
         ]
     }
 }

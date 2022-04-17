@@ -6,7 +6,7 @@ namespace GoPhp\Stream;
 
 interface InputStream
 {
-    public function getChar(): string;
+    public function getChar(): ?string;
 
-    public function getLine(): string;
+    public function getLine(): ?string;
 }
