@@ -41,7 +41,9 @@ final class InterpreterTest extends TestCase
     public function sourceFileProvider(): iterable
     {
         $files = [
-            'variable_decl'
+            'variable_decl',
+            'const_decl',
+            'iota',
         ];
 
         foreach ($files as $file) {

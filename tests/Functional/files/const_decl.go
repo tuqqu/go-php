@@ -1,8 +1,8 @@
 package main
 
-var a = 1
-var b string = "string"
-var (
+const a = 1
+const b string = "string"
+const (
 	c       int = a * 2
 	d, e, f     = "string", 1, true
 )
@@ -10,31 +10,30 @@ var (
 func main() {
 	println(a, b, c, e, f)
 
-	var a uint8 = 2
-	var (
+	const a uint8 = 2
+	const (
 		b bool = true
 		c      = a * 2
 	)
 
 	println(a, b, c)
 
-	var (
-		d, e, f string
+	const (
+		d, e, f string = "str1", "str2", "str3"
 	)
-	var g, h, i uint32 = 1, 2, 3
+	const g, h, i uint32 = 1, 2, 3
 
 	println(d, e, f, g, h, i)
 
-	j := 1
-	k, l, m := true, false, 3
+	const j bool = true
 
-	println(j, k, l, m)
+	println(j)
 
 	{
-		j := false
+		const j = 100
 		{
 			println(j)
-			var j = 88
+			const j = 88
 			println(j)
 		}
 		println(j)
