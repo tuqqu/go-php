@@ -10,7 +10,7 @@ use GoParser\Ast\Stmt\LabeledStmt;
 use GoParser\Ast\Stmt\Stmt;
 use GoParser\Ast\Stmt\TypeDecl;
 use GoPhp\Error\DefinitionError;
-use GoPhp\Error\InternalError;
+use GoPhp\Error\ProgramError;
 
 final class JumpHandler
 {
@@ -66,7 +66,7 @@ final class JumpHandler
     public function tryFindLabel(Stmt $stmt): ?Stmt
     {
         if ($stmt instanceof Decl && !$stmt instanceof TypeDecl) {
-            throw new InternalError('goto jumps over declaration');
+            throw new ProgramError('goto jumps over declaration');
         }
 
         if (!$stmt instanceof LabeledStmt) {

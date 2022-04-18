@@ -567,7 +567,7 @@ final class Interpreter
                     $condition = match (true) {
                         $stmt->iteration->condition === null => null,
                         $stmt->iteration->condition instanceof ExprStmt => $stmt->iteration->condition->expr,
-                        default => throw new ProgramError('Unknown for loop condition'),
+                        default => throw new InternalError('Unknown for loop condition'),
                     };
 
                     $post = $stmt->iteration->post ?? null;
@@ -576,7 +576,7 @@ final class Interpreter
                 case $stmt->iteration instanceof RangeClause:
                     // todo
                 default:
-                    throw new ProgramError('Unknown for loop structure');
+                    throw new InternalError('Unknown for loop structure');
             }
 
             while (
