@@ -87,23 +87,18 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineFuncs(): void
     {
-        $this->env->defineBuiltinFunc('println', $this->createBuiltinFunc(self::println(...)));
-        $this->env->defineBuiltinFunc('print', $this->createBuiltinFunc(self::print(...)));
-        $this->env->defineBuiltinFunc('len', $this->createBuiltinFunc(self::len(...)));
-        $this->env->defineBuiltinFunc('cap', $this->createBuiltinFunc(self::cap(...)));
-        $this->env->defineBuiltinFunc('append', $this->createBuiltinFunc(self::append(...)));
-        $this->env->defineBuiltinFunc('make', $this->createBuiltinFunc(self::make(...)));
-    }
-
-    final protected function createBuiltinFunc(callable $func): BuiltinFuncValue
-    {
-        return new BuiltinFuncValue($func, $this->streams);
+        $this->env->defineBuiltinFunc('println', new BuiltinFuncValue($this->println(...)));
+        $this->env->defineBuiltinFunc('print', new BuiltinFuncValue($this->print(...)));
+        $this->env->defineBuiltinFunc('len', new BuiltinFuncValue(self::len(...)));
+        $this->env->defineBuiltinFunc('cap', new BuiltinFuncValue(self::cap(...)));
+        $this->env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
+        $this->env->defineBuiltinFunc('make', new BuiltinFuncValue(self::make(...)));
     }
 
     /**
      * @see https://pkg.go.dev/builtin#println
      */
-    protected static function println(StreamProvider $streams, GoValue ...$values): NoValue
+    protected function println(GoValue ...$values): NoValue
     {
         $output = [];
 
@@ -111,7 +106,7 @@ class StdBuiltinProvider implements BuiltinProvider
             $output[] = $value->toString();
         }
 
-        $streams->stderr()->writeln(\implode(' ', $output));
+        $this->streams->stderr()->writeln(\implode(' ', $output));
 
         return NoValue::NoValue;
     }
@@ -119,7 +114,7 @@ class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#print
      */
-    protected static function print(StreamProvider $streams, GoValue ...$values): NoValue
+    protected function print(GoValue ...$values): NoValue
     {
         $output = [];
 
@@ -127,7 +122,7 @@ class StdBuiltinProvider implements BuiltinProvider
             $output[] = $value->toString();
         }
 
-        $streams->stderr()->write(\implode('', $output));
+        $this->streams->stderr()->write(\implode('', $output));
 
         return NoValue::NoValue;
     }
@@ -135,7 +130,7 @@ class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#len
      */
-    protected static function len(StreamProvider $streams, GoValue ...$values): IntValue
+    protected static function len(GoValue ...$values): IntValue
     {
         assert_argc($values, 1);
         assert_arg_value($values[0], Sequence::class, 'slice, array, string', 1);
@@ -146,7 +141,7 @@ class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#cap
      */
-    protected static function cap(StreamProvider $streams, GoValue ...$values): IntValue
+    protected static function cap(GoValue ...$values): IntValue
     {
         assert_argc($values, 1);
 
@@ -166,7 +161,7 @@ class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#append
      */
-    protected static function append(StreamProvider $streams, GoValue ...$values): SliceValue
+    protected static function append(GoValue ...$values): SliceValue
     {
         assert_argc($values, 1, variadic: true);
         assert_arg_value($values[0], SliceValue::class, SliceValue::NAME, 1);
@@ -187,7 +182,7 @@ class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#make
      */
-    protected static function make(StreamProvider $streams, GoValue ...$values): SliceValue|MapValue
+    protected static function make(GoValue ...$values): SliceValue|MapValue
     {
         assert_argc($values, 1, variadic: true);
         assert_arg_value($values[0], TypeValue::class, 'type', 1);

@@ -7,18 +7,16 @@ namespace GoPhp\GoValue;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\VoidType;
 use GoPhp\Operator;
-use GoPhp\Stream\StreamProvider;
 
 final class BuiltinFuncValue implements Invocable, GoValue
 {
     public function __construct(
         private readonly \Closure $function,
-        private readonly StreamProvider $streams,
     ) {}
 
     public function __invoke(GoValue ...$argv): GoValue
     {
-        return ($this->function)($this->streams, ...$argv);
+        return ($this->function)(...$argv);
     }
 
     public function toString(): string
