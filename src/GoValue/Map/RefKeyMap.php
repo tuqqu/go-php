@@ -41,7 +41,6 @@ final class RefKeyMap implements Map
         return $this->len;
     }
 
-    //fixme alter this when for range
     /**
      * @return iterable<GoValue, GoValue>
      */

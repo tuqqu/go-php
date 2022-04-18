@@ -13,7 +13,7 @@ final class Int32Value extends BaseIntValue
 
     public static function fromRune(string $rune): self
     {
-        return new self(\mb_ord(\trim($rune, '\''), 'UTF-8'));
+        return new self(\mb_ord($rune));
     }
 
     public function type(): NamedType

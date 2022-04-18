@@ -73,7 +73,7 @@ function assert_index_value(GoValue $index, string $value, string $where): void
 
 function assert_index_type(GoValue $index, GoType $type, string $where): void
 {
-    if (!$index->type()->equals($type)) {
+    if (!$index->type()->isCompatible($type)) {
         throw DefinitionError::indexOfWrongType($index, $type, $where);
     }
 }

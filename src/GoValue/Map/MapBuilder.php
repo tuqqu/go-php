@@ -8,7 +8,7 @@ use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\NonRefValue;
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_types_compatible;
 
@@ -44,13 +44,16 @@ final class MapBuilder
 
     private function internalMapByType(): Map
     {
-        return match (true) {
+        switch (true) {
             // fixme add types
-            $this->type->keyType instanceof BasicType
-            || $this->type->keyType instanceof StringValue
-            || $this->type->keyType instanceof ArrayType => new NonRefKeyMap(),
+            // fixme || $this->type->keyType instanceof ArrayType
+            case $this->type->keyType instanceof BasicType:
+                /** @var NonRefValue $default */
+                $default = $this->type->keyType->defaultValue();
+                return new NonRefKeyMap($default::create(...));
             // fixme ass ref
-            default => throw new \Exception(\sprintf('invalid map key type %s', $this->type->keyType->name()))
+            default:
+                throw new \Exception(\sprintf('invalid map key type %s', $this->type->keyType->name()));
         };
     }
 }

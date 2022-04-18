@@ -19,6 +19,7 @@ use GoPhp\GoValue\Int\Uint64Value;
 use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UintptrValue;
 use GoPhp\GoValue\Int\UintValue;
+use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\StringValue;
 
 enum NamedType: string implements BasicType
@@ -85,7 +86,7 @@ enum NamedType: string implements BasicType
         return $this;
     }
 
-    public function defaultValue(): GoValue
+    public function defaultValue(): NonRefValue
     {
         return match ($this) {
             self::Int => new IntValue(0),

@@ -9,7 +9,7 @@ use GoPhp\GoType\NamedType;
 use GoPhp\Error\OperationError;
 use function GoPhp\assert_values_compatible;
 
-enum BoolValue: int implements GoValue
+enum BoolValue: int implements NonRefValue
 {
     case False = 0;
     case True = 1;
@@ -17,6 +17,11 @@ enum BoolValue: int implements GoValue
     public function toString(): string
     {
         return $this->value === 0 ? 'false' : 'true';
+    }
+
+    public static function create(mixed $value): self
+    {
+        return self::fromBool($value);
     }
 
     public static function fromBool(bool $value): self

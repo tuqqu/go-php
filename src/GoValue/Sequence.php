@@ -12,5 +12,8 @@ interface Sequence
 
     public function len(): int;
 
+    /**
+     * @return iterable<GoValue, GoValue>
+     */
     public function iter(): iterable;
 }

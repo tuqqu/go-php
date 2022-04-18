@@ -5,11 +5,20 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Map;
 
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NonRefValue;
 
 final class NonRefKeyMap implements Map
 {
+    /** @var GoValue[] */
     private array $values = [];
     private int $len = 0;
+
+    /**
+     * @param \Closure(mixed): NonRefValue
+     */
+    public function __construct(
+        private \Closure $wrapper,
+    ) {}
 
     public function has(GoValue $at): bool
     {
@@ -36,10 +45,12 @@ final class NonRefKeyMap implements Map
     }
 
     /**
-     * @return iterable<mixed, GoValue>
+     * @return iterable<NonRefValue, GoValue>
      */
     public function iter(): iterable
     {
-        yield from $this->values;
+        foreach ($this->values as $key => $value) {
+            yield ($this->wrapper)($key) => $value;
+        }
     }
 }

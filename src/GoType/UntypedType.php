@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NonRefValue;
 
 enum UntypedType implements BasicType
 {
@@ -35,7 +36,7 @@ enum UntypedType implements BasicType
         };
     }
 
-    public function defaultValue(): GoValue
+    public function defaultValue(): never
     {
         throw new \UnhandledMatchError('not impls def val');
     }

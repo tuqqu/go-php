@@ -9,6 +9,7 @@ use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
@@ -64,9 +65,14 @@ final class SliceValue implements Sequence, GoValue
         return $this->len;
     }
 
+    /**
+     * @return iterable<UntypedIntValue, GoValue>
+     */
     public function iter(): iterable
     {
-        yield from $this->values;
+        foreach ($this->values as $key => $value) {
+            yield new UntypedIntValue($key) => $value;
+        }
     }
 
     public function append(GoValue $value): void

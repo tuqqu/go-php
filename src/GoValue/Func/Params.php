@@ -8,6 +8,7 @@ use GoPhp\Error\InternalError;
 
 final class Params implements \Countable, \ArrayAccess, \Iterator
 {
+    /** @var Param[] */
     private readonly array $params;
     private readonly int $len;
     private int $pos = 0;

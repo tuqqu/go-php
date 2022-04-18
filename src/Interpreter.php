@@ -26,6 +26,7 @@ use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\Type;
 use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\UnaryExpr;
+use GoParser\Ast\ExprList;
 use GoParser\Ast\File as Ast;
 use GoParser\Ast\ForClause;
 use GoParser\Ast\GroupSpec;
@@ -68,10 +69,10 @@ use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
 use GoPhp\Error\ValueError;
 use GoPhp\GoType\ArrayType;
-use GoPhp\GoType\NamedType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoType\TypeFactory;
 use GoPhp\GoValue\Array\ArrayBuilder;
@@ -548,6 +549,9 @@ final class Interpreter
     {
         return $this->evalWithEnvWrap(null, function () use ($stmt): StmtValue {
             switch (true) {
+                // for range {}
+                case $stmt->iteration instanceof RangeClause:
+                    return $this->evalForRangeStmt($stmt);
                 // for {}
                 case $stmt->iteration === null:
                    $condition = null;
@@ -572,9 +576,6 @@ final class Interpreter
 
                     $post = $stmt->iteration->post ?? null;
                     break;
-                // for range {}
-                case $stmt->iteration instanceof RangeClause:
-                    // todo
                 default:
                     throw new InternalError('Unknown for loop structure');
             }
@@ -609,6 +610,68 @@ final class Interpreter
 
             return SimpleValue::None;
         });
+    }
+
+    private function evalForRangeStmt(ForStmt $stmt): StmtValue
+    {
+        $iteration = $stmt->iteration;
+        $range = $this->evalExpr($iteration->expr);
+
+        if (!$range instanceof Sequence) {
+            throw new ProgramError(\sprintf('cannot range over %s', $range->type()->name()));
+        }
+
+        $defined = $iteration->list instanceof ExprList;
+        $exprsOrIdents = $defined ?
+            $iteration->list->exprs :
+            $iteration->list->idents;
+
+        if (\count($exprsOrIdents) > 2) {
+            throw new ProgramError('range clause permits at most two iteration variables');
+        }
+
+        foreach ($range->iter() as $key => $value) {
+            /**
+             * @var GoValue $key
+             * @var GoValue $value
+             */
+            if (!$defined) {
+                $this->env->defineVar(
+                    $exprsOrIdents[0]->name,
+                    $key->copy(),
+                    $key->type()->reify(),
+                );
+                $this->env->defineVar(
+                    $exprsOrIdents[1]->name,
+                    $value->copy(),
+                    $value->type()->reify(),
+                );
+
+                $defined = true;
+            }
+
+            $this->getValueMutator($exprsOrIdents[0], false)->mutate(null, $key->copy());
+            $this->getValueMutator($exprsOrIdents[1], false)->mutate(null, $value->copy());
+
+            $stmtValue = $this->evalBlockStmt($stmt->body);
+
+            // fixme unify
+            switch (true) {
+                case $stmtValue === SimpleValue::None:
+                    break;
+                case $stmtValue === SimpleValue::Continue:
+                    continue 2;
+                case $stmtValue === SimpleValue::Break:
+                    return SimpleValue::None;
+                case $stmtValue instanceof ReturnValue
+                    || $stmtValue instanceof GotoValue:
+                    return $stmtValue;
+                default:
+                    throw new InternalError('Unknown statement value');
+            }
+        }
+
+        return $stmtValue;
     }
 
     private function evalIncDecStmt(IncDecStmt $stmt): SimpleValue
@@ -815,12 +878,12 @@ final class Interpreter
 
     private function evalRuneLit(RuneLit $lit): Int32Value
     {
-        return Int32Value::fromRune($lit->rune);
+        return Int32Value::fromRune(\trim($lit->rune, '\''));
     }
 
     private function evalStringLit(StringLit $lit): StringValue
     {
-        return new StringValue($lit->str);
+        return new StringValue(\trim($lit->str, '"'));
     }
 
     private function evalIntLit(IntLit $lit): UntypedIntValue

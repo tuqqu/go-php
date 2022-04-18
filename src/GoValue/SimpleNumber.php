@@ -23,8 +23,13 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 
-abstract class SimpleNumber implements GoValue
+abstract class SimpleNumber implements NonRefValue
 {
+    final public static function create(mixed $value): static
+    {
+        return new static($value);
+    }
+
     final public function convertTo(NamedType $type): self
     {
         $number = $this->unwrap();
@@ -52,7 +57,7 @@ abstract class SimpleNumber implements GoValue
         return (string) $this->value;
     }
 
-    public function operateOn(Operator $op, GoValue $rhs): GoValue
+    public function operateOn(Operator $op, GoValue $rhs): NonRefValue
     {
         assert_values_compatible($this, $rhs);
 

@@ -8,22 +8,28 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Int32Value;
+use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_value;
 use function GoPhp\assert_values_compatible;
 
-final class StringValue implements Sequence, GoValue
+final class StringValue implements Sequence, NonRefValue
 {
     public const NAME = 'string';
 
     private string $value;
-    private int $len;
+    private int $byteLen;
 
     public function __construct(string $value)
     {
-        $this->value = \trim($value, '"'); //fixme think of quotes
-        $this->len = \strlen($this->value);
+        $this->value = $value;
+        $this->byteLen = \strlen($this->value);
+    }
+
+    public static function create(mixed $value): self
+    {
+        return new self($value);
     }
 
     public function type(): NamedType
@@ -77,7 +83,7 @@ final class StringValue implements Sequence, GoValue
     public function mutAdd(self $value): void
     {
         $this->value .= $value->value;
-        $this->len += \strlen($value->value);
+        $this->byteLen += \strlen($value->value);
     }
 
     public function copy(): static
@@ -113,7 +119,7 @@ final class StringValue implements Sequence, GoValue
     public function get(GoValue $at): Int32Value
     {
         assert_index_value($at, BaseIntValue::class, self::NAME);
-        assert_index_exists($int = $at->unwrap(), $this->len);
+        assert_index_exists($int = $at->unwrap(), $this->byteLen);
 
         return Int32Value::fromRune($this->value[$int]);
     }
@@ -125,13 +131,18 @@ final class StringValue implements Sequence, GoValue
 
     public function len(): int
     {
-        return $this->len;
+        return $this->byteLen;
     }
 
+    /**
+     * @return iterable<UntypedIntValue, Int32Value>
+     */
     public function iter(): iterable
     {
-        for ($i = 0; $i < $this->len; ++$i) {
-            yield $this->value[$i];
+        $i = 0;
+        foreach (\mb_str_split($this->value) as $char) {
+            yield new UntypedIntValue($i) => Int32Value::fromRune($char);
+            $i += \strlen($char);
         }
     }
 }
