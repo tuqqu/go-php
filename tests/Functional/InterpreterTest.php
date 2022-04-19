@@ -46,11 +46,12 @@ final class InterpreterTest extends TestCase
             'iota',
             'if',
             'for',
+            'for_range',
         ];
 
         foreach ($files as $file) {
-            $goProgram = file_get_contents(\sprintf('%s%s.go', self::SRC_FILES_PATH, $file));
-            $expectedOutput = file_get_contents(\sprintf('%s%s', self::OUTPUT_FILES_PATH, $file));
+            $goProgram = \file_get_contents(\sprintf('%s%s.go', self::SRC_FILES_PATH, $file));
+            $expectedOutput = \file_get_contents(\sprintf('%s%s', self::OUTPUT_FILES_PATH, $file));
 
             yield $file => [$goProgram, $expectedOutput];
         }

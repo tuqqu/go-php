@@ -621,37 +621,51 @@ final class Interpreter
             throw new ProgramError(\sprintf('cannot range over %s', $range->type()->name()));
         }
 
-        $defined = $iteration->list instanceof ExprList;
-        $exprsOrIdents = $defined ?
-            $iteration->list->exprs :
-            $iteration->list->idents;
+        [$define, $iterVars] = match (true) {
+            $iteration->list instanceof ExprList => [false, $iteration->list->exprs],
+            $iteration->list instanceof IdentList => [true, $iteration->list->idents],
+            default => [false, []],
+        };
 
-        if (\count($exprsOrIdents) > 2) {
-            throw new ProgramError('range clause permits at most two iteration variables');
-        }
+        [$keyVar, $valVar] = match (\count($iterVars)) {
+            0 => [null, null],
+            1 => [$iterVars[0], null],
+            2 => $iterVars,
+            default => throw new ProgramError('range clause permits at most two iteration variables'),
+        };
 
         foreach ($range->iter() as $key => $value) {
             /**
              * @var GoValue $key
              * @var GoValue $value
              */
-            if (!$defined) {
-                $this->env->defineVar(
-                    $exprsOrIdents[0]->name,
-                    $key->copy(),
-                    $key->type()->reify(),
-                );
-                $this->env->defineVar(
-                    $exprsOrIdents[1]->name,
-                    $value->copy(),
-                    $value->type()->reify(),
-                );
+            if ($define) {
+                if ($keyVar !== null) {
+                    $this->env->defineVar(
+                        $keyVar->name,
+                        $key->copy(),
+                        $key->type()->reify(),
+                    );
+                }
 
-                $defined = true;
+                if ($valVar !== null) {
+                    $this->env->defineVar(
+                        $valVar->name,
+                        $value->copy(),
+                        $value->type()->reify(),
+                    );
+                }
+
+                $define = false;
             }
 
-            $this->getValueMutator($exprsOrIdents[0], false)->mutate(null, $key->copy());
-            $this->getValueMutator($exprsOrIdents[1], false)->mutate(null, $value->copy());
+            if ($keyVar !== null) {
+                $this->getValueMutator($keyVar, false)->mutate(null, $key->copy());
+            }
+
+            if ($valVar !== null) {
+                $this->getValueMutator($valVar, false)->mutate(null, $value->copy());
+            }
 
             $stmtValue = $this->evalBlockStmt($stmt->body);
 
@@ -671,7 +685,7 @@ final class Interpreter
             }
         }
 
-        return $stmtValue;
+        return SimpleValue::None;
     }
 
     private function evalIncDecStmt(IncDecStmt $stmt): SimpleValue
