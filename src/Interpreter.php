@@ -397,7 +397,7 @@ final class Interpreter
             throw TypeError::conversionError($index->type(), NamedType::Int);
         }
 
-        return $array->get($index->unwrap());
+        return $array->get($index);
     }
 
     private function evalEmptyStmt(EmptyStmt $stmt): SimpleValue

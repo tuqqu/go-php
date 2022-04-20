@@ -47,6 +47,7 @@ final class InterpreterTest extends TestCase
             'if',
             'for',
             'for_range',
+            'array', //fixme fmt
         ];
 
         foreach ($files as $file) {
