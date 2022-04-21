@@ -172,7 +172,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
         unset($values[0]);
         foreach ($values as $i => $value) {
-            assert_arg_type($value, $slice->type(), $i + 1);
+            assert_arg_type($value, $slice->type()->internalType, $i + 1);
             $sliceBuilder->pushBlindly($value);
         }
 

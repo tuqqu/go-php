@@ -48,6 +48,7 @@ final class InterpreterTest extends TestCase
             'for',
             'for_range',
             'array', //fixme fmt
+            'slice', //fixme fmt, copy, :1
         ];
 
         foreach ($files as $file) {

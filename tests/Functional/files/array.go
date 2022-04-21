@@ -20,9 +20,10 @@ func main() {
 	}
 	println(twoD)
 
-    var array = [...]int{0, 1, 2};
-	println(66, array)
+	var array = [...]int{0, 1, 2}
+	var second_array = set_first(66, array)
 	println(array)
+	println(second_array)
 }
 
 func set_first(first int, array [3]int) [3]int {
