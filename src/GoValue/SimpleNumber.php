@@ -35,20 +35,20 @@ abstract class SimpleNumber implements NonRefValue
         $number = $this->unwrap();
 
         return match ($type) {
-            NamedType::Int => new IntValue($number),
-            NamedType::Int8 => new Int8Value($number),
-            NamedType::Int16 => new Int16Value($number),
-            NamedType::Int32 => new Int32Value($number),
-            NamedType::Int64 => new Int64Value($number),
-            NamedType::Uint => new UintValue($number),
-            NamedType::Uint8 => new Uint8Value($number),
-            NamedType::Uint16 => new Uint16Value($number),
-            NamedType::Uint32 => new Uint32Value($number),
-            NamedType::Uint64 => new Uint64Value($number),
-            NamedType::Uintptr => new UintptrValue($number),
-            NamedType::Float32 => new Float32Value($number),
-            NamedType::Float64 => new Float64Value($number),
-            default => throw TypeError::conversionError($this->type(), $type),
+            NamedType::Int => new IntValue((int) $number),
+            NamedType::Int8 => new Int8Value((int) $number),
+            NamedType::Int16 => new Int16Value((int) $number),
+            NamedType::Int32 => new Int32Value((int) $number),
+            NamedType::Int64 => new Int64Value((int) $number),
+            NamedType::Uint => new UintValue((int) $number),
+            NamedType::Uint8 => new Uint8Value((int) $number),
+            NamedType::Uint16 => new Uint16Value((int) $number),
+            NamedType::Uint32 => new Uint32Value((int) $number),
+            NamedType::Uint64 => new Uint64Value((int) $number),
+            NamedType::Uintptr => new UintptrValue((int) $number),
+            NamedType::Float32 => new Float32Value((float) $number),
+            NamedType::Float64 => new Float64Value((float) $number),
+            default => throw TypeError::implicitConversionError($this->type(), $type),
         };
     }
 

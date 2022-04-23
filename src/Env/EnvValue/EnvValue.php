@@ -20,8 +20,10 @@ abstract class EnvValue
         public readonly GoType $type,
         GoValue $value,
     ) {
+        //fixme think here of var x int = 44.4
         $value = static::convertIfNeeded($value, $type);
 
+        //fixme remove
         assert_types_compatible($type, $value->type());
 
         $this->value = $value;

@@ -7,7 +7,9 @@ namespace GoPhp\Env;
 use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\EnvValue\ImmutableValue;
 use GoPhp\Env\EnvValue\MutableValue;
+use GoPhp\Env\EnvValue\TypeValue;
 use GoPhp\Env\Error\CannotBeMutatedError;
+use GoPhp\Env\Error\UndefinedTypeError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\VoidType;
@@ -58,6 +60,17 @@ final class Environment
         $this->definedValues->add($func);
     }
 
+    public function defineType(string $name, GoValue $value, GoType $type): void
+    {
+        $var = new TypeValue($name, $type, $value);
+        $this->definedValues->add($var);
+    }
+
+    public function defineTypeAlias(string $name, string $alias): void
+    {
+        $this->definedValues->alias($alias, $name);
+    }
+
     public function get(string $name): EnvValue
     {
         return $this->definedValues->tryGet($name) ??
@@ -74,5 +87,14 @@ final class Environment
         }
 
         return $value;
+    }
+
+    public function getType(string $name): EnvValue
+    {
+        $envValue = $this->get($name);
+
+        return $envValue instanceof TypeValue ?
+            $envValue :
+            throw new UndefinedTypeError($name);
     }
 }

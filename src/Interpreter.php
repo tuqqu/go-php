@@ -23,7 +23,6 @@ use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StringLit;
-use GoParser\Ast\Expr\Type;
 use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\ExprList;
@@ -74,7 +73,6 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\SliceType;
-use GoPhp\GoType\TypeFactory;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
@@ -394,7 +392,7 @@ final class Interpreter
         $index = $this->evalExpr($expr->index);
 
         if (!$index instanceof BaseIntValue) {
-            throw TypeError::conversionError($index->type(), NamedType::Int);
+            throw TypeError::implicitConversionError($index->type(), NamedType::Int);
         }
 
         return $array->get($index);
@@ -808,9 +806,10 @@ final class Interpreter
             $expr instanceof CallExpr => $this->evalCallExpr($expr),
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
+            $expr instanceof AstType => $this->evalTypeConversion($expr),
 
             // fixme debug
-            default => dd($expr),
+            default => dd('eval expr', $expr),
         };
     }
 
@@ -829,6 +828,11 @@ final class Interpreter
             $expr instanceof Ident => $this->evalIdent($expr),
             default => null,
         };
+    }
+
+    private function evalTypeConversion(Type $expr): TypeValue
+    {
+        // fixme add []byte, []rune, errors
     }
 
     private function evalConstExpr(Expr $expr): GoValue
@@ -850,7 +854,7 @@ final class Interpreter
     private function evalCompositeLit(CompositeLit $lit): GoValue //fixme arrayvalye, slice, map, struct etc...
     {
         //fixme change this in parser
-        if (!$lit->type instanceof Type) {
+        if (!$lit->type instanceof AstType) {
             throw new \Exception('exp type');
         }
 
@@ -1007,10 +1011,10 @@ final class Interpreter
 
         switch (true) {
             case $type instanceof SingleTypeName:
-                $resolved = TypeFactory::tryFrom($type->name->name);
+                $resolved = $this->env->getType($type->name->name)->getType();
                 break;
             case $type instanceof QualifiedTypeName:
-                $resolved = TypeFactory::tryFrom(self::resolveQualifiedTypeName($type));
+                $resolved = $this->env->getType(self::resolveQualifiedTypeName($type))->getType();
                 break;
             case $type instanceof AstFuncType:
                 $resolved = $this->resolveTypeFromAstSignature($type->signature);
@@ -1025,7 +1029,7 @@ final class Interpreter
                 $resolved = $this->resolveMapType($type, $composite);
                 break;
             default:
-                dump($type);die;
+                dump('type', $type);die;
                 throw new \InvalidArgumentException('unresolved type'); //fixme
         }
 

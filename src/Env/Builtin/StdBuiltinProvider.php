@@ -6,9 +6,10 @@ namespace GoPhp\Env\Builtin;
 
 use GoPhp\Env\Environment;
 use GoPhp\Error\OperationError;
-use GoPhp\GoType\NamedType;
+use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoType\UntypedNilType;
 use GoPhp\GoType\UntypedType;
@@ -24,8 +25,10 @@ use GoPhp\GoValue\Map\MapValue;
 use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
+use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_type;
@@ -38,6 +41,9 @@ class StdBuiltinProvider implements BuiltinProvider
     private Environment $env;
     private StreamProvider $streams;
 
+    /**
+     * fixme split to vars,consts,types,funcs,iota
+     */
     public function __construct(StreamProvider $streams)
     {
         $this->iota = new class (0) extends BaseIntValue implements Iota {
@@ -71,6 +77,7 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->defineStdConsts();
         $this->defineStdVars();
         $this->defineFuncs();
+        $this->defineTypes();
     }
 
     protected function defineStdConsts(): void
@@ -93,6 +100,144 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->env->defineBuiltinFunc('cap', new BuiltinFuncValue(self::cap(...)));
         $this->env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
         $this->env->defineBuiltinFunc('make', new BuiltinFuncValue(self::make(...)));
+    }
+
+    protected function defineTypes(): void
+    {
+        $this->env->defineType(
+            'bool',
+            new TypeValue(NamedType::Bool),
+            NamedType::Bool,
+        );
+
+        $this->env->defineType(
+            'string',
+            new TypeValue(
+                NamedType::String,
+                self::conversion_string(...)
+            ),
+            NamedType::String,
+        );
+
+        $this->env->defineType(
+            'int',
+            new TypeValue(
+                NamedType::Int,
+                self::conversion_number(NamedType::Int)
+            ),
+            NamedType::Int,
+        );
+
+        $this->env->defineType(
+            'int8',
+            new TypeValue(
+                NamedType::Int8,
+                self::conversion_number(NamedType::Int8)
+            ),
+            NamedType::Int8,
+        );
+
+        $this->env->defineType(
+            'int16',
+            new TypeValue(
+                NamedType::Int16,
+                self::conversion_number(NamedType::Int16)
+            ),
+            NamedType::Int16,
+        );
+
+        $this->env->defineType(
+            'int32',
+            new TypeValue(
+                NamedType::Int32,
+                self::conversion_number(NamedType::Int32)
+            ),
+            NamedType::Int32,
+        );
+
+        $this->env->defineType(
+            'int64',
+            new TypeValue(
+                NamedType::Int64,
+                self::conversion_number(NamedType::Int64)
+            ),
+            NamedType::Int64,
+        );
+
+        $this->env->defineType(
+            'uint',
+            new TypeValue(
+                NamedType::Uint,
+                self::conversion_number(NamedType::Uint)
+            ),
+            NamedType::Uint,
+        );
+
+        $this->env->defineType(
+            'uint8',
+            new TypeValue(
+                NamedType::Uint8,
+                self::conversion_number(NamedType::Uint8)
+            ),
+            NamedType::Uint8,
+        );
+
+        $this->env->defineType(
+            'uint16',
+            new TypeValue(
+                NamedType::Uint16,
+                self::conversion_number(NamedType::Uint16)
+            ),
+            NamedType::Uint16,
+        );
+
+        $this->env->defineType(
+            'uint32',
+            new TypeValue(
+                NamedType::Uint32,
+                self::conversion_number(NamedType::Uint32)
+            ),
+            NamedType::Uint32,
+        );
+
+        $this->env->defineType(
+            'uint64',
+            new TypeValue(
+                NamedType::Uint64,
+                self::conversion_number(NamedType::Int16)
+            ),
+            NamedType::Uint64,
+        );
+
+        $this->env->defineType(
+            'uintptr',
+            new TypeValue(
+                NamedType::Uintptr,
+                self::conversion_number(NamedType::Uintptr)
+            ),
+            NamedType::Uintptr,
+        );
+
+        $this->env->defineType(
+            'float32',
+            new TypeValue(
+                NamedType::Float32,
+                self::conversion_number(NamedType::Float32)
+            ),
+            NamedType::Float32,
+        );
+
+        $this->env->defineType(
+            'float64',
+            new TypeValue(
+                NamedType::Float64,
+                self::conversion_number(NamedType::Float64)
+            ),
+            NamedType::Float64,
+        );
+
+        $this->env->defineTypeAlias('uint8', 'byte');
+        $this->env->defineTypeAlias('int32', 'rune');
     }
 
     /**
@@ -231,5 +376,18 @@ class StdBuiltinProvider implements BuiltinProvider
         }
 
         throw OperationError::wrongArgumentType($type->type, 'slice, map or channel', 1);
+    }
+
+    protected static function conversion_number(NamedType $type): callable
+    {
+        return static fn (GoValue $value): SimpleNumber =>
+            $value instanceof SimpleNumber ?
+                $value->convertTo($type) : //fixme add convert with wrap
+                throw TypeError::conversionError($value, $type);
+    }
+
+    protected function conversion_string(GoValue $value): StringValue
+    {
+        return new StringValue((string) $value->unwrap()); //fixme add proper string conversion
     }
 }

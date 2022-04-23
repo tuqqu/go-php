@@ -24,7 +24,7 @@ final class ValueTable
 
     public function get(string $name): EnvValue
     {
-        return $this->values[$name] ?? throw new UndefinedValueError($name);
+        return $this->tryGet($name) ?? throw new UndefinedValueError($name);
     }
 
     public function add(EnvValue $envValue): void
@@ -34,5 +34,10 @@ final class ValueTable
         }
 
         $this->values[$envValue->name] = $envValue;
+    }
+
+    public function alias(string $alias, string $name): void
+    {
+        $this->values[$alias] = $this->get($name);
     }
 }
