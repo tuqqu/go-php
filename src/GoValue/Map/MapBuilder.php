@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
-use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\GoValue;

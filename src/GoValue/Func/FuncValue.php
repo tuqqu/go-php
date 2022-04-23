@@ -10,7 +10,6 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\NoValue;
 use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
@@ -44,7 +43,6 @@ final class FuncValue implements Func, GoValue
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
     }
 
-    //fixme move streams to env
     public function __invoke(GoValue ...$argv): GoValue
     {
         assert_argc($argv, $this->signature->arity);
