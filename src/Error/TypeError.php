@@ -9,13 +9,14 @@ use GoPhp\GoValue\GoValue;
 
 final class TypeError extends \RuntimeException
 {
-    public static function implicitConversionError(GoType $from, GoType $to): self
+    public static function implicitConversionError(GoValue $value, GoType $type): self
     {
         return new self(
             \sprintf(
-                'Value of type "%s" cannot be impliicitly converted to "%s"',
-                $from->name(),
-                $to->name(),
+                'cannot use %s (%s) as %s value',
+                $value->toString(),
+                $value->type()->name(),
+                $type->name(),
             )
         );
     }

@@ -68,9 +68,9 @@ final class TypeValue implements Invocable, GoValue
         return $this;
     }
 
-    public function type(): never
+    public function type(): GoType
     {
-        throw new \Exception();
+        return $this->type;
     }
 
     public function toString(): never

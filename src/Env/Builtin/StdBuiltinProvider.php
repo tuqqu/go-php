@@ -107,7 +107,6 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->env->defineType(
             'bool',
             new TypeValue(NamedType::Bool),
-            NamedType::Bool,
         );
 
         $this->env->defineType(
@@ -116,7 +115,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::String,
                 self::conversion_string(...)
             ),
-            NamedType::String,
         );
 
         $this->env->defineType(
@@ -125,7 +123,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Int,
                 self::conversion_number(NamedType::Int)
             ),
-            NamedType::Int,
         );
 
         $this->env->defineType(
@@ -134,7 +131,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Int8,
                 self::conversion_number(NamedType::Int8)
             ),
-            NamedType::Int8,
         );
 
         $this->env->defineType(
@@ -143,7 +139,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Int16,
                 self::conversion_number(NamedType::Int16)
             ),
-            NamedType::Int16,
         );
 
         $this->env->defineType(
@@ -152,7 +147,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Int32,
                 self::conversion_number(NamedType::Int32)
             ),
-            NamedType::Int32,
         );
 
         $this->env->defineType(
@@ -161,7 +155,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Int64,
                 self::conversion_number(NamedType::Int64)
             ),
-            NamedType::Int64,
         );
 
         $this->env->defineType(
@@ -170,7 +163,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Uint,
                 self::conversion_number(NamedType::Uint)
             ),
-            NamedType::Uint,
         );
 
         $this->env->defineType(
@@ -179,7 +171,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Uint8,
                 self::conversion_number(NamedType::Uint8)
             ),
-            NamedType::Uint8,
         );
 
         $this->env->defineType(
@@ -188,7 +179,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Uint16,
                 self::conversion_number(NamedType::Uint16)
             ),
-            NamedType::Uint16,
         );
 
         $this->env->defineType(
@@ -197,7 +187,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Uint32,
                 self::conversion_number(NamedType::Uint32)
             ),
-            NamedType::Uint32,
         );
 
         $this->env->defineType(
@@ -206,7 +195,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Uint64,
                 self::conversion_number(NamedType::Int16)
             ),
-            NamedType::Uint64,
         );
 
         $this->env->defineType(
@@ -215,7 +203,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Uintptr,
                 self::conversion_number(NamedType::Uintptr)
             ),
-            NamedType::Uintptr,
         );
 
         $this->env->defineType(
@@ -224,7 +211,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Float32,
                 self::conversion_number(NamedType::Float32)
             ),
-            NamedType::Float32,
         );
 
         $this->env->defineType(
@@ -233,7 +219,6 @@ class StdBuiltinProvider implements BuiltinProvider
                 NamedType::Float64,
                 self::conversion_number(NamedType::Float64)
             ),
-            NamedType::Float64,
         );
 
         $this->env->defineTypeAlias('uint8', 'byte');

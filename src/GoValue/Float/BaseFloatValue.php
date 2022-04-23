@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Float;
 
+use GoPhp\Error\TypeError;
+use GoPhp\GoType\NamedType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\SimpleNumber;
 
 abstract class BaseFloatValue extends SimpleNumber
@@ -13,6 +16,21 @@ abstract class BaseFloatValue extends SimpleNumber
     public function __construct(float $value)
     {
         $this->value = $value;
+    }
+
+    final public function becomeTyped(NamedType $type): self
+    {
+        if ($this->type() !== UntypedType::UntypedFloat) {
+            throw TypeError::implicitConversionError($this, $type);
+        }
+
+        $number = $this->unwrap();
+
+        return match ($type) {
+            NamedType::Float32 => new Float32Value($number),
+            NamedType::Float64 => new Float64Value($number),
+            default => throw TypeError::implicitConversionError($this, $type),
+        };
     }
 
     public function unwrap(): float

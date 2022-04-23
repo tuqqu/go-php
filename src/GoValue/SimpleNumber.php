@@ -7,6 +7,7 @@ namespace GoPhp\GoValue;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
 use GoPhp\GoValue\Int\Int16Value;
@@ -48,9 +49,11 @@ abstract class SimpleNumber implements NonRefValue
             NamedType::Uintptr => new UintptrValue((int) $number),
             NamedType::Float32 => new Float32Value((float) $number),
             NamedType::Float64 => new Float64Value((float) $number),
-            default => throw TypeError::implicitConversionError($this->type(), $type),
+            default => throw TypeError::implicitConversionError($this, $type),
         };
     }
+
+    abstract public function becomeTyped(NamedType $type): self;
 
     public function toString(): string
     {

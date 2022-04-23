@@ -392,7 +392,7 @@ final class Interpreter
         $index = $this->evalExpr($expr->index);
 
         if (!$index instanceof BaseIntValue) {
-            throw TypeError::implicitConversionError($index->type(), NamedType::Int);
+            throw TypeError::implicitConversionError($index, NamedType::Int);
         }
 
         return $array->get($index);

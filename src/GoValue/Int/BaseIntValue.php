@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Int;
 
+use GoPhp\Error\TypeError;
+use GoPhp\GoType\NamedType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\SimpleNumber;
 
 abstract class BaseIntValue extends SimpleNumber
@@ -19,6 +22,30 @@ abstract class BaseIntValue extends SimpleNumber
     {
         self::assertInBounds($value);
         $this->value = $value;
+    }
+
+    final public function becomeTyped(NamedType $type): self
+    {
+        if ($this->type() !== UntypedType::UntypedInt) {
+            throw TypeError::implicitConversionError($this, $type);
+        }
+
+        $number = $this->unwrap();
+
+        return match ($type) {
+            NamedType::Int => new IntValue($number),
+            NamedType::Int8 => new Int8Value($number),
+            NamedType::Int16 => new Int16Value($number),
+            NamedType::Int32 => new Int32Value($number),
+            NamedType::Int64 => new Int64Value($number),
+            NamedType::Uint => new UintValue($number),
+            NamedType::Uint8 => new Uint8Value($number),
+            NamedType::Uint16 => new Uint16Value($number),
+            NamedType::Uint32 => new Uint32Value($number),
+            NamedType::Uint64 => new Uint64Value($number),
+            NamedType::Uintptr => new UintptrValue($number),
+            default => throw TypeError::implicitConversionError($this, $type),
+        };
     }
 
     public function unwrap(): int

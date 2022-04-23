@@ -20,10 +20,8 @@ abstract class EnvValue
         public readonly GoType $type,
         GoValue $value,
     ) {
-        //fixme think here of var x int = 44.4
         $value = static::convertIfNeeded($value, $type);
 
-        //fixme remove
         assert_types_compatible($type, $value->type());
 
         $this->value = $value;
@@ -41,13 +39,12 @@ abstract class EnvValue
 
     protected static function convertIfNeeded(GoValue $value, GoType $type): GoValue
     {
-        /** @var NamedType $type */
         if (
             $value instanceof SimpleNumber
             && $type instanceof NamedType
             && $value->type() instanceof UntypedType
         ) {
-            $value = $value->convertTo($type);
+            $value = $value->becomeTyped($type);
         }
 
         return $value;
