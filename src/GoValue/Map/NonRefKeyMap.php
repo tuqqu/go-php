@@ -44,6 +44,11 @@ final class NonRefKeyMap implements Map
         return $this->len;
     }
 
+    public function delete(GoValue $at): void
+    {
+        unset($this->values[$at->unwrap()]);
+    }
+
     /**
      * @return iterable<NonRefValue, GoValue>
      */

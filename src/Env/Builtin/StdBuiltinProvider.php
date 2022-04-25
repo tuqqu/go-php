@@ -100,6 +100,7 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->env->defineBuiltinFunc('cap', new BuiltinFuncValue(self::cap(...)));
         $this->env->defineBuiltinFunc('append', new BuiltinFuncValue(self::append(...)));
         $this->env->defineBuiltinFunc('make', new BuiltinFuncValue(self::make(...)));
+        $this->env->defineBuiltinFunc('delete', new BuiltinFuncValue(self::delete(...)));
     }
 
     protected function defineTypes(): void
@@ -263,7 +264,7 @@ class StdBuiltinProvider implements BuiltinProvider
     protected static function len(GoValue ...$values): IntValue
     {
         assert_argc($values, 1);
-        assert_arg_value($values[0], Sequence::class, 'slice, array, string', 1);
+        assert_arg_value($values[0], Sequence::class, 'slice, array, string, map', 1);
 
         return new IntValue($values[0]->len());
     }
@@ -286,6 +287,19 @@ class StdBuiltinProvider implements BuiltinProvider
         }
 
         throw OperationError::wrongArgumentType($value->type(), 'slice, array', 1);
+    }
+
+    /**
+     * @see https://pkg.go.dev/builtin#delete
+     */
+    protected function delete(GoValue ...$values): NoValue
+    {
+        assert_argc($values, 2);
+        assert_arg_value($values[0], MapValue::class, MapValue::NAME, 1);
+
+        $values[0]->delete($values[1]);
+
+        return NoValue::NoValue;
     }
 
     /**

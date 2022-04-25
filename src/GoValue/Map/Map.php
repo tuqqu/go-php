@@ -10,4 +10,6 @@ use GoPhp\GoValue\Sequence;
 interface Map extends Sequence
 {
     public function has(GoValue $at): bool;
+
+    public function delete(GoValue $at): void;
 }

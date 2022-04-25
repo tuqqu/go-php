@@ -57,9 +57,9 @@ final class OperationError extends \RuntimeException
     public static function wrongArgumentNumber(int|string $expected, int $actual): self
     {
         if ($expected > $actual) {
-            $msg = 'not enough arguments in call, expected %s, but got %d';
+            $msg = 'not enough arguments in call (expected %s, found %d)';
         } else {
-            $msg = 'too many arguments in call, expected %s, but got %d';
+            $msg = 'too many arguments in call (expected %s, but found %d)';
         }
 
         return new self(\sprintf($msg, $expected, $actual));

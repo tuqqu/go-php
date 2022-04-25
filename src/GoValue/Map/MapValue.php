@@ -56,6 +56,13 @@ final class MapValue implements Sequence, GoValue
         $this->map->set($value, $at);
     }
 
+    public function delete(GoValue $at): void
+    {
+        assert_index_type($at, $this->type->keyType, self::NAME);
+
+        $this->map->delete($at);
+    }
+
     public function len(): int
     {
         return $this->map->len();

@@ -41,6 +41,11 @@ final class RefKeyMap implements Map
         return $this->len;
     }
 
+    public function delete(GoValue $at): void
+    {
+        $this->values->detach($at);
+    }
+
     /**
      * @return iterable<GoValue, GoValue>
      */
