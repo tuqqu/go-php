@@ -8,10 +8,9 @@ use GoPhp\Error\DefinitionError;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
-use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NilValue;
-use GoPhp\GoValue\SimpleNumber;
+use GoPhp\GoValue\NonRefValue;
 
 function assert_values_compatible(GoValue $a, GoValue $b): void
 {
@@ -34,14 +33,12 @@ function assert_types_compatible(GoType $a, GoType $b): void
     }
 }
 
-//fixme merge with assert_types_compatible
 function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
 {
     assert_types_compatible($a, $b->type());
 
-    if ($b instanceof SimpleNumber) {
-        /** @var NamedType $a */
-        $b = $b->convertTo($a);
+    if ($b instanceof NonRefValue) {
+        $b = $b->reify($a);
     }
 }
 

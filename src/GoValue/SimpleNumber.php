@@ -6,6 +6,7 @@ namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
+use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Float\Float32Value;
@@ -29,6 +30,15 @@ abstract class SimpleNumber implements NonRefValue
     final public static function create(mixed $value): static
     {
         return new static($value);
+    }
+
+    final public function reify(?GoType $with = null): self
+    {
+        if ($this->type() instanceof UntypedType) {
+            return $this->convertTo($with);
+        }
+
+        return $this;
     }
 
     final public function convertTo(NamedType $type): self

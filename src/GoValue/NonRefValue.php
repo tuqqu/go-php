@@ -7,4 +7,6 @@ namespace GoPhp\GoValue;
 interface NonRefValue extends GoValue
 {
     public static function create(mixed $value): self;
+
+    public function reify(): self;
 }

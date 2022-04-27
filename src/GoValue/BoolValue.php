@@ -14,6 +14,11 @@ enum BoolValue: int implements NonRefValue
     case False = 0;
     case True = 1;
 
+    public function reify(): NonRefValue
+    {
+        return $this;
+    }
+
     public function toString(): string
     {
         return $this->value === 0 ? 'false' : 'true';

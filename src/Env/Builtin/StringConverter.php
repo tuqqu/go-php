@@ -8,13 +8,13 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\Int8Value;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\StringValue;
 
 final class StringConverter
 {
     private const INVALID_RANGE_CHAR = "\u{FFFD}";
-    private const BYTE_MAX = 127;
 
     public static function convert(GoValue $value)
     {
@@ -37,7 +37,7 @@ final class StringConverter
         $int = $value->unwrap();
 
         if (
-            $int > self::BYTE_MAX
+            $int > Int8Value::MAX
             && $value->type()->equals(NamedType::Uint8)
         ) {
             return self::INVALID_RANGE_CHAR;

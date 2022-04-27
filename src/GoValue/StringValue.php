@@ -32,6 +32,11 @@ final class StringValue implements Sequence, NonRefValue
         return new self($value);
     }
 
+    public function reify(): NonRefValue
+    {
+        return $this;
+    }
+
     public function type(): NamedType
     {
         return NamedType::String;
