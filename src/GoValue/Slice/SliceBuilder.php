@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Slice;
 
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\GoValue;
-use function GoPhp\assert_types_compatible;
+use function GoPhp\assert_types_compatible_with_cast;
 
 final class SliceBuilder
 {
@@ -27,7 +27,7 @@ final class SliceBuilder
 
     public function push(GoValue $value): void
     {
-        assert_types_compatible($this->type->internalType, $value->type());
+        assert_types_compatible_with_cast($this->type->internalType, $value);
 
         $this->values[] = $value;
     }

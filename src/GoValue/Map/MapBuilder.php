@@ -9,7 +9,7 @@ use GoPhp\GoType\MapType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NonRefValue;
 use function GoPhp\assert_index_type;
-use function GoPhp\assert_types_compatible;
+use function GoPhp\assert_types_compatible_with_cast;
 
 final class MapBuilder
 {
@@ -31,7 +31,7 @@ final class MapBuilder
     public function set(GoValue $value, GoValue $at): void
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
-        assert_types_compatible($this->type->elemType, $value->type());
+        assert_types_compatible_with_cast($this->type->elemType, $value);
 
         $this->internalMap->set($value, $at);
     }

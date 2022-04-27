@@ -28,7 +28,6 @@ use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
-use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_type;
@@ -114,7 +113,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'string',
             new TypeValue(
                 NamedType::String,
-                self::conversion_string(...)
+                StringConverter::convert(...),
             ),
         );
 
@@ -381,12 +380,7 @@ class StdBuiltinProvider implements BuiltinProvider
     {
         return static fn (GoValue $value): SimpleNumber =>
             $value instanceof SimpleNumber ?
-                $value->convertTo($type) : //fixme add convert with wrap
+                $value->convertTo($type) :
                 throw TypeError::conversionError($value, $type);
-    }
-
-    protected function conversion_string(GoValue $value): StringValue
-    {
-        return new StringValue((string) $value->unwrap()); //fixme add proper string conversion
     }
 }
