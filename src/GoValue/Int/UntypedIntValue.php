@@ -9,6 +9,13 @@ use GoPhp\GoType\UntypedType;
 
 final class UntypedIntValue extends BaseIntValue
 {
+    public function __construct(
+        int $value,
+        private readonly UntypedType $type = UntypedType::UntypedInt,
+    ) {
+        parent::__construct($value);
+    }
+
     public static function fromString(string $digits): self
     {
         $prefix = \substr($digits, 0, 2);
@@ -24,9 +31,17 @@ final class UntypedIntValue extends BaseIntValue
         return new self($int);
     }
 
+    public static function fromRune(string $rune): self
+    {
+        return new self(
+            \mb_ord($rune),
+            UntypedType::UntypedRune,
+        );
+    }
+
     public function type(): UntypedType
     {
-        return UntypedType::UntypedInt;
+        return $this->type;
     }
 
     private static function getDigits(string $number, int $start, string $type): string

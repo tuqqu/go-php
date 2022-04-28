@@ -16,7 +16,7 @@ final class StringConverter
 {
     private const INVALID_RANGE_CHAR = "\u{FFFD}";
 
-    public static function convert(GoValue $value)
+    public static function convert(GoValue $value): StringValue
     {
         switch (true) {
             case $value instanceof StringValue:

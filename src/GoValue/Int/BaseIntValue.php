@@ -26,7 +26,7 @@ abstract class BaseIntValue extends SimpleNumber
 
     final public function becomeTyped(NamedType $type): self
     {
-        if ($this->type() !== UntypedType::UntypedInt) {
+        if (!$this->type() instanceof UntypedType) {
             throw TypeError::implicitConversionError($this, $type);
         }
 

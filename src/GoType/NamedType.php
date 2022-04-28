@@ -128,7 +128,8 @@ enum NamedType: string implements BasicType
             self::Uint32,
             self::Uint64,
             self::Uintptr => match ($other) {
-                UntypedType::UntypedInt => true,
+                UntypedType::UntypedInt,
+                UntypedType::UntypedRune => true,
                 default => $this->equals($other),
             },
             self::Float64,

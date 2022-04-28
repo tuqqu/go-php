@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NonRefValue;
-
 enum UntypedType implements BasicType
 {
     case UntypedInt;
+    case UntypedRune; // bare rune 'c' literals
     case UntypedFloat;
     case UntypedBool;
 
     public function name(): string
     {
         return match ($this) {
-            self::UntypedInt => 'untyped int',
+            self::UntypedInt,
+            self::UntypedRune => 'untyped int',
             self::UntypedFloat => 'untyped float',
             self::UntypedBool => 'untyped bool',
         };
@@ -31,6 +30,7 @@ enum UntypedType implements BasicType
     {
         return match ($this) {
             self::UntypedInt => NamedType::Int,
+            self::UntypedRune => NamedType::Int32,
             self::UntypedFloat => NamedType::Float32,
             self::UntypedBool => NamedType::Bool,
         };
@@ -48,7 +48,8 @@ enum UntypedType implements BasicType
         }
 
         return match ($this) {
-            self::UntypedInt => match ($other) {
+            self::UntypedInt,
+            self::UntypedRune => match ($other) {
                 NamedType::Int,
                 NamedType::Int8,
                 NamedType::Int32,

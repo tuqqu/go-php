@@ -82,7 +82,6 @@ use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
-use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Invocable;
@@ -894,9 +893,9 @@ final class Interpreter
         throw new \Exception('unknown composite lit');
     }
 
-    private function evalRuneLit(RuneLit $lit): Int32Value
+    private function evalRuneLit(RuneLit $lit): UntypedIntValue
     {
-        return Int32Value::fromRune(\trim($lit->rune, '\''));
+        return UntypedIntValue::fromRune(\trim($lit->rune, '\''));
     }
 
     private function evalStringLit(StringLit $lit): StringValue

@@ -7,7 +7,6 @@ namespace GoPhp\GoValue;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\BaseIntValue;
-use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
@@ -57,7 +56,7 @@ final class StringValue implements Sequence, NonRefValue
         assert_values_compatible($this, $rhs);
 
         return match ($op) {
-            Operator::Plus,
+            Operator::Plus => $this->add($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
             default => throw OperationError::unknownOperator($op, $this),
@@ -80,7 +79,7 @@ final class StringValue implements Sequence, NonRefValue
         return $this->value;
     }
 
-    public function add(self $value): static
+    public function add(self $value): self
     {
         return new self($this->value . $value->value);
     }
@@ -121,12 +120,12 @@ final class StringValue implements Sequence, NonRefValue
         // TODO: Implement lessEq() method.
     }
 
-    public function get(GoValue $at): Int32Value
+    public function get(GoValue $at): UntypedIntValue
     {
         assert_index_value($at, BaseIntValue::class, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->byteLen);
 
-        return Int32Value::fromRune($this->value[$int]);
+        return UntypedIntValue::fromRune($this->value[$int]);
     }
 
     public function set(GoValue $value, GoValue $at): void
@@ -140,13 +139,13 @@ final class StringValue implements Sequence, NonRefValue
     }
 
     /**
-     * @return iterable<UntypedIntValue, Int32Value>
+     * @return iterable<UntypedIntValue, UntypedIntValue>
      */
     public function iter(): iterable
     {
         $i = 0;
         foreach (\mb_str_split($this->value) as $char) {
-            yield new UntypedIntValue($i) => Int32Value::fromRune($char);
+            yield new UntypedIntValue($i) => UntypedIntValue::fromRune($char);
             $i += \strlen($char);
         }
     }
