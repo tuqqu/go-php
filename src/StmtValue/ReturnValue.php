@@ -38,4 +38,16 @@ final class ReturnValue implements StmtValue
 
         return new self($tuple, $tuple->len);
     }
+
+    /**
+     * @return GoValue[]
+     */
+    public function values(): array
+    {
+        return match ($this->len) {
+            0 => [],
+            1 => [$this->value],
+            default => $this->value->values,
+        };
+    }
 }

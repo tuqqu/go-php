@@ -6,8 +6,11 @@ namespace GoPhp;
 
 use GoPhp\Error\DefinitionError;
 use GoPhp\Error\OperationError;
+use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
+use GoPhp\GoValue\Func\FuncValue;
+use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\NonRefValue;
@@ -42,14 +45,20 @@ function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
     }
 }
 
-function assert_argc(array $actualArgv, int $expectedArgc, bool $variadic = false): void
-{
-    $actualArgc = \count($actualArgv);
+function assert_argc(
+    array $argv,
+    int $expectedArgc,
+    bool $variadic = false,
+    ?Params $params = null
+): void {
+    $actualArgc = \count($argv);
     if (
         $actualArgc < $expectedArgc
         || (!$variadic && $actualArgc > $expectedArgc)
     ) {
-        throw OperationError::wrongArgumentNumber($expectedArgc, $actualArgc);
+        $params === null ?
+            throw ProgramError::wrongBuiltinArgumentNumber($expectedArgc, $actualArgc) :
+            throw ProgramError::wrongFuncArgumentNumber($argv, $params);
     }
 }
 

@@ -7,6 +7,7 @@ namespace GoPhp\GoValue\Func;
 use GoPhp\Env\Environment;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
+use GoPhp\Error\ProgramError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
@@ -45,7 +46,7 @@ final class FuncValue implements Func, GoValue
 
     public function __invoke(GoValue ...$argv): GoValue
     {
-        assert_argc($argv, $this->signature->arity);
+        assert_argc($argv, $this->signature->arity, params: $this->signature->params);
 
         $env = new Environment(enclosing: $this->enclosure);
 
@@ -64,7 +65,7 @@ final class FuncValue implements Func, GoValue
         if ($stmtValue === SimpleValue::None) {
             return $this->signature->returnArity === 0 ?
                 NoValue::NoValue :
-                throw new \Exception('must return void');
+                throw ProgramError::wrongReturnValueNumber([], $this->signature->returns);
         }
 
         if (!$stmtValue instanceof ReturnValue) {
@@ -72,7 +73,7 @@ final class FuncValue implements Func, GoValue
         }
 
         if ($this->signature->returnArity !== $stmtValue->len) {
-            throw new \Exception('wrong return count');
+            throw ProgramError::wrongReturnValueNumber($stmtValue->values(), $this->signature->returns);
         }
 
         // void return
@@ -80,18 +81,10 @@ final class FuncValue implements Func, GoValue
             return NoValue::NoValue;
         }
 
-        // single value return
-        if ($stmtValue->len === 1) {
-            $param = $this->signature->returns[0];
-            assert_types_compatible($param->type, $stmtValue->value->type());
-
-            return $stmtValue->value;
-        }
-
-        // tuple value return
+        // single & tuple value return
         $i = 0;
         foreach ($this->signature->returns as $param) {
-            assert_types_compatible($param->type, $stmtValue->value->values[$i]->type());
+            assert_types_compatible($param->type, $stmtValue->values()[$i]->type());
         }
 
         return $stmtValue->value;
