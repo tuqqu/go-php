@@ -8,7 +8,6 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
-use GoPhp\GoValue\Int\Int8Value;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\StringValue;
 
@@ -35,13 +34,6 @@ final class StringConverter
     private static function char(BaseIntValue $value): string
     {
         $int = $value->unwrap();
-
-        if (
-            $int > Int8Value::MAX
-            && $value->type()->equals(NamedType::Uint8)
-        ) {
-            return self::INVALID_RANGE_CHAR;
-        }
 
         $char = \mb_chr($int, 'UTF-8');
 
