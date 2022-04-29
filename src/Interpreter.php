@@ -269,55 +269,23 @@ final class Interpreter
                 $type = $this->resolveType($spec->type);
             }
 
-            $initWithDefaultValue = false;
+            $values = [];
+            $identsLen = \count($spec->identList->idents);
+
             if ($spec->initList === null) {
                 if ($type === null) {
                     throw DefinitionError::uninitilisedVarWithNoType();
                 }
-                $initWithDefaultValue = true;
-            }
 
-            $values = [];
-            $identsLen = \count($spec->identList->idents);
-            if ($initWithDefaultValue) {
                 for ($i = 0; $i < $identsLen; ++$i) {
                     $values[] = $type->defaultValue();
                 }
             } else {
-                $value = $this->evalExpr($spec->initList->exprs[0]);
-
-                if ($value instanceof TupleValue) {
-                    $exprLen = \count($spec->initList->exprs);
-                    if ($exprLen !== 1) {
-                        throw ValueError::multipleValueInSingleContext();
-                    }
-
-                    foreach ($value->values as $val) {
-                        $values[] = $val;
-                    }
-
-                    $valuesLen = \count($values);
-                    if ($valuesLen !== $identsLen) {
-                        throw DefinitionError::assignmentMismatch($identsLen, $valuesLen);
-                    }
-                } else {
-                    $values[] = $value;
-                    for ($i = 1; $i < $identsLen; ++$i) {
-                        $value = $this->evalExpr($spec->initList->exprs[$i]);
-                        if ($value instanceof TupleValue) {
-                            throw ValueError::multipleValueInSingleContext();
-                        }
-                        $values[] = $value;
-                    }
-                }
+                $values = $this->collectValuesFromExprList($spec->initList, $identsLen);
             }
 
             foreach ($spec->identList->idents as $i => $ident) {
-                $this->env->defineVar(
-                    $ident->name,
-                    $values[$i]->copy(),
-                    ($type ?? $values[$i]->type())->reify(),
-                );
+                $this->defineVar($ident->name, $values[$i], $type);
             }
         }
 
@@ -638,19 +606,11 @@ final class Interpreter
              */
             if ($define) {
                 if ($keyVar !== null) {
-                    $this->env->defineVar(
-                        $keyVar->name,
-                        $key->copy(),
-                        $key->type()->reify(),
-                    );
+                    $this->defineVar($keyVar->name, $key);
                 }
 
                 if ($valVar !== null) {
-                    $this->env->defineVar(
-                        $valVar->name,
-                        $value->copy(),
-                        $value->type()->reify(),
-                    );
+                    $this->defineVar($valVar->name, $value);
                 }
 
                 $define = false;
@@ -699,7 +659,6 @@ final class Interpreter
 
     private function evalAssignmentStmt(AssignmentStmt $stmt): SimpleValue
     {
-        // fixme duplicated logic
         $op = Operator::fromAst($stmt->op);
         $compound = $op->isCompound();
 
@@ -712,34 +671,8 @@ final class Interpreter
             $lhs[] = $this->getValueMutator($expr, $compound);
         }
 
-        $rhs = [];
         $lhsLen = \count($lhs);
-        $value = $this->evalExpr($stmt->rhs->exprs[0]);
-
-        if ($value instanceof TupleValue) {
-            $rhsLen = \count($stmt->rhs->exprs);
-            if ($rhsLen !== 1) {
-                throw ValueError::multipleValueInSingleContext();
-            }
-
-            foreach ($value->values as $value) {
-                $rhs[] = $value;
-            }
-
-            $valuesLen = \count($rhs);
-            if ($valuesLen !== $lhsLen) {
-                throw DefinitionError::assignmentMismatch($lhsLen, $valuesLen);
-            }
-        } else {
-            $rhs[] = $value;
-            for ($i = 1; $i < $lhsLen; ++$i) {
-                $value = $this->evalExpr($stmt->rhs->exprs[$i]);
-                if ($value instanceof TupleValue) {
-                    throw ValueError::multipleValueInSingleContext();
-                }
-                $rhs[] = $value;
-            }
-        }
+        $rhs = $this->collectValuesFromExprList($stmt->rhs, $lhsLen);
 
         for ($i = 0; $i < $lhsLen; ++$i) {
             if ($compound) {
@@ -754,45 +687,49 @@ final class Interpreter
 
     private function evalShortVarDeclStmt(ShortVarDecl $stmt): SimpleValue
     {
-        // fixme duplicated logic
-        $values = [];
         $len = \count($stmt->identList->idents);
-        $value = $this->evalExpr($stmt->exprList->exprs[0]);
-
-        if ($value instanceof TupleValue) {
-            $exprLen = \count($stmt->exprList->exprs);
-            if ($exprLen !== 1) {
-                throw ValueError::multipleValueInSingleContext();
-            }
-
-            foreach ($value->values as $value) {
-                $values[] = $value;
-            }
-
-            $valuesLen = \count($values);
-            if ($valuesLen !== $len) {
-                throw DefinitionError::assignmentMismatch($len, $valuesLen);
-            }
-        } else {
-            $values[] = $value;
-            for ($i = 1; $i < $len; ++$i) {
-                $value = $this->evalExpr($stmt->exprList->exprs[$i]);
-                if ($value instanceof TupleValue) {
-                    throw ValueError::multipleValueInSingleContext();
-                }
-                $values[] = $value;
-            }
-        }
+        $values = $this->collectValuesFromExprList($stmt->exprList, $len);
 
         foreach ($stmt->identList->idents as $i => $ident) {
-            $this->env->defineVar(
-                $ident->name,
-                $values[$i]->copy(),
-                $values[$i]->type()->reify(),
-            );
+            $this->defineVar($ident->name, $values[$i]);
         }
 
         return SimpleValue::None;
+    }
+
+    private function collectValuesFromExprList(ExprList $exprList, int $expectedLen): array
+    {
+        $value = $this->evalExpr($exprList->exprs[0]);
+
+        if ($value instanceof TupleValue) {
+            if (\count($exprList->exprs) !== 1) {
+                throw ValueError::multipleValueInSingleContext();
+            }
+
+            if ($value->len !== $expectedLen) {
+                throw DefinitionError::assignmentMismatch($expectedLen, $value->len);
+            }
+
+            return $value->values;
+        }
+
+        if ($expectedLen !== ($listLen = \count($exprList->exprs))) {
+            throw DefinitionError::assignmentMismatch($expectedLen, $listLen);
+        }
+
+        $values = [$value];
+
+        for ($i = 1; $i < $expectedLen; ++$i) {
+            $value = $this->evalExpr($exprList->exprs[$i]);
+
+            if ($value instanceof TupleValue) {
+                throw ValueError::multipleValueInSingleContext();
+            }
+
+            $values[] = $value;
+        }
+
+        return $values;
     }
 
     private function evalExpr(Expr $expr): GoValue
@@ -806,9 +743,7 @@ final class Interpreter
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
             $expr instanceof AstType => $this->evalTypeConversion($expr),
-
-            // fixme debug
-            default => dd('eval expr', $expr),
+            default => dd('eval expr', $expr), // fixme debug
         };
     }
 
@@ -829,7 +764,7 @@ final class Interpreter
         };
     }
 
-    private function evalTypeConversion(Type $expr): TypeValue
+    private function evalTypeConversion(AstType $expr): TypeValue
     {
         // fixme add []byte, []rune, errors
     }
@@ -845,52 +780,39 @@ final class Interpreter
         return match (true) {
             $expr instanceof Ident => $this->getVarMutator($expr, $compound),
             $expr instanceof IndexExpr => $this->getSequenceMutator($expr, $compound),
-            // fixme debug
-            default => dd($expr),
+            default => dd($expr), // fixme debug
         };
     }
 
     private function evalCompositeLit(CompositeLit $lit): GoValue //fixme arrayvalye, slice, map, struct etc...
     {
-        //fixme change this in parser
-        if (!$lit->type instanceof AstType) {
-            throw new \Exception('exp type');
-        }
-
         $type = $this->resolveType($lit->type, true);
 
-        // fixme introduce a builder interface
         switch (true) {
             case $type instanceof ArrayType:
                 $builder = ArrayBuilder::fromType($type);
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->push($this->evalExpr($element->element));
                 }
-
                 return $builder->build();
-
             case $type instanceof SliceType:
                 $builder = SliceBuilder::fromType($type);
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->push($this->evalExpr($element->element));
                 }
-
                 return $builder->build();
-
             case $type instanceof MapType:
                 $builder = MapBuilder::fromType($type);
-
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->set(
                         $this->evalExpr($element->element),
-                        $this->evalExpr($element->key ?? throw new \Exception('expected a key')),
+                        $this->evalExpr($element->key ?? throw new InternalError('Expected element key')),
                     );
                 }
-
                 return $builder->build();
         }
 
-        throw new \Exception('unknown composite lit');
+        throw new InternalError('Unknown composite literal');
     }
 
     private function evalRuneLit(RuneLit $lit): UntypedIntValue
@@ -1003,36 +925,17 @@ final class Interpreter
             yield $spec;
     }
 
-    // fixme maybe must be done lazily
     private function resolveType(AstType $type, bool $composite = false): GoType
     {
-        $resolved = null;
-
-        switch (true) {
-            case $type instanceof SingleTypeName:
-                $resolved = $this->env->getType($type->name->name)->getType();
-                break;
-            case $type instanceof QualifiedTypeName:
-                $resolved = $this->env->getType(self::resolveQualifiedTypeName($type))->getType();
-                break;
-            case $type instanceof AstFuncType:
-                $resolved = $this->resolveTypeFromAstSignature($type->signature);
-                break;
-            case $type instanceof AstArrayType:
-                $resolved = $this->resolveArrayType($type, $composite);
-                break;
-            case $type instanceof AstSliceType:
-                $resolved = $this->resolveSliceType($type, $composite);
-                break;
-            case $type instanceof AstMapType:
-                $resolved = $this->resolveMapType($type, $composite);
-                break;
-            default:
-                dump('type', $type);die;
-                throw new \InvalidArgumentException('unresolved type'); //fixme
-        }
-
-        return $resolved;
+        return match (true) {
+            $type instanceof SingleTypeName => $this->env->getType($type->name->name)->getType(),
+            $type instanceof QualifiedTypeName => $this->env->getType(self::resolveQualifiedTypeName($type))->getType(),
+            $type instanceof AstFuncType => $this->resolveTypeFromAstSignature($type->signature),
+            $type instanceof AstArrayType => $this->resolveArrayType($type, $composite),
+            $type instanceof AstSliceType => $this->resolveSliceType($type, $composite),
+            $type instanceof AstMapType => $this->resolveMapType($type, $composite),
+            default => dd('unresolved type', $type), // fixme debug
+        };
     }
 
     private function resolveTypeFromAstSignature(AstSignature $signature): FuncType
@@ -1116,5 +1019,14 @@ final class Interpreter
     private static function resolveQualifiedTypeName(QualifiedTypeName $typeName): string
     {
         return \sprintf('%s.%s', $typeName->packageName->name, $typeName->typeName->name->name);
+    }
+
+    private function defineVar(string $name, GoValue $value, ?GoType $type = null): void
+    {
+        $this->env->defineVar(
+            $name,
+            $value->copy(),
+            ($type ?? $value->type())->reify(),
+        );
     }
 }
