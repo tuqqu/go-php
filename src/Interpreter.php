@@ -11,6 +11,7 @@ use GoParser\Ast\Expr\CallExpr;
 use GoParser\Ast\Expr\CompositeLit;
 use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\Expr\FloatLit;
+use GoParser\Ast\Expr\FullSliceExpr;
 use GoParser\Ast\Expr\FuncType as AstFuncType;
 use GoParser\Ast\Expr\GroupExpr;
 use GoParser\Ast\Expr\Ident;
@@ -21,6 +22,7 @@ use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SingleTypeName;
+use GoParser\Ast\Expr\SliceExpr;
 use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\Type as AstType;
@@ -88,6 +90,8 @@ use GoPhp\GoValue\Invocable;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
+use GoPhp\GoValue\Slice\SliceValue;
+use GoPhp\GoValue\Sliceable;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\TypeValue;
@@ -110,7 +114,7 @@ final class Interpreter
 
     public function __construct(
         private readonly Ast $ast,
-        private array $argv = [],
+        private readonly array $argv = [],
         private readonly StreamProvider $streams = new StdStreamProvider(),
         private readonly EntryPointValidator $entryPointValidator = new MainEntryPoint(),
         ?BuiltinProvider $builtin = null,
@@ -350,19 +354,44 @@ final class Interpreter
 
     private function evalIndexExpr(IndexExpr $expr): GoValue
     {
-        $array = $this->evalExpr($expr->expr);
+        $sequence = $this->evalExpr($expr->expr);
 
-        if (!$array instanceof Sequence) {
-            throw TypeError::valueOfWrongType($array, 'array');
+        if (!$sequence instanceof Sequence) {
+            throw OperationError::cannotIndex($sequence->type());
         }
 
         $index = $this->evalExpr($expr->index);
 
-        if (!$index instanceof BaseIntValue) {
-            throw TypeError::implicitConversionError($index, NamedType::Int);
+        return $sequence->get($index);
+    }
+
+    private function evalSliceExpr(SliceExpr $expr): StringValue|SliceValue
+    {
+        $sequence = $this->evalExpr($expr->expr);
+
+        if (!$sequence instanceof Sliceable) {
+            throw OperationError::cannotSlice($sequence->type());
         }
 
-        return $array->get($index);
+        $low = $this->getSliceExprIndex($expr->low);
+        $high = $this->getSliceExprIndex($expr->high);
+        $max = $expr instanceof FullSliceExpr ?
+            $this->getSliceExprIndex($expr->max) :
+            null;
+
+        return $sequence->slice($low, $high, $max);
+    }
+
+    private function getSliceExprIndex(?Expr $expr): ?int
+    {
+        if ($expr === null) {
+            return null;
+        }
+
+        $index = $this->evalExpr($expr);
+        assert_index_value($index, BaseIntValue::class, 'slice'); //fixme name
+
+        return $index->unwrap();
     }
 
     private function evalEmptyStmt(EmptyStmt $stmt): SimpleValue
@@ -741,6 +770,7 @@ final class Interpreter
             $value !== null => $value,
             $expr instanceof CallExpr => $this->evalCallExpr($expr),
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
+            $expr instanceof SliceExpr => $this->evalSliceExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
             $expr instanceof AstType => $this->evalTypeConversion($expr),
             default => dd('eval expr', $expr), // fixme debug

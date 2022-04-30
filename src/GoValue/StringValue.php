@@ -11,9 +11,10 @@ use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_value;
+use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_values_compatible;
 
-final class StringValue implements Sequence, NonRefValue
+final class StringValue implements Sliceable, Sequence, NonRefValue
 {
     public const NAME = 'string';
 
@@ -44,6 +45,20 @@ final class StringValue implements Sequence, NonRefValue
     public function toString(): string
     {
         return $this->value;
+    }
+
+    public function slice(?int $low, ?int $high, ?int $max = null): self
+    {
+        if ($max !== null) {
+            throw OperationError::cannotFullSliceString();
+        }
+
+        $low ??= 0;
+        $high ??= $this->byteLen;
+
+        assert_slice_indices($this->byteLen, $low, $high);
+
+        return new self(\substr($this->value, $low, $high - $low));
     }
 
     public function operate(Operator $op): never

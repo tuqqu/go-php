@@ -14,6 +14,16 @@ final class DefinitionError extends \LogicException
         return new self(\sprintf('index out of range [%d] with length %d', $index, $len));
     }
 
+    public static function indexNegative(int $index): self
+    {
+        return new self(\sprintf('invalid argument: index %d must not be negative', $index));
+    }
+
+    public static function invalidSliceIndices(int $low, int $high): self
+    {
+        return new self(\sprintf('invalid slice indices: %d < %d', $low, $high));
+    }
+
     public static function indexOfWrongType(GoValue $index, GoType|string $type, string $where): self
     {
         return new self(

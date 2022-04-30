@@ -8,19 +8,18 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Sequence;
 use GoPhp\Operator;
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
 
-final class MapValue implements Sequence, GoValue
+final class MapValue implements Map, GoValue
 {
     public const NAME = 'map';
 
     public function __construct(
-        private readonly Map $map,
-        public readonly MapType $type,
+        private readonly Map $innerMap,
+        private readonly MapType $type,
     ) {}
 
     public function toString(): string
@@ -43,8 +42,8 @@ final class MapValue implements Sequence, GoValue
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
 
-        return $this->map->has($at) ?
-            $this->map->get($at) :
+        return $this->innerMap->has($at) ?
+            $this->innerMap->get($at) :
             $this->type->elemType->defaultValue(); //fixme prob set here as well
     }
 
@@ -53,24 +52,31 @@ final class MapValue implements Sequence, GoValue
         assert_index_type($at, $this->type->keyType, self::NAME);
         assert_types_compatible($value->type(), $this->type->elemType);
 
-        $this->map->set($value, $at);
+        $this->innerMap->set($value, $at);
     }
 
     public function delete(GoValue $at): void
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
 
-        $this->map->delete($at);
+        $this->innerMap->delete($at);
+    }
+
+    public function has(GoValue $at): bool
+    {
+        assert_index_type($at, $this->type->keyType, self::NAME);
+
+        return $this->innerMap->has($at);
     }
 
     public function len(): int
     {
-        return $this->map->len();
+        return $this->innerMap->len();
     }
 
     public function iter(): iterable
     {
-        yield from $this->map->iter();
+        yield from $this->innerMap->iter();
     }
 
     public function operate(Operator $op): self

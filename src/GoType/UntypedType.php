@@ -30,7 +30,7 @@ enum UntypedType implements BasicType
     {
         return match ($this) {
             self::UntypedInt => NamedType::Int,
-            self::UntypedRune => NamedType::Int32,
+            self::UntypedRune => NamedType::Rune,
             self::UntypedFloat => NamedType::Float32,
             self::UntypedBool => NamedType::Bool,
         };

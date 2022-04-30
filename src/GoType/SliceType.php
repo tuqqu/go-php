@@ -17,6 +17,11 @@ final class SliceType implements RefType
         $this->name = \sprintf('[]%s', $this->internalType->name());
     }
 
+    public static function fromArrayType(ArrayType $arrayType): self
+    {
+        return new self($arrayType->internalType);
+    }
+
     public function name(): string
     {
         return $this->name;

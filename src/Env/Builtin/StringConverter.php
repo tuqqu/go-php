@@ -17,18 +17,13 @@ final class StringConverter
 
     public static function convert(GoValue $value): StringValue
     {
-        switch (true) {
-            case $value instanceof StringValue:
-                return $value;
-            case $value instanceof BaseIntValue:
-                return new StringValue(self::char($value));
-            case $value instanceof SliceValue
-                && ($value->type->internalType->equals(NamedType::Uint8)
-                || $value->type->internalType->equals(NamedType::Int32)):
-                    return new StringValue(\implode('', \array_map(self::char(...), $value->values)));
-        }
-
-        throw TypeError::conversionError($value, NamedType::String);
+        return match (true) {
+            $value instanceof StringValue => $value,
+            $value instanceof BaseIntValue => new StringValue(self::char($value)),
+            $value instanceof SliceValue
+            && self::isStringConvertibleSlice($value) => new StringValue(self::chars($value->unwrap())),
+            default => throw TypeError::conversionError($value, NamedType::String),
+        };
     }
 
     private static function char(BaseIntValue $value): string
@@ -40,5 +35,16 @@ final class StringConverter
         return $char === false ?
             self::INVALID_RANGE_CHAR :
             $char;
+    }
+
+    private static function chars(array $values): string
+    {
+        return \implode('', \array_map(self::char(...), $values));
+    }
+
+    private static function isStringConvertibleSlice(SliceValue $slice): bool
+    {
+        return $slice->type->internalType === NamedType::Byte
+            || $slice->type->internalType === NamedType::Rune;
     }
 }

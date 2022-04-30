@@ -9,7 +9,6 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
-use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NilValue;
@@ -78,8 +77,29 @@ function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
 
 function assert_index_exists(int $index, int $max): void
 {
-    if ($index >= $max || $index < 0) {
+    if ($index < 0) {
+        throw DefinitionError::indexNegative($index);
+    }
+
+    if ($index >= $max) {
         throw DefinitionError::indexOutOfRange($index, $max);
+    }
+}
+
+function assert_slice_indices(int $cap, int $low, int $high, ?int $max = null): void
+{
+    //fixme revisit -1
+    assert_index_exists($low, $cap);
+    assert_index_exists($high - 1, $cap);
+
+    $max ??= $cap;
+
+    if ($low > $high) {
+        throw DefinitionError::invalidSliceIndices($low, $high);
+    }
+
+    if ($high > $max) {
+        throw DefinitionError::invalidSliceIndices($high, $max);
     }
 }
 

@@ -22,6 +22,20 @@ final class OperationError extends \RuntimeException
         );
     }
 
+    public static function cannotIndex(GoType $type): self
+    {
+        return new self(
+            \sprintf('invalid operation: cannot index (%s)', $type->name())
+        );
+    }
+
+    public static function cannotSlice(GoType $type): self
+    {
+        return new self(
+            \sprintf('invalid operation: cannot slice (%s)', $type->name())
+        );
+    }
+
     public static function unsupportedOperation(string $operation, GoValue $value): self
     {
         return new self(
@@ -75,5 +89,10 @@ final class OperationError extends \RuntimeException
                 \is_string($expected) ? $expected : $expected->name(),
             )
         );
+    }
+
+    public static function cannotFullSliceString(): self
+    {
+        return new self('invalid operation: 3-index slice of string');
     }
 }

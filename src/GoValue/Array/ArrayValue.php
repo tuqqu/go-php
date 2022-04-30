@@ -6,46 +6,71 @@ namespace GoPhp\GoValue\Array;
 
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\ArrayType;
+use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\Slice\SliceValue;
+use GoPhp\GoValue\Sliceable;
 use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_value;
+use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_types_compatible;
 
-final class ArrayValue implements Sequence, GoValue
+final class ArrayValue implements Sliceable, Sequence, GoValue
 {
     public const NAME = 'array';
 
+    private UnderlyingArray $values;
+    public readonly ArrayType $type;
     private readonly int $len;
 
     /**
      * @param GoValue[] $values
      */
     public function __construct(
-        public array $values,
-        public readonly ArrayType $type,
+        array $values,
+        ArrayType $type,
     ) {
-        $this->len = \count($this->values);
+        $this->values = new UnderlyingArray($values);
+        $this->len = \count($values);
 
-        if ($this->type->isUnfinished()) {
-            $this->type->setLen($this->len);
-        } elseif ($this->type->len !== $this->len) {
-            throw new TypeError(\sprintf('Expected array of length %d, got %d', $this->type->len, $this->len));
+        if ($type->isUnfinished()) {
+            $type->setLen($this->len);
+        } elseif ($type->len !== $this->len) {
+            throw new TypeError(\sprintf('Expected array of length %d, got %d', $type->len, $this->len));
         }
+
+        $this->type = $type;
     }
 
     public function toString(): string
     {
         $str = [];
-        foreach ($this->values as $value) {
+        foreach ($this->values->array as $value) {
             $str[] = $value->toString();
         }
 
         return \sprintf('[%s]', \implode(' ', $str));
+    }
+
+    public function slice(?int $low, ?int $high, ?int $max = null): SliceValue
+    {
+        $low ??= 0;
+        $high ??= $this->len;
+
+        assert_slice_indices($this->len, $low, $high, $max);
+
+        $cap = $max === null ?
+            $this->len - $low :
+            $max - $low;
+
+        $sliceType = SliceType::fromArrayType($this->type);
+
+        return SliceValue::fromUnderlyingArray($this->values, $sliceType, $low, $high, $cap);
     }
 
     public function get(GoValue $at): GoValue
@@ -53,7 +78,7 @@ final class ArrayValue implements Sequence, GoValue
         assert_index_value($at, BaseIntValue::class, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->len);
 
-        return $this->values[$int];
+        return $this->values->array[$int];
     }
 
     public function set(GoValue $value, GoValue $at): void
@@ -62,7 +87,7 @@ final class ArrayValue implements Sequence, GoValue
         assert_index_exists($int = $at->unwrap(), $this->len);
         assert_types_compatible($value->type(), $this->type->internalType);
 
-        $this->values[$int] = $value;
+        $this->values->array[$int] = $value;
     }
 
     public function len(): int
@@ -75,7 +100,7 @@ final class ArrayValue implements Sequence, GoValue
      */
     public function iter(): iterable
     {
-        foreach ($this->values as $key => $value) {
+        foreach ($this->values->array as $key => $value) {
             yield new UntypedIntValue($key) => $value;
         }
     }
@@ -105,7 +130,7 @@ final class ArrayValue implements Sequence, GoValue
      */
     public function unwrap(): array
     {
-        return $this->values;
+        return $this->values->array;
     }
 
     public function type(): ArrayType
@@ -115,6 +140,10 @@ final class ArrayValue implements Sequence, GoValue
 
     public function copy(): static
     {
-        return clone $this; // fixme iterate and clone all?
+        // fixme iterate and clone all?
+        return new self(
+            $this->values->array,
+            $this->type,
+        );
     }
 }

@@ -25,7 +25,7 @@ final class TypeError extends \RuntimeException
     {
         return new self(
             \sprintf(
-                'cannot convert %s (%s) to type %s',
+                'cannot convert %s (%s) to %s',
                 $value->toString(),
                 $value->type()->name(),
                 $type->name(),

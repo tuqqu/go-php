@@ -6,6 +6,7 @@ namespace GoPhp\GoValue\Slice;
 
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoValue\Array\UnderlyingArray;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
@@ -21,22 +22,46 @@ final class SliceValue implements Sequence, GoValue
 {
     public const NAME = 'slice';
 
+    private UnderlyingArray $values;
+    private int $pos = 0;
+
+    public readonly SliceType $type;
     private int $len;
+    private int $cap;
 
     /**
      * @param GoValue[] $values
      */
     public function __construct(
-        public array $values,
-        public readonly SliceType $type,
+        array $values,
+        SliceType $type,
+        ?int $cap = null,
     ) {
-        $this->len = \count($this->values);
+        $this->values = new UnderlyingArray($values);
+        $this->len = \count($values);
+        $this->cap = $cap ?? $this->len;
+        $this->type = $type;
+    }
+
+    public static function fromUnderlyingArray(
+        UnderlyingArray $array,
+        SliceType $type,
+        int $pos,
+        int $len,
+        int $cap,
+    ): self {
+        $slice = new self([], $type, $cap);
+        $slice->values = $array;
+        $slice->len = $len;
+        $slice->pos = $pos;
+
+        return $slice;
     }
 
     public function toString(): string
     {
         $str = [];
-        foreach ($this->values as $value) {
+        foreach ($this->accessUnderlyingArray() as $value) {
             $str[] = $value->toString();
         }
 
@@ -48,7 +73,7 @@ final class SliceValue implements Sequence, GoValue
         assert_index_value($at, BaseIntValue::class, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->len);
 
-        return $this->values[$int];
+        return $this->accessUnderlyingArray()[$int];
     }
 
     public function set(GoValue $value, GoValue $at): void
@@ -57,12 +82,17 @@ final class SliceValue implements Sequence, GoValue
         assert_index_exists($int = $at->unwrap(), $this->len);
         assert_types_compatible($value->type(), $this->type->internalType);
 
-        $this->values[$int] = $value;
+        $this->values->array[$int + $this->pos] = $value;
     }
 
     public function len(): int
     {
-        return $this->len;
+        return $this->len - $this->pos;
+    }
+
+    public function cap(): int
+    {
+        return $this->cap;
     }
 
     /**
@@ -70,17 +100,21 @@ final class SliceValue implements Sequence, GoValue
      */
     public function iter(): iterable
     {
-        foreach ($this->values as $key => $value) {
+        foreach ($this->accessUnderlyingArray() as $key => $value) {
             yield new UntypedIntValue($key) => $value;
         }
     }
 
     public function append(GoValue $value): void
     {
+        //fixme change error text
         assert_types_compatible($value->type(), $this->type->internalType);
 
-        $this->values[] = $value;
-        ++$this->len;
+        if ($this->exceedsCapacity()) {
+            $this->grow();
+        }
+
+        $this->values->array[$this->len++] = $value;
     }
 
     public function operate(Operator $op): self
@@ -114,7 +148,7 @@ final class SliceValue implements Sequence, GoValue
      */
     public function unwrap(): array
     {
-        return $this->values;
+        return $this->values->array;
     }
 
     public function type(): SliceType
@@ -129,6 +163,38 @@ final class SliceValue implements Sequence, GoValue
 
     public function clone(): self
     {
-        return clone $this;
+        return self::fromUnderlyingArray(
+            $this->values,
+            $this->type,
+            $this->pos,
+            $this->len,
+            $this->cap,
+        );
+    }
+
+    private function exceedsCapacity(): bool
+    {
+        return $this->len - $this->pos + 1 > $this->cap;
+    }
+
+    private function grow(): void
+    {
+        $copies = [];
+        foreach ($this->accessUnderlyingArray() as $value) {
+            $copies[] = $value;
+        }
+
+        $this->cap *= 2;
+        $this->pos = 0;
+        $this->values = new UnderlyingArray($copies);
+    }
+
+    private function accessUnderlyingArray(): array
+    {
+        return \array_slice(
+            $this->values->array,
+            $this->pos,
+            $this->len - $this->pos
+        );
     }
 }

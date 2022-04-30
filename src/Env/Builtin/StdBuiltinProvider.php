@@ -30,7 +30,6 @@ use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\Stream\StreamProvider;
-use function GoPhp\assert_arg_type;
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
 
@@ -282,7 +281,7 @@ class StdBuiltinProvider implements BuiltinProvider
         }
 
         if ($value instanceof SliceValue) {
-            return new IntValue($value->len()); //fixme
+            return new IntValue($value->cap());
         }
 
         throw OperationError::wrongArgumentType($value->type(), 'slice, array', 1);
@@ -310,16 +309,14 @@ class StdBuiltinProvider implements BuiltinProvider
         assert_arg_value($values[0], SliceValue::class, SliceValue::NAME, 1);
 
         /** @var SliceValue $slice */
-        $slice = $values[0];
-        $sliceBuilder = SliceBuilder::fromValue($slice);
+        $slice = $values[0]->clone();
 
         unset($values[0]);
-        foreach ($values as $i => $value) {
-            assert_arg_type($value, $slice->type()->internalType, $i + 1);
-            $sliceBuilder->pushBlindly($value);
+        foreach ($values as $value) {
+            $slice->append($value);
         }
 
-        return $sliceBuilder->build();
+        return $slice;
     }
 
     /**

@@ -7,7 +7,6 @@ namespace GoPhp\GoType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
-use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\Int16Value;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\Int64Value;
@@ -24,6 +23,9 @@ use GoPhp\GoValue\StringValue;
 
 enum NamedType: string implements BasicType
 {
+    public const Rune = self::Int32;
+    public const Byte = self::Uint8;
+
     // signed ints
     case Int = 'int';
     case Int8 = 'int8';
@@ -61,15 +63,6 @@ enum NamedType: string implements BasicType
 //    case Func = 'func';
 //    case Channel = 'channel';
 //    case Interface = 'interface';
-
-    public static function tryFromName(string $name): ?self
-    {
-        return match ($name) {
-            'rune' => self::Int32,
-            'byte' => self::Uint8,
-            default => self::tryFrom($name),
-        };
-    }
 
     public function name(): string
     {
