@@ -4,6 +4,7 @@ func main() {
 	test_array_1()
 	test_array_2()
 	test_array_3()
+	test_slice()
 	test_string()
 }
 
@@ -46,6 +47,19 @@ func test_array_3() {
 
 	a := [...]int{1, 2, 3, 4, 5, 6}
 	s := a[1:5:6] // 1 free space
+	s2 := append(s, 99)
+	s[1] = 666
+	s2[0] = 112
+	println(a)
+	println(s)
+	println(s2)
+}
+
+func test_slice() {
+	println("test_slice")
+
+	a := []int{1, 2, 3, 4, 5, 6}
+	s := a[1:5:6]
 	s2 := append(s, 99)
 	s[1] = 666
 	s2[0] = 112

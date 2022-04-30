@@ -12,13 +12,15 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\Sliceable;
 use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_value;
 use function GoPhp\assert_nil_comparison;
+use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_types_compatible;
 
-final class SliceValue implements Sequence, GoValue
+final class SliceValue implements Sliceable, Sequence, GoValue
 {
     public const NAME = 'slice';
 
@@ -66,6 +68,20 @@ final class SliceValue implements Sequence, GoValue
         }
 
         return \sprintf('[%s]', \implode(' ', $str));
+    }
+
+    public function slice(?int $low, ?int $high, ?int $max = null): SliceValue
+    {
+        $low ??= 0;
+        $high ??= $this->len;
+
+        assert_slice_indices($this->len, $low, $high, $max);
+
+        $cap = $max === null ?
+            $this->len - $low :
+            $max - $low;
+
+        return self::fromUnderlyingArray($this->values, $this->type, $low, $high, $cap);
     }
 
     public function get(GoValue $at): GoValue
