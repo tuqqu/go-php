@@ -62,7 +62,8 @@ final class Params implements \Countable, \ArrayAccess, \Iterator
         return isset($this->params[$offset]);
     }
 
-    public function offsetGet(mixed $offset): mixed
+    // fixme remove this
+    public function offsetGet(mixed $offset): ?Param
     {
         return $this->params[$offset] ?? null;
     }
@@ -72,7 +73,7 @@ final class Params implements \Countable, \ArrayAccess, \Iterator
         throw new InternalError('Cannot modify params object');
     }
 
-    public function offsetUnset(mixed $offset): void
+    public function offsetUnset(mixed $offset): never
     {
         throw new InternalError('Cannot modify params object');
     }

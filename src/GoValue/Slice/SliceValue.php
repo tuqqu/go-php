@@ -40,7 +40,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         ?int $cap = null,
     ) {
         $this->values = new UnderlyingArray($values);
-        $this->len = \count($values);
+        $this->len = $this->values->count();
         $this->cap = $cap ?? $this->len;
         $this->type = $type;
     }
@@ -74,12 +74,9 @@ final class SliceValue implements Sliceable, Sequence, GoValue
     {
         $low ??= 0;
         $high ??= $this->len;
+        $cap = $max === null ? $this->len - $low : $max - $low;
 
         assert_slice_indices($this->len, $low, $high, $max);
-
-        $cap = $max === null ?
-            $this->len - $low :
-            $max - $low;
 
         return self::fromUnderlyingArray($this->values, $this->type, $low, $high, $cap);
     }
@@ -98,7 +95,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         assert_index_exists($int = $at->unwrap(), $this->len);
         assert_types_compatible($value->type(), $this->type->internalType);
 
-        $this->values->array[$int + $this->pos] = $value;
+        $this->values[$int + $this->pos] = $value;
     }
 
     public function len(): int
@@ -130,7 +127,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
             $this->grow();
         }
 
-        $this->values->array[$this->len++] = $value;
+        $this->values[$this->len++] = $value;
     }
 
     public function operate(Operator $op): self
@@ -207,10 +204,6 @@ final class SliceValue implements Sliceable, Sequence, GoValue
 
     private function accessUnderlyingArray(): array
     {
-        return \array_slice(
-            $this->values->array,
-            $this->pos,
-            $this->len - $this->pos
-        );
+        return $this->values->slice($this->pos, $this->len - $this->pos);
     }
 }

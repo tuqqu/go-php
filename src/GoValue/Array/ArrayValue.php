@@ -36,7 +36,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
         ArrayType $type,
     ) {
         $this->values = new UnderlyingArray($values);
-        $this->len = \count($values);
+        $this->len = $this->values->count();
 
         if ($type->isUnfinished()) {
             $type->setLen($this->len);
@@ -50,7 +50,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
     public function toString(): string
     {
         $str = [];
-        foreach ($this->values->array as $value) {
+        foreach ($this->values as $value) {
             $str[] = $value->toString();
         }
 
@@ -78,7 +78,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
         assert_index_value($at, BaseIntValue::class, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->len);
 
-        return $this->values->array[$int];
+        return $this->values[$int];
     }
 
     public function set(GoValue $value, GoValue $at): void
@@ -87,7 +87,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
         assert_index_exists($int = $at->unwrap(), $this->len);
         assert_types_compatible($value->type(), $this->type->internalType);
 
-        $this->values->array[$int] = $value;
+        $this->values[$int] = $value;
     }
 
     public function len(): int
@@ -100,7 +100,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
      */
     public function iter(): iterable
     {
-        foreach ($this->values->array as $key => $value) {
+        foreach ($this->values as $key => $value) {
             yield new UntypedIntValue($key) => $value;
         }
     }
