@@ -17,7 +17,7 @@ final class Signature
         public readonly Params $returns,
     ) {
         $this->type = new FuncType($params, $returns);
-        $this->arity = \count($this->params);
-        $this->returnArity = \count($this->returns);
+        $this->arity = $this->params->len;
+        $this->returnArity = $this->returns->len;
     }
 }

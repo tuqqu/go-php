@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
-use GoPhp\Error\InternalError;
-
-final class Params implements \Countable, \ArrayAccess, \Iterator
+final class Params
 {
     /** @var Param[] */
     public readonly array $params;
-    private readonly int $len;
-    private int $pos = 0;
+    public readonly int $len;
 
     /**
      * @param Param[] $params
@@ -22,59 +19,26 @@ final class Params implements \Countable, \ArrayAccess, \Iterator
         $this->len = \count($params);
     }
 
+    public function __toString(): string
+    {
+        $types = [];
+        foreach ($this->params as $param) {
+            $types[] = $param->type->name();
+        }
+
+        return \implode(', ', $types);
+    }
+
     public function void(): bool
     {
         return $this->len === 0;
     }
 
-    public function count(): int
+    /**
+     * @return Param[]
+     */
+    public function iter(): iterable
     {
-        return $this->len;
-    }
-
-    public function current(): ?Param
-    {
-        return $this->params[$this->pos];
-    }
-
-    public function next(): void
-    {
-        ++$this->pos;
-    }
-
-    public function key(): int
-    {
-        return $this->pos;
-    }
-
-    public function valid(): bool
-    {
-        return isset($this->params[$this->pos]);
-    }
-
-    public function rewind(): void
-    {
-        $this->pos = 0;
-    }
-
-    public function offsetExists(mixed $offset): bool
-    {
-        return isset($this->params[$offset]);
-    }
-
-    // fixme remove this
-    public function offsetGet(mixed $offset): ?Param
-    {
-        return $this->params[$offset] ?? null;
-    }
-
-    public function offsetSet(mixed $offset, mixed $value): never
-    {
-        throw new InternalError('Cannot modify params object');
-    }
-
-    public function offsetUnset(mixed $offset): never
-    {
-        throw new InternalError('Cannot modify params object');
+        yield from $this->params;
     }
 }

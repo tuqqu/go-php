@@ -51,7 +51,7 @@ final class FuncValue implements Func, GoValue
         $env = new Environment(enclosing: $this->enclosure);
 
         $i = 0;
-        foreach ($this->signature->params as $param) {
+        foreach ($this->signature->params->iter() as $param) {
             assert_arg_type($argv[$i], $param->type, $i);
 
             foreach ($param->names as $name) {
@@ -83,7 +83,7 @@ final class FuncValue implements Func, GoValue
 
         // single & tuple value return
         $i = 0;
-        foreach ($this->signature->returns as $param) {
+        foreach ($this->signature->returns->iter() as $param) {
             assert_types_compatible($param->type, $stmtValue->values()[$i]->type());
         }
 

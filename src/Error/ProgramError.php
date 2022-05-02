@@ -34,7 +34,7 @@ final class ProgramError extends \LogicException
         Params $params,
         string $type,
     ): self {
-        $msg = \count($params) > \count($actualArgv) ?
+        $msg = $params->len > \count($actualArgv) ?
             'not enough ' :
             'too many ';
 
@@ -45,10 +45,7 @@ final class ProgramError extends \LogicException
                 static fn (GoValue $value): string => $value->type()->name(),
                 $actualArgv,
             )),
-            \implode(', ', \array_map(
-                static fn (Param $param): string => $param->type->name(),
-                $params->params,
-            )),
+            $params,
         );
 
         return new self($msg);

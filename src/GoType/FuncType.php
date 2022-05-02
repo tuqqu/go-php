@@ -16,11 +16,7 @@ final class FuncType implements RefType
         Params $params,
         Params $returns,
     ) {
-        $this->name = \sprintf(
-            'func(%s)(%s)',
-            self::paramsToString($params),
-            self::paramsToString($returns)
-        );
+        $this->name = \sprintf('func(%s)(%s)', $params, $returns);
     }
 
     public function name(): string
@@ -30,6 +26,7 @@ final class FuncType implements RefType
 
     public function equals(GoType $other): bool
     {
+        // fixme probably need to save params and validate thru them
         return $other instanceof self && $this->name === $other->name;
     }
 
@@ -46,16 +43,5 @@ final class FuncType implements RefType
     public function defaultValue(): GoValue
     {
         return new NilValue($this);
-    }
-
-    private static function paramsToString(Params $params): string
-    {
-        $str = '';
-        foreach ($params as $param) {
-            $str .= $param->type->name();
-            $str .= ','; //fixme comma
-        }
-
-        return $str;
     }
 }
