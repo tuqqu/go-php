@@ -21,7 +21,7 @@ final class StringConverter
             $value instanceof StringValue => $value,
             $value instanceof BaseIntValue => new StringValue(self::char($value)),
             $value instanceof SliceValue
-            && self::isStringConvertibleSlice($value) => new StringValue(self::chars($value->unwrap())),
+            && self::isSliceConvertible($value) => new StringValue(self::chars($value->unwrap())),
             default => throw TypeError::conversionError($value, NamedType::String),
         };
     }
@@ -32,9 +32,7 @@ final class StringConverter
 
         $char = \mb_chr($int, 'UTF-8');
 
-        return $char === false ?
-            self::INVALID_RANGE_CHAR :
-            $char;
+        return $char === false ? self::INVALID_RANGE_CHAR : $char;
     }
 
     private static function chars(array $values): string
@@ -42,7 +40,7 @@ final class StringConverter
         return \implode('', \array_map(self::char(...), $values));
     }
 
-    private static function isStringConvertibleSlice(SliceValue $slice): bool
+    private static function isSliceConvertible(SliceValue $slice): bool
     {
         return $slice->type->internalType === NamedType::Byte
             || $slice->type->internalType === NamedType::Rune;

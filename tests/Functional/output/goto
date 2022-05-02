@@ -1,0 +1,10 @@
+test_goto_1
+1
+3
+5
+7
+9
+test_goto_2
+label1
+label0
+label2

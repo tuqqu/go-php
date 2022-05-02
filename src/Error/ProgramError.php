@@ -53,4 +53,9 @@ final class ProgramError extends \LogicException
 
         return new self($msg);
     }
+
+    public static function jumpBeforeDecl(): self
+    {
+        return new self('goto jumps over declaration');
+    }
 }

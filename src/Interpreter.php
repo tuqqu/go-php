@@ -424,13 +424,15 @@ final class Interpreter
         return $this->evalWithEnvWrap($env, function () use ($blockStmt, $jump): StmtValue {
             $stmtVal = SimpleValue::None;
             $len = \count($blockStmt->stmtList->stmts);
+            $gotoIndex = 0;
 
             for ($i = 0; $i < $len; ++$i) {
                 $stmt = $blockStmt->stmtList->stmts[$i];
 
                 // fixme refactor
                 if ($jump->isSeeking()) {
-                    $stmt = $jump->tryFindLabel($stmt);
+                    $stmt = $jump->tryFindLabel($stmt, $gotoIndex > $i);
+
                     if ($stmt === null) {
                         continue;
                     }
@@ -440,8 +442,9 @@ final class Interpreter
 
                 if ($stmtVal instanceof GotoValue) {
                     $jump->startSeeking($stmtVal->label);
+
                     if ($jump->isSameContext($blockStmt)) {
-                        $i = -1;
+                        [$i, $gotoIndex] = [-1, $i];
                         continue;
                     }
 
@@ -508,7 +511,7 @@ final class Interpreter
 
     private function evalLabeledStmt(LabeledStmt $stmt): StmtValue
     {
-        $this->jumpStack->peek()->addLabel($stmt->label->name);
+        $this->jumpStack->peek()->addLabel($stmt);
 
         return $this->evalStmt($stmt->stmt);
     }
