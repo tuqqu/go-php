@@ -18,6 +18,7 @@ use GoParser\Ast\Expr\Ident;
 use GoParser\Ast\Expr\IndexExpr;
 use GoParser\Ast\Expr\IntLit;
 use GoParser\Ast\Expr\MapType as AstMapType;
+use GoParser\Ast\Expr\PointerType as AstPointerType;
 use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
@@ -74,6 +75,7 @@ use GoPhp\GoType\FuncType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\NamedType;
+use GoPhp\GoType\PointerType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
@@ -649,11 +651,11 @@ final class Interpreter
             }
 
             if ($keyVar !== null) {
-                $this->getValueMutator($keyVar, false)->mutate(null, $key->copy());
+                $this->evalLhsExpr($keyVar)->mutate(Operator::Eq, $key->copy());
             }
 
             if ($valVar !== null) {
-                $this->getValueMutator($valVar, false)->mutate(null, $value->copy());
+                $this->evalLhsExpr($valVar)->mutate(Operator::Eq, $value->copy());
             }
 
             $stmtValue = $this->evalBlockStmt($stmt->body);
@@ -692,7 +694,6 @@ final class Interpreter
     private function evalAssignmentStmt(AssignmentStmt $stmt): SimpleValue
     {
         $op = Operator::fromAst($stmt->op);
-        $compound = $op->isCompound();
 
         if (!$op->isAssignment()) {
             throw OperationError::expectedAssignmentOperator($op);
@@ -700,18 +701,14 @@ final class Interpreter
 
         $lhs = [];
         foreach ($stmt->lhs->exprs as $expr) {
-            $lhs[] = $this->getValueMutator($expr, $compound);
+            $lhs[] = $this->evalLhsExpr($expr);
         }
 
         $lhsLen = \count($lhs);
         $rhs = $this->collectValuesFromExprList($stmt->rhs, $lhsLen);
 
         for ($i = 0; $i < $lhsLen; ++$i) {
-            if ($compound) {
-                $lhs[$i]->mutate($op, $rhs[$i]);
-            } else {
-                $lhs[$i]->mutate(null, $rhs[$i]->copy());
-            }
+            $lhs[$i]->mutate($op, $rhs[$i]);
         }
 
         return SimpleValue::None;
@@ -807,12 +804,15 @@ final class Interpreter
         return $this->tryEvalConstExpr($expr) ?? throw new \Exception('cannot eval const expr');
     }
 
-    // fixme introduce type maybe
-    private function getValueMutator(Expr $expr, bool $compound): ValueMutator
+    /**
+     * Evaluate left-hand-side (lhs) expression of an assignment statement.
+     */
+    private function evalLhsExpr(Expr $expr): GoValue
     {
         return match (true) {
-            $expr instanceof Ident => $this->getVarMutator($expr, $compound),
-            $expr instanceof IndexExpr => $this->getSequenceMutator($expr, $compound),
+            $expr instanceof Ident => $this->evalIdent($expr),
+            $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
+            $expr instanceof UnaryExpr => $this->evalPointerUnaryExpr($expr),
             default => dd($expr), // fixme debug
         };
     }
@@ -901,28 +901,21 @@ final class Interpreter
         return $value;
     }
 
-    private function getVarMutator(Ident $ident, bool $compound): ValueMutator
+    private function evalPointerUnaryExpr(UnaryExpr $expr): GoValue
     {
-        $var = $this->env->getMut($ident->name);
+        $value = $this->evalUnaryExpr($expr);
 
-        return ValueMutator::fromEnvVar($var, $compound);
-    }
-
-    private function getSequenceMutator(IndexExpr $expr, bool $compound): ValueMutator
-    {
-        $sequence = match (true) {
-            $expr->expr instanceof IndexExpr => $this->evalIndexExpr($expr->expr),
-            $expr->expr instanceof Ident => $this->evalIdent($expr->expr),
-            default => throw new \Exception('cannot assign'),
-        };
-
-        if (!$sequence instanceof Sequence) {
-            throw TypeError::valueOfWrongType($sequence, 'array, slice or map');
+        if ($expr->op->value !== Operator::Mul->value) {
+            throw OperationError::cannotAssign(
+                \sprintf(
+                    'cannot assign to %s%s',
+                    $expr->op->value,
+                    $value->type()->name()
+                )
+            );
         }
 
-        $index = $this->evalExpr($expr->index);
-
-        return ValueMutator::fromSequenceValue($sequence, $index, $compound);
+        return $value;
     }
 
     private static function isTrue(GoValue $value): bool
@@ -967,6 +960,7 @@ final class Interpreter
             $type instanceof AstArrayType => $this->resolveArrayType($type, $composite),
             $type instanceof AstSliceType => $this->resolveSliceType($type, $composite),
             $type instanceof AstMapType => $this->resolveMapType($type, $composite),
+            $type instanceof AstPointerType => $this->resolvePointerType($type, $composite),
             default => dd('unresolved type', $type), // fixme debug
         };
     }
@@ -1010,6 +1004,13 @@ final class Interpreter
         return new MapType(
             $this->resolveType($mapType->keyType, $composite),
             $this->resolveType($mapType->elemType, $composite),
+        );
+    }
+
+    private function resolvePointerType(AstPointerType $pointerType, bool $composite): PointerType
+    {
+        return new PointerType(
+            $this->resolveType($pointerType->type, $composite),
         );
     }
 

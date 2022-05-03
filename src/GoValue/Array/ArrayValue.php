@@ -7,6 +7,7 @@ namespace GoPhp\GoValue\Array;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
@@ -105,8 +106,12 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
         }
     }
 
-    public function operate(Operator $op): self
+    public function operate(Operator $op): AddressValue
     {
+        if ($op === Operator::BitAnd) {
+            return new AddressValue($this);
+        }
+
         throw new \BadMethodCallException(); //fixme
     }
 
@@ -120,8 +125,16 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
         throw new \BadMethodCallException(); //fixme
     }
 
-    public function mutate(Operator $op, GoValue $rhs): never
+    public function mutate(Operator $op, GoValue $rhs): void
     {
+        if ($op === Operator::Eq) {
+            assert_types_compatible($this->type, $rhs->type());
+
+            $this->values = $rhs->copy()->values;
+
+            return;
+        }
+
         throw new \BadMethodCallException('cannot operate');
     }
 
@@ -142,7 +155,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
     {
         // fixme iterate and clone all?
         return new self(
-            $this->values->array,
+            $this->values->copyItems(),
             $this->type,
         );
     }

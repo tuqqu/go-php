@@ -9,10 +9,21 @@ use GoPhp\GoType\NamedType;
 use GoPhp\Error\OperationError;
 use function GoPhp\assert_values_compatible;
 
-enum BoolValue: int implements NonRefValue
+final class BoolValue implements NonRefValue
 {
-    case False = 0;
-    case True = 1;
+    public function __construct(
+        private bool $value,
+    ) {}
+
+    public static function true(): self
+    {
+        return new self(true);
+    }
+
+    public static function false(): self
+    {
+        return new self(false);
+    }
 
     public function reify(): NonRefValue
     {
@@ -21,17 +32,12 @@ enum BoolValue: int implements NonRefValue
 
     public function toString(): string
     {
-        return $this->value === 0 ? 'false' : 'true';
+        return $this->value ? 'true' : 'false';
     }
 
     public static function create(mixed $value): self
     {
-        return self::fromBool($value);
-    }
-
-    public static function fromBool(bool $value): self
-    {
-        return self::from((int) $value);
+        return new self($value);
     }
 
     public function type(): NamedType
@@ -41,17 +47,18 @@ enum BoolValue: int implements NonRefValue
 
     public function unwrap(): bool
     {
-        return (bool) $this->value;
+        return $this->value;
     }
 
     public function invert(): self
     {
-        return self::fromBool(!$this->unwrap());
+        return new self(!$this->value);
     }
 
-    public function operate(Operator $op): self
+    public function operate(Operator $op): self|AddressValue
     {
         return match ($op) {
+            Operator::BitAnd => new AddressValue($this),
             Operator::LogicNot => $this->invert(),
             default => throw OperationError::unknownOperator($op, $this),
         };
@@ -70,14 +77,22 @@ enum BoolValue: int implements NonRefValue
         };
     }
 
-    public function mutate(Operator $op, GoValue $rhs): never
+    public function mutate(Operator $op, GoValue $rhs): void
     {
+        if ($op === Operator::Eq) {
+            assert_values_compatible($this, $rhs);
+
+            $this->value = $rhs->value;
+
+            return;
+        }
+
         throw OperationError::unknownOperator($op, $this);
     }
 
     public function equals(GoValue $rhs): self
     {
-        return self::fromBool($this === $rhs);
+        return new self($this->value === $rhs->value);
     }
 
     public function copy(): static
@@ -87,11 +102,11 @@ enum BoolValue: int implements NonRefValue
 
     private function logicOr(self $other): self
     {
-        return self::fromBool($this->unwrap() || $other->unwrap());
+        return new self($this->value || $other->value);
     }
 
     private function logicAnd(self $other): self
     {
-        return self::fromBool($this->unwrap() && $other->unwrap());
+        return new self($this->value && $other->value);
     }
 }

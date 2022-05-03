@@ -4,11 +4,26 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Array;
 
+use GoPhp\GoValue\GoValue;
+
 final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
 {
+    /**
+     * @param GoValue[] $array
+     */
     public function __construct(
         public array $array = [],
     ) {}
+
+    public function copyItems(): array
+    {
+        $copiedItems = [];
+        foreach ($this->array as $item) {
+            $copiedItems[] = $item->copy();
+        }
+
+        return $copiedItems;
+    }
 
     public function slice(int $offset, int $len): array
     {

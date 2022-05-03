@@ -34,8 +34,12 @@ final class BuiltinFuncValue implements Invocable, GoValue
         return VoidType::Builtin;
     }
 
-    public function operate(Operator $op): never
+    public function operate(Operator $op): AddressValue
     {
+        if ($op === Operator::BitAnd) {
+            return new AddressValue($this);
+        }
+
         throw new \BadMethodCallException('cannot operate');
     }
 

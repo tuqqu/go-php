@@ -61,8 +61,12 @@ final class StringValue implements Sliceable, Sequence, NonRefValue
         return new self(\substr($this->value, $low, $high - $low));
     }
 
-    public function operate(Operator $op): never
+    public function operate(Operator $op): AddressValue
     {
+        if ($op === Operator::BitAnd) {
+            return new AddressValue($this);
+        }
+
         throw OperationError::unknownOperator($op, $this);
     }
 
@@ -82,11 +86,11 @@ final class StringValue implements Sliceable, Sequence, NonRefValue
     {
         assert_values_compatible($this, $rhs);
 
-        if ($op === Operator::PlusEq) {
-            $this->mutAdd($rhs);
-        }
-
-        throw OperationError::unknownOperator($op, $this);
+        match ($op) {
+            Operator::Eq => $this->value = $rhs->value,
+            Operator::PlusEq => $this->mutAdd($rhs),
+            default => throw OperationError::unknownOperator($op, $this),
+        };
     }
 
     public function unwrap(): string
@@ -112,7 +116,7 @@ final class StringValue implements Sliceable, Sequence, NonRefValue
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return BoolValue::fromBool($this->value === $rhs->unwrap());
+        return new BoolValue($this->value === $rhs->unwrap());
     }
 
     public function greater(self $other): BoolValue

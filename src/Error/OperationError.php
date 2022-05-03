@@ -36,6 +36,16 @@ final class OperationError extends \RuntimeException
         );
     }
 
+    public static function cannotAssign(string $name): self
+    {
+        return new self(\sprintf('cannot assign to %s', $name));
+    }
+
+//    public static function cannotIndirect(GoType $type): self
+//    {
+//        return new self(\sprintf('invalid operation: cannot indirect value of type %s', $type->name()));
+//    }
+
     public static function unsupportedOperation(string $operation, GoValue $value): self
     {
         return new self(

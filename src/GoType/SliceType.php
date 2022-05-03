@@ -6,6 +6,7 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\Slice\SliceValue;
 
 final class SliceType implements RefType
 {
@@ -44,6 +45,6 @@ final class SliceType implements RefType
 
     public function defaultValue(): GoValue
     {
-        return new NilValue($this);
+        return SliceValue::nil($this);
     }
 }

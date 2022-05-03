@@ -80,8 +80,8 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineStdConsts(): void
     {
-        $this->env->defineConst('true', BoolValue::True, NamedType::Bool); //fixme untyped bool?
-        $this->env->defineConst('false', BoolValue::False, NamedType::Bool); //fixme untyped bool?
+        $this->env->defineConst('true', BoolValue::true(), NamedType::Bool); //fixme untyped bool?
+        $this->env->defineConst('false', BoolValue::false(), NamedType::Bool); //fixme untyped bool?
         $this->env->defineConst('iota', $this->iota, UntypedType::UntypedInt);
     }
 

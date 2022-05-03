@@ -120,8 +120,8 @@ final class FuncValue implements Func, GoValue
         assert_nil_comparison($this, $rhs);
 
         return match ($op) {
-            Operator::EqEq => BoolValue::False,
-            Operator::NotEq => BoolValue::True,
+            Operator::EqEq => BoolValue::false(),
+            Operator::NotEq => BoolValue::true(),
             default => throw OperationError::unknownOperator($op, $this),
         };
     }
@@ -133,6 +133,6 @@ final class FuncValue implements Func, GoValue
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return BoolValue::False;
+        return BoolValue::false();
     }
 }

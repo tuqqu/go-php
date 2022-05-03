@@ -6,6 +6,7 @@ namespace GoPhp\GoValue\Map;
 
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\MapType;
+use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
@@ -16,6 +17,8 @@ use function GoPhp\assert_types_compatible;
 final class MapValue implements Map, GoValue
 {
     public const NAME = 'map';
+
+    //fixme add nil
 
     public function __construct(
         private readonly Map $innerMap,
@@ -79,8 +82,12 @@ final class MapValue implements Map, GoValue
         yield from $this->innerMap->iter();
     }
 
-    public function operate(Operator $op): self
+    public function operate(Operator $op): AddressValue
     {
+        if ($op === Operator::BitAnd) {
+            return new AddressValue($this);
+        }
+
         throw new \BadMethodCallException(); //fixme
     }
 
@@ -89,19 +96,25 @@ final class MapValue implements Map, GoValue
         assert_nil_comparison($this, $rhs);
 
         return match ($op) {
-            Operator::EqEq => BoolValue::False,
-            Operator::NotEq => BoolValue::True,
+            Operator::EqEq => BoolValue::false(),
+            Operator::NotEq => BoolValue::true(),
             default => throw OperationError::unknownOperator($op, $this),
         };
     }
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return BoolValue::False;
+        return BoolValue::false();
     }
 
-    public function mutate(Operator $op, GoValue $rhs): never
+    public function mutate(Operator $op, GoValue $rhs): void
     {
+        if ($op === Operator::Eq) {
+            assert_types_compatible($this->type, $rhs->type());
+            $this->values = $rhs->values;
+            return;
+        }
+
         throw new \BadMethodCallException('cannot operate');
     }
 

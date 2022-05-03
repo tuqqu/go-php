@@ -6,6 +6,7 @@ namespace GoPhp\GoValue\Slice;
 
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\Array\UnderlyingArray;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
@@ -24,6 +25,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
 {
     public const NAME = 'slice';
 
+    private bool $nil = false;
     private UnderlyingArray $values;
     private int $pos = 0;
 
@@ -43,6 +45,14 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         $this->len = $this->values->count();
         $this->cap = $cap ?? $this->len;
         $this->type = $type;
+    }
+
+    public static function nil(SliceType $type): self
+    {
+        $slice = new self([], $type);
+        $slice->nil = true;
+
+        return $slice;
     }
 
     public static function fromUnderlyingArray(
@@ -130,8 +140,12 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         $this->values[$this->len++] = $value;
     }
 
-    public function operate(Operator $op): self
+    public function operate(Operator $op): AddressValue
     {
+        if ($op === Operator::BitAnd) {
+            return new AddressValue($this);
+        }
+
         throw new \BadMethodCallException(); //fixme
     }
 
@@ -140,19 +154,27 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         assert_nil_comparison($this, $rhs);
 
         return match ($op) {
-            Operator::EqEq => BoolValue::False,
-            Operator::NotEq => BoolValue::True,
+            Operator::EqEq => BoolValue::false(),
+            Operator::NotEq => BoolValue::true(),
             default => throw OperationError::unknownOperator($op, $this),
         };
     }
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return BoolValue::False;
+        return BoolValue::false();
     }
 
-    public function mutate(Operator $op, GoValue $rhs): never
+    public function mutate(Operator $op, GoValue $rhs): void
     {
+        if ($op === Operator::Eq) {
+            assert_types_compatible($this->type, $rhs->type());
+
+            $this->morph($rhs);
+
+            return;
+        }
+
         throw new \BadMethodCallException('cannot operate');
     }
 
@@ -194,7 +216,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
     {
         $copies = [];
         foreach ($this->accessUnderlyingArray() as $value) {
-            $copies[] = $value;
+            $copies[] = $value->copy();
         }
 
         $this->cap *= 2;
@@ -202,8 +224,20 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         $this->values = new UnderlyingArray($copies);
     }
 
+    /**
+     * @return GoValue[]
+     */
     private function accessUnderlyingArray(): array
     {
         return $this->values->slice($this->pos, $this->len - $this->pos);
+    }
+
+    private function morph(self $other): void
+    {
+        $this->values = $other->values;
+        $this->nil = $other->nil;
+        $this->pos = $other->pos;
+        $this->len = $other->len;
+        $this->cap = $other->cap;
     }
 }

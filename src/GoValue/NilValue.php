@@ -43,7 +43,7 @@ final class NilValue implements GoValue
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return BoolValue::fromBool($rhs instanceof self);
+        return new BoolValue($rhs instanceof self);
     }
 
     public function mutate(Operator $op, GoValue $rhs): never

@@ -97,7 +97,7 @@ enum NamedType: string implements BasicType
             self::Float64 => new Float64Value(0),
 //            self::Complex64 =>
 //            self::Complex128 =>
-            self::Bool => BoolValue::False,
+            self::Bool => BoolValue::false(),
             self::String => new StringValue(''),
             // fixme remvoe after complex
             default => throw new \UnhandledMatchError('not impls def val'),

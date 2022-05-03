@@ -48,6 +48,7 @@ final class InterpreterTest extends TestCase
             'for',
             'for_range',
             'goto',
+            'pointer',
             'array', //fixme fmt
             'slice', //fixme fmt, copy, :1
             'type_conversion', //fixme fmt float

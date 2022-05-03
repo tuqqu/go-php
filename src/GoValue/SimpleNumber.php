@@ -90,9 +90,11 @@ abstract class SimpleNumber implements NonRefValue
         };
     }
 
-    public function operate(Operator $op): self
+    public function operate(Operator $op): self|AddressValue
     {
         switch ($op) {
+            case Operator::BitAnd:
+                return new AddressValue($this);
             case Operator::Plus:
                 return $this->noop();
             case Operator::Minus:
@@ -110,6 +112,7 @@ abstract class SimpleNumber implements NonRefValue
         assert_values_compatible($this, $rhs);
 
         match ($op) {
+            Operator::Eq => $this->value = $rhs->value,
             Operator::PlusEq,
             Operator::Inc => $this->mutAdd($rhs),
             Operator::MinusEq,
@@ -128,26 +131,26 @@ abstract class SimpleNumber implements NonRefValue
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return BoolValue::fromBool($this->value === $rhs->unwrap());
+        return new BoolValue($this->value === $rhs->unwrap());
     }
 
     public function greater(self $other): BoolValue
     {
-        return BoolValue::fromBool($this->value > $other->value);
+        return new BoolValue($this->value > $other->value);
     }
 
     public function greaterEq(self $other): BoolValue
     {
-        return BoolValue::fromBool($this->value >= $other->value);
+        return new BoolValue($this->value >= $other->value);
     }
 
     public function less(self $other): BoolValue
     {
-        return BoolValue::fromBool($this->value < $other->value);
+        return new BoolValue($this->value < $other->value);
     }
 
     public function lessEq(self $other): BoolValue
     {
-        return BoolValue::fromBool($this->value <= $other->value);
+        return new BoolValue($this->value <= $other->value);
     }
 }
