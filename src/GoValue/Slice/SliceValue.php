@@ -146,7 +146,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
             return new AddressValue($this);
         }
 
-        throw new \BadMethodCallException(); //fixme
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
@@ -156,7 +156,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         return match ($op) {
             Operator::EqEq => BoolValue::false(),
             Operator::NotEq => BoolValue::true(),
-            default => throw OperationError::unknownOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 
@@ -175,7 +175,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
             return;
         }
 
-        throw new \BadMethodCallException('cannot operate');
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     /**

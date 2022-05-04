@@ -86,7 +86,7 @@ abstract class SimpleNumber implements NonRefValue
             Operator::GreaterEq => $this->greaterEq($rhs),
             Operator::Less => $this->less($rhs),
             Operator::LessEq => $this->lessEq($rhs),
-            default => throw OperationError::unknownOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 
@@ -103,7 +103,7 @@ abstract class SimpleNumber implements NonRefValue
                 // fixme move to ints
                 return $this->bitwiseComplement();
             default:
-                throw OperationError::unknownOperator($op, $this);
+                throw OperationError::undefinedOperator($op, $this);
         }
     }
 
@@ -120,7 +120,7 @@ abstract class SimpleNumber implements NonRefValue
             Operator::MulEq => $this->mutMul($rhs),
             Operator::DivEq => $this->mutDiv($rhs),
             Operator::ModEq => $this->mutMod($rhs),
-            default => throw OperationError::unknownOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 

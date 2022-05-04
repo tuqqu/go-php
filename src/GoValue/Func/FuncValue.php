@@ -112,7 +112,7 @@ final class FuncValue implements Func, GoValue
 
     public function operate(Operator $op): never
     {
-        throw OperationError::unknownOperator($op, $this);
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
@@ -122,13 +122,13 @@ final class FuncValue implements Func, GoValue
         return match ($op) {
             Operator::EqEq => BoolValue::false(),
             Operator::NotEq => BoolValue::true(),
-            default => throw OperationError::unknownOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        throw OperationError::unknownOperator($op, $this);
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     public function equals(GoValue $rhs): BoolValue

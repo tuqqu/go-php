@@ -67,7 +67,7 @@ final class StringValue implements Sliceable, Sequence, NonRefValue
             return new AddressValue($this);
         }
 
-        throw OperationError::unknownOperator($op, $this);
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): self|BoolValue
@@ -78,7 +78,7 @@ final class StringValue implements Sliceable, Sequence, NonRefValue
             Operator::Plus => $this->add($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::unknownOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 
@@ -89,7 +89,7 @@ final class StringValue implements Sliceable, Sequence, NonRefValue
         match ($op) {
             Operator::Eq => $this->value = $rhs->value,
             Operator::PlusEq => $this->mutAdd($rhs),
-            default => throw OperationError::unknownOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 

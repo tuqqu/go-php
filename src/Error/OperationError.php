@@ -4,20 +4,27 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
+use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
 
 final class OperationError extends \RuntimeException
 {
-    public static function unknownOperator(Operator $op, GoValue $value): self
+    public static function undefinedOperator(Operator $op, GoValue $value): self
     {
-        // fixme operator not defined for
+        $type = $value->type();
+        $description = $type->name();
+
+        if ($type instanceof BasicType) {
+            $description .= ' ' . $value->toString();
+        }
+
         return new self(
             \sprintf(
-                'Unknown operator "%s" for value of type "%s"',
+                'invalid operation: operator %s not defined on %s',
                 $op->value,
-                $value->type()->name(),
+                $description,
             )
         );
     }

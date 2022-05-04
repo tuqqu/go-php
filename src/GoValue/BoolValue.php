@@ -60,7 +60,7 @@ final class BoolValue implements NonRefValue
         return match ($op) {
             Operator::BitAnd => new AddressValue($this),
             Operator::LogicNot => $this->invert(),
-            default => throw OperationError::unknownOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 
@@ -73,7 +73,7 @@ final class BoolValue implements NonRefValue
             Operator::LogicOr => $this->logicOr($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::unknownOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 
@@ -87,7 +87,7 @@ final class BoolValue implements NonRefValue
             return;
         }
 
-        throw OperationError::unknownOperator($op, $this);
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     public function equals(GoValue $rhs): self

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Error\OperationError;
 use GoPhp\GoType\PointerType;
 use GoPhp\Operator;
 
@@ -24,20 +25,16 @@ final class AddressValue implements GoValue
 
     public function operate(Operator $op): GoValue
     {
-        if ($op === Operator::Mul) {
-            return $this->pointsTo;
-        }
-
-        if ($op === Operator::BitAnd) {
-            return new AddressValue($this);
-        }
-
-        throw new \Exception();
+        return match ($op) {
+            Operator::Mul => $this->pointsTo,
+            Operator::BitAnd => new AddressValue($this),
+            default => throw OperationError::undefinedOperator($op, $this),
+        };
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        throw new \Exception();
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     public function equals(GoValue $rhs): BoolValue
@@ -50,7 +47,7 @@ final class AddressValue implements GoValue
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        throw new \Exception();
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     public function copy(): static

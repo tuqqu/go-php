@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Array;
 
+use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\SliceType;
@@ -20,6 +21,7 @@ use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_value;
 use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_types_compatible;
+use function GoPhp\assert_values_compatible;
 
 final class ArrayValue implements Sliceable, Sequence, GoValue
 {
@@ -112,17 +114,30 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
             return new AddressValue($this);
         }
 
-        throw new \BadMethodCallException(); //fixme
+        throw OperationError::undefinedOperator($op, $this);
     }
 
-    public function operateOn(Operator $op, GoValue $rhs): self
+    public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        throw new \BadMethodCallException(); //fixme
+        assert_values_compatible($this, $rhs);
+
+        return match ($op) {
+            Operator::EqEq => $this->equals($rhs),
+            Operator::NotEq => $this->equals($rhs)->invert(),
+            default => throw OperationError::undefinedOperator($op, $this),
+        };
     }
 
     public function equals(GoValue $rhs): BoolValue
     {
-        throw new \BadMethodCallException(); //fixme
+        foreach ($this->values as $k => $v) {
+            /** @var GoValue $v */
+            if (!$v->equals($rhs->values[$k])->unwrap()) {
+                return BoolValue::false();
+            }
+        }
+
+        return BoolValue::true();
     }
 
     public function mutate(Operator $op, GoValue $rhs): void
@@ -135,7 +150,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
             return;
         }
 
-        throw new \BadMethodCallException('cannot operate');
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     /**
