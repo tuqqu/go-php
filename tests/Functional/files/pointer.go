@@ -1,46 +1,73 @@
 package main
 
 func main() {
-    i := 1
+	test_pointer_int()
+	test_pointer_array()
+	test_pointer_map()
+}
 
-    println(i)
+func test_pointer_int() {
+	i := 1
 
-    zeroval(i)
+	println(i)
 
-    println(i)
+	zeroval(i)
 
-    zeroptr(&i)
+	println(i)
 
-    println(i)
+	zeroptr(&i)
 
-    *&i = 6
+	println(i)
 
-    var pi *int = &i
-    println(*pi == i, *pi, *&*&*&i)
+	*&i = 6
 
-    var array = [...]int{1,2,3}
+	var pi *int = &i
+	println(*pi == i, *pi, *&*&*&i)
+}
 
-    plusTen(&array[1])
+func test_pointer_array() {
+	var array = [...]int{1, 2, 3}
 
-    println(array)
+	plusTen(&array[1])
 
-    var d *int = &array[2]
-    var dptr **int = &d;
-    var dptrptr ***int = &dptr
+	println(array)
 
-    plusTen(**dptrptr)
+	var d *int = &array[2]
+	var dptr **int = &d
+	var dptrptr ***int = &dptr
 
-    println(array)
+	plusTen(**dptrptr)
+
+	println(array)
+}
+
+func test_pointer_map() {
+
+	var s1ptr string = "string1"
+	var s2ptr string = "string2"
+
+	var m = map[string]*string{
+		"key1": &s1ptr,
+		"key2": &s2ptr,
+	}
+
+	setstr(&s1ptr)
+
+	println(*m["key1"], *m["key2"])
 }
 
 func zeroval(ival int) {
-    ival = 0
+	ival = 0
 }
 
 func zeroptr(iptr *int) {
-    *iptr = 0
+	*iptr = 0
 }
 
 func plusTen(iptr *int) {
-    *iptr += 10
+	*iptr += 10
+}
+
+func setstr(str *string) {
+	*str = "some_string"
 }
