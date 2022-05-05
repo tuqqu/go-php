@@ -9,16 +9,17 @@ use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NoValue;
+use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
 use GoPhp\StmtValue\SimpleValue;
 use GoPhp\StmtValue\StmtValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_type;
-use function GoPhp\assert_argc;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
 
@@ -46,12 +47,30 @@ final class FuncValue implements Func, GoValue
 
     public function __invoke(GoValue ...$argv): GoValue
     {
-        assert_argc($argv, $this->signature->arity, params: $this->signature->params);
-
         $env = new Environment(enclosing: $this->enclosure);
 
         $i = 0;
+        //fixme move variadic logic
         foreach ($this->signature->params->iter() as $param) {
+            if ($param->variadic) {
+                $sliceType = new SliceType($param->type);
+                $sliceBuilder = SliceBuilder::fromType($sliceType);
+
+                for ($argc = \count($argv); $i < $argc; ++$i) {
+                    assert_arg_type($argv[$i], $param->type, $i);
+
+                    $sliceBuilder->pushBlindly($argv[$i]);
+                }
+
+                $env->defineVar(
+                    $param->names[0],
+                    $sliceBuilder->build(),
+                    $sliceType
+                );
+
+                break;
+            }
+
             assert_arg_type($argv[$i], $param->type, $i);
 
             foreach ($param->names as $name) {

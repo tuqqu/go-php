@@ -51,10 +51,12 @@ function assert_argc(
     ?Params $params = null
 ): void {
     $actualArgc = \count($argv);
-    if (
-        $actualArgc < $expectedArgc
-        || (!$variadic && $actualArgc > $expectedArgc)
-    ) {
+    //fixme
+    $mismatch = ($variadic && $actualArgc < $expectedArgc - 1)
+        || (!$variadic && $actualArgc < $expectedArgc)
+        || (!$variadic && $actualArgc > $expectedArgc);
+
+    if ($mismatch) {
         $params === null ?
             throw ProgramError::wrongBuiltinArgumentNumber($expectedArgc, $actualArgc) :
             throw ProgramError::wrongFuncArgumentNumber($argv, $params);

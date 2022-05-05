@@ -65,11 +65,6 @@ final class AddressValue implements GoValue
         return \sprintf('0x%x', $this->getAddress());
     }
 
-    public function pointTo(GoValue $value): void
-    {
-        $this->pointsTo = $value;
-    }
-
     private function getAddress(): int
     {
         return \spl_object_id($this->pointsTo);

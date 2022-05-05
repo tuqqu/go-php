@@ -9,6 +9,7 @@ final class Params
     /** @var Param[] */
     public readonly array $params;
     public readonly int $len;
+    public readonly bool $variadic;
 
     /**
      * @param Param[] $params
@@ -17,13 +18,14 @@ final class Params
     {
         $this->params = $params;
         $this->len = \count($params);
+        $this->variadic = empty($params) ? false : $params[$this->len - 1]->variadic;
     }
 
     public function __toString(): string
     {
         $types = [];
         foreach ($this->params as $param) {
-            $types[] = $param->type->name();
+            $types[] = ($param->variadic ? '...' : '') . $param->type->name();
         }
 
         return \implode(', ', $types);

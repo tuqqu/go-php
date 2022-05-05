@@ -28,16 +28,14 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
     public const NAME = 'array';
 
     private UnderlyingArray $values;
-    public readonly ArrayType $type;
+    private readonly ArrayType $type;
     private readonly int $len;
 
     /**
      * @param GoValue[] $values
      */
-    public function __construct(
-        array $values,
-        ArrayType $type,
-    ) {
+    public function __construct(array $values, ArrayType $type)
+    {
         $this->values = new UnderlyingArray($values);
         $this->len = $this->values->count();
 
@@ -64,12 +62,9 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
     {
         $low ??= 0;
         $high ??= $this->len;
+        $cap = $max === null ? $this->len - $low : $max - $low;
 
         assert_slice_indices($this->len, $low, $high, $max);
-
-        $cap = $max === null ?
-            $this->len - $low :
-            $max - $low;
 
         $sliceType = SliceType::fromArrayType($this->type);
 
@@ -168,7 +163,6 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
 
     public function copy(): static
     {
-        // fixme iterate and clone all?
         return new self(
             $this->values->copyItems(),
             $this->type,

@@ -53,6 +53,7 @@ final class InterpreterTest extends TestCase
             'slice', //fixme fmt, copy, :1
             'type_conversion', //fixme fmt float
             'slicing', //fixme fmt float
+            'variadic',
         ];
 
         foreach ($files as $file) {

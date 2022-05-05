@@ -327,6 +327,7 @@ final class Interpreter
         $argv = [];
         $exprLen = \count($expr->args->exprs);
 
+        // fixme move this to sep fn
         if (
             $func instanceof BuiltinFuncValue
             && $exprLen > 0
@@ -337,6 +338,25 @@ final class Interpreter
 
         for ($i = \count($argv); $i < $exprLen; ++$i) {
             $argv[] = $this->evalExpr($expr->args->exprs[$i])->copy();
+        }
+
+        // fixme assert_argc refactor
+        if ($func instanceof FuncValue) {
+            // we have to do it here to validate argc before the slice unpacking
+            assert_argc(
+                $argv,
+                $func->signature->arity,
+                $func->signature->variadic,
+                $func->signature->params
+            );
+        }
+
+        if ($expr->ellipsis !== null) {
+            $slice = \array_pop($argv);
+            assert_arg_value($slice, SliceValue::class, SliceValue::NAME, $exprLen - 1);
+
+            /** @var SliceValue $slice */
+            $argv = [...$argv, ...$slice->unwrap()];
         }
 
         return $this->callFunc(static fn (): GoValue => $func(...$argv));
