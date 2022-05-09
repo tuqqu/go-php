@@ -35,29 +35,20 @@ use function GoPhp\assert_argc;
 
 class StdBuiltinProvider implements BuiltinProvider
 {
-    private Iota $iota;
-    private Environment $env;
-    private StreamProvider $streams;
+    private readonly Iota&BaseIntValue $iota;
+    private readonly Environment $env;
+    private readonly StreamProvider $streams;
 
-    /**
-     * fixme split to vars,consts,types,funcs,iota
-     */
     public function __construct(StreamProvider $streams)
     {
-        $this->iota = new class (0) extends BaseIntValue implements Iota {
-            public function type(): GoType
-            {
-                return UntypedType::UntypedInt;
-            }
-
-            public function setValue(int $value): void
-            {
-                $this->value = $value;
-            }
-        };
         $this->env = new Environment();
         $this->streams = $streams;
-        $this->buildStdEnv();
+        $this->iota = self::createIota();
+
+        $this->defineStdConsts();
+        $this->defineStdVars();
+        $this->defineFuncs();
+        $this->defineTypes();
     }
 
     public function iota(): Iota
@@ -68,14 +59,6 @@ class StdBuiltinProvider implements BuiltinProvider
     public function env(): Environment
     {
         return $this->env;
-    }
-
-    protected function buildStdEnv(): void
-    {
-        $this->defineStdConsts();
-        $this->defineStdVars();
-        $this->defineFuncs();
-        $this->defineTypes();
     }
 
     protected function defineStdConsts(): void
@@ -120,7 +103,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'int',
             new TypeValue(
                 NamedType::Int,
-                self::conversion_number(NamedType::Int)
+                self::createNumberConverter(NamedType::Int)
             ),
         );
 
@@ -128,7 +111,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'int8',
             new TypeValue(
                 NamedType::Int8,
-                self::conversion_number(NamedType::Int8)
+                self::createNumberConverter(NamedType::Int8)
             ),
         );
 
@@ -136,7 +119,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'int16',
             new TypeValue(
                 NamedType::Int16,
-                self::conversion_number(NamedType::Int16)
+                self::createNumberConverter(NamedType::Int16)
             ),
         );
 
@@ -144,7 +127,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'int32',
             new TypeValue(
                 NamedType::Int32,
-                self::conversion_number(NamedType::Int32)
+                self::createNumberConverter(NamedType::Int32)
             ),
         );
 
@@ -152,7 +135,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'int64',
             new TypeValue(
                 NamedType::Int64,
-                self::conversion_number(NamedType::Int64)
+                self::createNumberConverter(NamedType::Int64)
             ),
         );
 
@@ -160,7 +143,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'uint',
             new TypeValue(
                 NamedType::Uint,
-                self::conversion_number(NamedType::Uint)
+                self::createNumberConverter(NamedType::Uint)
             ),
         );
 
@@ -168,7 +151,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'uint8',
             new TypeValue(
                 NamedType::Uint8,
-                self::conversion_number(NamedType::Uint8)
+                self::createNumberConverter(NamedType::Uint8)
             ),
         );
 
@@ -176,7 +159,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'uint16',
             new TypeValue(
                 NamedType::Uint16,
-                self::conversion_number(NamedType::Uint16)
+                self::createNumberConverter(NamedType::Uint16)
             ),
         );
 
@@ -184,7 +167,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'uint32',
             new TypeValue(
                 NamedType::Uint32,
-                self::conversion_number(NamedType::Uint32)
+                self::createNumberConverter(NamedType::Uint32)
             ),
         );
 
@@ -192,7 +175,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'uint64',
             new TypeValue(
                 NamedType::Uint64,
-                self::conversion_number(NamedType::Int16)
+                self::createNumberConverter(NamedType::Int16)
             ),
         );
 
@@ -200,7 +183,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'uintptr',
             new TypeValue(
                 NamedType::Uintptr,
-                self::conversion_number(NamedType::Uintptr)
+                self::createNumberConverter(NamedType::Uintptr)
             ),
         );
 
@@ -208,7 +191,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'float32',
             new TypeValue(
                 NamedType::Float32,
-                self::conversion_number(NamedType::Float32)
+                self::createNumberConverter(NamedType::Float32)
             ),
         );
 
@@ -216,7 +199,7 @@ class StdBuiltinProvider implements BuiltinProvider
             'float64',
             new TypeValue(
                 NamedType::Float64,
-                self::conversion_number(NamedType::Float64)
+                self::createNumberConverter(NamedType::Float64)
             ),
         );
 
@@ -373,7 +356,22 @@ class StdBuiltinProvider implements BuiltinProvider
         throw OperationError::wrongArgumentType($type->type, 'slice, map or channel', 1);
     }
 
-    protected static function conversion_number(NamedType $type): callable
+    protected static function createIota(): Iota&BaseIntValue
+    {
+        return new class (0) extends BaseIntValue implements Iota {
+            public function type(): GoType
+            {
+                return UntypedType::UntypedInt;
+            }
+
+            public function setValue(int $value): void
+            {
+                $this->value = $value;
+            }
+        };
+    }
+
+    protected static function createNumberConverter(NamedType $type): callable
     {
         return static fn (GoValue $value): SimpleNumber =>
             $value instanceof SimpleNumber ?
