@@ -103,7 +103,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
     {
         assert_index_value($at, BaseIntValue::class, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->len);
-        assert_types_compatible($value->type(), $this->type->internalType);
+        assert_types_compatible($value->type(), $this->type->elemType);
 
         $this->values[$int + $this->pos] = $value;
     }
@@ -131,7 +131,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
     public function append(GoValue $value): void
     {
         //fixme change error text
-        assert_types_compatible($value->type(), $this->type->internalType);
+        assert_types_compatible($value->type(), $this->type->elemType);
 
         if ($this->exceedsCapacity()) {
             $this->grow();

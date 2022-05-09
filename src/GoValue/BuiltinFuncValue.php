@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\GoType\GoType;
-use GoPhp\GoType\VoidType;
+use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
 final class BuiltinFuncValue implements Invocable, GoValue
@@ -29,9 +29,9 @@ final class BuiltinFuncValue implements Invocable, GoValue
         throw new \BadMethodCallException('cannot operate');
     }
 
-    public function type(): GoType
+    public function type(): BuiltinFuncType
     {
-        return VoidType::Builtin;
+        return new BuiltinFuncType();
     }
 
     public function operate(Operator $op): AddressValue

@@ -42,7 +42,7 @@ final class StringConverter
 
     private static function isSliceConvertible(SliceValue $slice): bool
     {
-        return $slice->type->internalType === NamedType::Byte
-            || $slice->type->internalType === NamedType::Rune;
+        return $slice->type->elemType === NamedType::Byte
+            || $slice->type->elemType === NamedType::Rune;
     }
 }

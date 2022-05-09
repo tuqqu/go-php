@@ -115,7 +115,6 @@ final class Interpreter
     private bool $constDefinition = false;
     private JumpStack $jumpStack;
     private DeferStack $deferStack;
-    private ?int $callId = null;
 
     public function __construct(
         private readonly Ast $ast,

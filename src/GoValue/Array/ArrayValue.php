@@ -83,7 +83,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
     {
         assert_index_value($at, BaseIntValue::class, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->len);
-        assert_types_compatible($value->type(), $this->type->internalType);
+        assert_types_compatible($value->type(), $this->type->elemType);
 
         $this->values[$int] = $value;
     }

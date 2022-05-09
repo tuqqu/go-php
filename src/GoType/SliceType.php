@@ -13,14 +13,14 @@ final class SliceType implements RefType
     public readonly string $name;
 
     public function __construct(
-        public readonly GoType $internalType,
+        public readonly GoType $elemType,
     ) {
-        $this->name = \sprintf('[]%s', $this->internalType->name());
+        $this->name = \sprintf('[]%s', $this->elemType->name());
     }
 
     public static function fromArrayType(ArrayType $arrayType): self
     {
-        return new self($arrayType->internalType);
+        return new self($arrayType->elemType);
     }
 
     public function name(): string
@@ -30,7 +30,7 @@ final class SliceType implements RefType
 
     public function equals(GoType $other): bool
     {
-        return $other instanceof self && $this->internalType->equals($other->internalType);
+        return $other instanceof self && $this->elemType->equals($other->elemType);
     }
 
     public function isCompatible(GoType $other): bool

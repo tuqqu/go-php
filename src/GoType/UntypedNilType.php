@@ -6,10 +6,8 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoValue\GoValue;
 
-enum UntypedNilType implements RefType
+final class UntypedNilType implements RefType
 {
-    case Nil;
-
     public function name(): string
     {
         return 'untyped nil';

@@ -23,7 +23,7 @@ use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapValue;
 use GoPhp\GoValue\NilValue;
-use GoPhp\GoValue\NoValue;
+use GoPhp\GoValue\VoidValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\Slice\SliceBuilder;
@@ -35,7 +35,7 @@ use function GoPhp\assert_argc;
 
 class StdBuiltinProvider implements BuiltinProvider
 {
-    private readonly Iota&BaseIntValue $iota;
+    private readonly BaseIntValue&Iota $iota;
     private readonly Environment $env;
     private readonly StreamProvider $streams;
 
@@ -70,7 +70,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineStdVars(): void
     {
-        $this->env->defineImmutableVar('nil', new NilValue(UntypedNilType::Nil), UntypedNilType::Nil);
+        $this->env->defineImmutableVar('nil', new NilValue($type = new UntypedNilType()), $type);
     }
 
     protected function defineFuncs(): void
@@ -210,7 +210,7 @@ class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#println
      */
-    protected function println(GoValue ...$values): NoValue
+    protected function println(GoValue ...$values): VoidValue
     {
         $output = [];
 
@@ -220,13 +220,13 @@ class StdBuiltinProvider implements BuiltinProvider
 
         $this->streams->stderr()->writeln(\implode(' ', $output));
 
-        return NoValue::NoValue;
+        return new VoidValue();
     }
 
     /**
      * @see https://pkg.go.dev/builtin#print
      */
-    protected function print(GoValue ...$values): NoValue
+    protected function print(GoValue ...$values): VoidValue
     {
         $output = [];
 
@@ -236,7 +236,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
         $this->streams->stderr()->write(\implode('', $output));
 
-        return NoValue::NoValue;
+        return new VoidValue();
     }
 
     /**
@@ -273,14 +273,14 @@ class StdBuiltinProvider implements BuiltinProvider
     /**
      * @see https://pkg.go.dev/builtin#delete
      */
-    protected function delete(GoValue ...$values): NoValue
+    protected function delete(GoValue ...$values): VoidValue
     {
         assert_argc($values, 2);
         assert_arg_value($values[0], MapValue::class, MapValue::NAME, 1);
 
         $values[0]->delete($values[1]);
 
-        return NoValue::NoValue;
+        return new VoidValue();
     }
 
     /**
@@ -334,7 +334,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
             $builder = SliceBuilder::fromType($type->type);
             for ($i = 0; $i < $len; ++$i) {
-                $builder->pushBlindly($type->type->internalType->defaultValue());
+                $builder->pushBlindly($type->type->elemType->defaultValue());
             }
 
             return $builder->build();

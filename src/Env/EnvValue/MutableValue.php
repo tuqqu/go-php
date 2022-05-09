@@ -13,7 +13,7 @@ final class MutableValue extends EnvValue
 {
     public function __construct(string $name, GoType $type, GoValue $value)
     {
-        if ($type === UntypedNilType::Nil) {
+        if ($type instanceof UntypedNilType) {
             throw new \Exception('use of untyped nil in variable declaration');
         }
 

@@ -12,7 +12,7 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NoValue;
+use GoPhp\GoValue\VoidValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\Operator;
 use GoPhp\StmtValue\ReturnValue;
@@ -83,7 +83,7 @@ final class FuncValue implements Func, GoValue
 
         if ($stmtValue === SimpleValue::None) {
             return $this->signature->returnArity === 0 ?
-                NoValue::NoValue :
+                new VoidValue() :
                 throw ProgramError::wrongReturnValueNumber([], $this->signature->returns);
         }
 
@@ -97,7 +97,7 @@ final class FuncValue implements Func, GoValue
 
         // void return
         if ($stmtValue->len === 0) {
-            return NoValue::NoValue;
+            return new VoidValue();
         }
 
         // single & tuple value return

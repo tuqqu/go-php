@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\GoType\GoType;
-use GoPhp\GoType\VoidType;
 use GoPhp\Operator;
 
-enum NoValue implements GoValue
+final class VoidValue implements GoValue
 {
-    case NoValue;
-
     public function unwrap(): callable
     {
         throw new \BadMethodCallException('cannot operate');
@@ -19,7 +16,7 @@ enum NoValue implements GoValue
 
     public function type(): GoType
     {
-        return VoidType::NoValue;
+        throw new \BadMethodCallException('cannot operate');
     }
 
     public function operate(Operator $op): never

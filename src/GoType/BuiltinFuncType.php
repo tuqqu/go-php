@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-enum VoidType implements GoType
+final class BuiltinFuncType implements GoType
 {
-    case NoValue;
-    case Builtin;
-
     public function name(): never
     {
         throw new \Exception('(built-in) must be called');
@@ -16,12 +13,12 @@ enum VoidType implements GoType
 
     public function equals(GoType $other): bool
     {
-        return $this === $other;
+        return $other instanceof self;
     }
 
     public function isCompatible(GoType $other): bool
     {
-        return $this === $other;
+        return $other instanceof self;
     }
 
     public function reify(): never

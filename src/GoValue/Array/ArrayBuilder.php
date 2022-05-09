@@ -23,7 +23,7 @@ final class ArrayBuilder
 
     public function push(GoValue $value): void
     {
-        assert_types_compatible_with_cast($this->type->internalType, $value);
+        assert_types_compatible_with_cast($this->type->elemType, $value);
 
         $this->values[] = $value;
     }

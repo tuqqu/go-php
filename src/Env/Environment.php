@@ -11,7 +11,7 @@ use GoPhp\Env\Error\CannotBeMutatedError;
 use GoPhp\Env\Error\UndefinedTypeError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoType\BasicType;
-use GoPhp\GoType\VoidType;
+use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
@@ -56,7 +56,7 @@ final class Environment
 
     public function defineBuiltinFunc(string $name, BuiltinFuncValue $value): void
     {
-        $func = new ImmutableValue($name, VoidType::Builtin, $value);
+        $func = new ImmutableValue($name, new BuiltinFuncType(), $value);
         $this->definedValues->add($func);
     }
 
