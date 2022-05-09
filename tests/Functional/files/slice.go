@@ -24,12 +24,12 @@ func main() {
 	println(twoD)
 
 	var slice = []int{0, 1, 2}
-	var second_slice = set_first(66, slice)
-	println(second_slice)
+	var secondSlice = setFirst(66, slice)
+	println(secondSlice)
 	println(slice)
 }
 
-func set_first(first int, slice []int) []int {
+func setFirst(first int, slice []int) []int {
 	slice[0] = first
 
 	return slice

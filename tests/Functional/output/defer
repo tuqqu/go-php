@@ -1,0 +1,11 @@
+test_defer_inner
+deferred inner 6
+test_defer_1
+deferred second 6
+deferred first 0
+test_defer_2
+deferred loop 8
+deferred loop 6
+deferred loop 4
+deferred loop 2
+deferred loop 0

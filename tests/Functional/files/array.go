@@ -21,12 +21,12 @@ func main() {
 	println(twoD)
 
 	var array = [...]int{0, 1, 2}
-	var second_array = set_first(66, array)
+	var secondArray = setFirst(66, array)
 	println(array)
-	println(second_array)
+	println(secondArray)
 }
 
-func set_first(first int, array [3]int) [3]int {
+func setFirst(first int, array [3]int) [3]int {
 	array[0] = first
 
 	return array

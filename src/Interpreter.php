@@ -44,6 +44,7 @@ use GoParser\Ast\Stmt\BlockStmt;
 use GoParser\Ast\Stmt\BreakStmt;
 use GoParser\Ast\Stmt\ConstDecl;
 use GoParser\Ast\Stmt\ContinueStmt;
+use GoParser\Ast\Stmt\DeferStmt;
 use GoParser\Ast\Stmt\EmptyStmt;
 use GoParser\Ast\Stmt\ExprStmt;
 use GoParser\Ast\Stmt\ForStmt;
@@ -113,6 +114,8 @@ final class Interpreter
     private ?FuncValue $entryPoint = null;
     private bool $constDefinition = false;
     private JumpStack $jumpStack;
+    private DeferStack $deferStack;
+    private ?int $callId = null;
 
     public function __construct(
         private readonly Ast $ast,
@@ -127,6 +130,7 @@ final class Interpreter
 
         $this->iota = $builtin->iota();
         $this->jumpStack = new JumpStack();
+        $this->deferStack = new DeferStack();
         $this->env = new Environment($builtin->env());
     }
 
@@ -198,6 +202,7 @@ final class Interpreter
                 $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
                 $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
                 $stmt instanceof ForStmt => $this->evalForStmt($stmt),
+                $stmt instanceof DeferStmt => $this->evalDeferStmt($stmt),
                 $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
                 $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
                 $stmt instanceof LabeledStmt => $this->evalLabeledStmt($stmt),
@@ -316,7 +321,19 @@ final class Interpreter
         return SimpleValue::None;
     }
 
-    private function evalCallExpr(CallExpr $expr): GoValue
+    private function evalDeferStmt(DeferStmt $stmt): SimpleValue
+    {
+        if (!$stmt->expr instanceof CallExpr) {
+            throw new InternalError('Call expression expected in defer statement');
+        }
+
+        $fn = $this->evalCallExprWithoutCall($stmt->expr);
+        $this->deferStack->push($fn);
+
+        return SimpleValue::None;
+    }
+
+    private function evalCallExprWithoutCall(CallExpr $expr): callable
     {
         $func = $this->evalExpr($expr->expr);
 
@@ -359,15 +376,26 @@ final class Interpreter
             $argv = [...$argv, ...$slice->unwrap()];
         }
 
-        return $this->callFunc(static fn (): GoValue => $func(...$argv));
+        return static fn () => $func(...$argv);
+    }
+
+    private function evalCallExpr(CallExpr $expr): GoValue
+    {
+        $fn = $this->evalCallExprWithoutCall($expr);
+
+        return $this->callFunc($fn);
     }
 
     private function callFunc(callable $fn): GoValue
     {
-        $jh = new JumpHandler();
-        $this->jumpStack->push($jh);
+        $this->jumpStack->push(new JumpHandler());
+        $this->deferStack->newContext();
 
         $value = $fn();
+
+        foreach ($this->deferStack->pop() as $defFn) {
+            $this->callFunc($defFn);
+        }
 
         $this->jumpStack->pop();
 
