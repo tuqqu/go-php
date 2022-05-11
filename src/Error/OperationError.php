@@ -48,6 +48,11 @@ final class OperationError extends \RuntimeException
         return new self(\sprintf('cannot assign to %s', $name));
     }
 
+    public static function lenAndCapSwapped(): self
+    {
+        return new self('invalid argument: length and capacity swapped');
+    }
+
 //    public static function cannotIndirect(GoType $type): self
 //    {
 //        return new self(\sprintf('invalid operation: cannot indirect value of type %s', $type->name()));

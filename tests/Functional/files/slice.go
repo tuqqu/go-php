@@ -1,6 +1,19 @@
 package main
 
 func main() {
+    test_slice_1()
+    test_slice_2()
+}
+
+func test_slice_1() {
+    var a []byte = make([]byte, 3, 5)
+    a[1] = 3
+    println("len:", len(a))
+    println("cap:", cap(a))
+    println("slice:", a)
+}
+
+func test_slice_2() {
 	var a []uint32 = []uint32{}
 	println(a)
 

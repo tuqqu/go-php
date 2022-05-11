@@ -79,12 +79,17 @@ function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
 
 function assert_index_exists(int $index, int $max): void
 {
-    if ($index < 0) {
-        throw DefinitionError::indexNegative($index);
-    }
+    assert_index_positive($index);
 
     if ($index >= $max) {
         throw DefinitionError::indexOutOfRange($index, $max);
+    }
+}
+
+function assert_index_positive(int $index): void
+{
+    if ($index < 0) {
+        throw DefinitionError::indexNegative($index);
     }
 }
 

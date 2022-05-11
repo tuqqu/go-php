@@ -32,6 +32,7 @@ use GoPhp\GoValue\TypeValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
+use function GoPhp\assert_index_positive;
 
 class StdBuiltinProvider implements BuiltinProvider
 {
@@ -319,22 +320,35 @@ class StdBuiltinProvider implements BuiltinProvider
                 throw OperationError::wrongArgumentNumber('2 or 3', $argc);
             }
 
+            $builder = SliceBuilder::fromType($type->type);
+
             // fixme float .0 truncation allowed
             if (isset($values[1])) {
                 assert_arg_value($values[1], BaseIntValue::class, 'int', 2);
+
+                /** @var int $len */
                 $len = $values[1]->unwrap();
-            } else {
-                $len = 0;
+
+                assert_index_positive($len);
+
+                for ($i = 0; $i < $len; ++$i) {
+                    $builder->pushBlindly($type->type->elemType->defaultValue());
+                }
             }
 
             if (isset($values[2])) {
-                // we do not use this value, just validating it
                 assert_arg_value($values[2], BaseIntValue::class, 'int', 3);
-            }
 
-            $builder = SliceBuilder::fromType($type->type);
-            for ($i = 0; $i < $len; ++$i) {
-                $builder->pushBlindly($type->type->elemType->defaultValue());
+                /** @var int $cap */
+                $cap = $values[2]->unwrap();
+
+                assert_index_positive($cap);
+
+                if ($cap < ($len ?? 0)) {
+                    throw OperationError::lenAndCapSwapped();
+                }
+
+                $builder->setCap($cap);
             }
 
             return $builder->build();
@@ -348,6 +362,7 @@ class StdBuiltinProvider implements BuiltinProvider
             if (isset($values[1])) {
                 // we do not use this value, just validating it
                 assert_arg_value($values[1], BaseIntValue::class, 'int', 3);
+                assert_index_positive($values[1]->unwrap());
             }
 
             return MapBuilder::fromType($type->type)->build();
@@ -356,7 +371,7 @@ class StdBuiltinProvider implements BuiltinProvider
         throw OperationError::wrongArgumentType($type->type, 'slice, map or channel', 1);
     }
 
-    protected static function createIota(): Iota&BaseIntValue
+    protected static function createIota(): BaseIntValue&Iota
     {
         return new class (0) extends BaseIntValue implements Iota {
             public function type(): GoType

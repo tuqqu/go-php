@@ -11,6 +11,7 @@ use function GoPhp\assert_types_compatible_with_cast;
 final class SliceBuilder
 {
     private array $values = [];
+    private ?int $cap = null;
 
     private function __construct(
         private readonly SliceType $type,
@@ -28,6 +29,11 @@ final class SliceBuilder
         $this->values[] = $value;
     }
 
+    public function setCap(int $cap): void
+    {
+        $this->cap = $cap;
+    }
+
     /**
      * Types must be checked beforehand.
      */
@@ -38,6 +44,10 @@ final class SliceBuilder
 
     public function build(): SliceValue
     {
-        return new SliceValue($this->values, $this->type);
+        return new SliceValue(
+            $this->values,
+            $this->type,
+            $this->cap,
+        );
     }
 }

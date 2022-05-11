@@ -1,3 +1,6 @@
+len: 3
+cap: 5
+slice: [0 3 0]
 []
 [false false false false true true]
 6
