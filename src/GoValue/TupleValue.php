@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\OperationError;
+use GoPhp\Error\InternalError;
 use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
@@ -27,32 +27,32 @@ final class TupleValue implements GoValue
 
     public function toString(): string
     {
-        throw OperationError::unsupportedOperation(__METHOD__, $this);
+        throw InternalError::unreachableMethodCall();
     }
 
     public function operate(Operator $op): self
     {
-        throw new \BadMethodCallException(); //fixme
+        throw InternalError::unreachableMethodCall();
     }
 
     public function operateOn(Operator $op, GoValue $rhs): self
     {
-        throw new \BadMethodCallException(); //fixme
+        throw InternalError::unreachableMethodCall();
     }
 
     public function equals(GoValue $rhs): BoolValue
     {
-        throw new \BadMethodCallException(); //fixme
+        throw InternalError::unreachableMethodCall();
     }
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        throw new \BadMethodCallException('cannot operate');
+        throw InternalError::unreachableMethodCall();
     }
 
     public function copy(): static
     {
-        throw new \BadMethodCallException('cannot operate');
+        throw InternalError::unreachableMethodCall();
     }
 
     /**
@@ -65,6 +65,6 @@ final class TupleValue implements GoValue
 
     public function type(): GoType
     {
-        throw new \BadMethodCallException(); //fixme
+        throw InternalError::unreachableMethodCall();
     }
 }
