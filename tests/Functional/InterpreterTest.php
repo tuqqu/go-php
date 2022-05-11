@@ -55,6 +55,7 @@ final class InterpreterTest extends TestCase
             'slicing', //fixme fmt float
             'variadic',
             'defer',
+            'map',
         ];
 
         foreach ($files as $file) {

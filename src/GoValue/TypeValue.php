@@ -11,7 +11,7 @@ use GoPhp\Operator;
 
 /**
  * Represents types in environment.
- * As well as type "values", that are passed to builtin functions as an argument
+ * As well as type "values", that are passed to some builtin functions as an argument
  *
  * e.g. make([]int, 2, 3)
  *           ^^^^^

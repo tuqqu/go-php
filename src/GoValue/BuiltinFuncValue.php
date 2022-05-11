@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\GoType\GoType;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 

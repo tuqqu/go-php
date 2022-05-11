@@ -45,16 +45,26 @@ final class MapValue implements Map, GoValue
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
 
-        return $this->innerMap->has($at) ?
-            $this->innerMap->get($at) :
-            $this->type->elemType->defaultValue(); //fixme prob set here as well
+        if (!$this->innerMap->has($at)) {
+            $defaultValue = $this->type->elemType->defaultValue();
+
+            return new MapLookupValue(
+                $defaultValue,
+                BoolValue::false(),
+                function () use ($defaultValue, $at): void {
+                    $this->set($defaultValue, $at);
+                },
+            );
+        }
+
+        return new MapLookupValue(
+            $this->innerMap->get($at),
+            BoolValue::true(),
+        );
     }
 
     public function set(GoValue $value, GoValue $at): void
     {
-        assert_index_type($at, $this->type->keyType, self::NAME);
-        assert_types_compatible($value->type(), $this->type->elemType);
-
         $this->innerMap->set($value, $at);
     }
 

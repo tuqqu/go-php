@@ -19,7 +19,7 @@ interface GoValue
 
     public function unwrap(): mixed;
 
-    public function copy(): static;
+    public function copy(): self;
 
     public function type(): GoType;
 

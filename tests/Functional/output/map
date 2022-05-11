@@ -1,0 +1,16 @@
+map: map[k1:7 k2:13]
+v1:  7
+len: 2
+map: map[k1:7]
+value: 0
+ok: false
+unknown: 0
+notSet: false
+unknown: 0
+notSet: false
+k,v:  k1   7
+map: map[foo:1 bar:2]
+map: map[foo:100 bar:2]
+map: map[foo:100 bar:2]
+0 true
+0 false

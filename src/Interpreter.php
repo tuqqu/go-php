@@ -91,6 +91,7 @@ use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Invocable;
 use GoPhp\GoValue\Map\MapBuilder;
+use GoPhp\GoValue\Map\MapLookupValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
@@ -776,9 +777,10 @@ final class Interpreter
     private function collectValuesFromExprList(ExprList $exprList, int $expectedLen): array
     {
         $value = $this->evalExpr($exprList->exprs[0]);
+        $exprLen = \count($exprList->exprs);
 
         if ($value instanceof TupleValue) {
-            if (\count($exprList->exprs) !== 1) {
+            if ($exprLen !== 1) {
                 throw ValueError::multipleValueInSingleContext();
             }
 
@@ -789,8 +791,16 @@ final class Interpreter
             return $value->values;
         }
 
-        if ($expectedLen !== ($listLen = \count($exprList->exprs))) {
-            throw DefinitionError::assignmentMismatch($expectedLen, $listLen);
+        if (
+            $expectedLen === 2
+            && $exprLen === 1
+            && $value instanceof MapLookupValue
+        ) {
+            return [$value->value, $value->ok];
+        }
+
+        if ($expectedLen !== $exprLen) {
+            throw DefinitionError::assignmentMismatch($expectedLen, $exprLen);
         }
 
         $values = [$value];
