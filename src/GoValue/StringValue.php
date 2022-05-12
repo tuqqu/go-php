@@ -14,9 +14,9 @@ use function GoPhp\assert_index_value;
 use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_values_compatible;
 
-final class StringValue implements Sliceable, Sequence, Constantable, NonRefValue
+final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue
 {
-    use ConstantableTrait;
+    use SealableTrait;
 
     public const NAME = 'string';
 

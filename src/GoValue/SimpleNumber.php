@@ -25,9 +25,9 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 
-abstract class SimpleNumber implements NonRefValue, Constantable
+abstract class SimpleNumber implements NonRefValue, Sealable
 {
-    use ConstantableTrait;
+    use SealableTrait;
 
     final public static function create(mixed $value): static
     {
@@ -69,8 +69,8 @@ abstract class SimpleNumber implements NonRefValue, Constantable
     {
         $value = $this->doBecomeTyped($type);
 
-        if ($this->constant) {
-            $value->makeConst();
+        if ($this->sealed) {
+            $value->seal();
         }
 
         return $value;

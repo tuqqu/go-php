@@ -9,9 +9,9 @@ use GoPhp\GoType\NamedType;
 use GoPhp\Error\OperationError;
 use function GoPhp\assert_values_compatible;
 
-final class BoolValue implements NonRefValue, Constantable
+final class BoolValue implements NonRefValue, Sealable
 {
-    use ConstantableTrait;
+    use SealableTrait;
 
     public function __construct(
         private bool $value,

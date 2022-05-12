@@ -15,7 +15,7 @@ use GoPhp\GoType\BasicType;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BuiltinFuncValue;
-use GoPhp\GoValue\Constantable;
+use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\TypeValue;
@@ -34,11 +34,11 @@ final class Environment
 
     public function defineConst(string $name, GoValue $value, BasicType $type): void
     {
-        if (!$value instanceof Constantable) {
+        if (!$value instanceof Sealable) {
             throw DefinitionError::valueIsNotConstant($value);
         }
 
-        $value->makeConst();
+        $value->seal();
         $const = new ImmutableValue($name, $type, $value);
         $this->definedValues->add($const);
     }
