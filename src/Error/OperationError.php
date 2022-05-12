@@ -48,6 +48,11 @@ final class OperationError extends \RuntimeException
         return new self(\sprintf('cannot assign to %s', $name));
     }
 
+    public static function cannotAssignToConst(GoValue $value): self
+    {
+        return new self(\sprintf('cannot assign to %s constant %s', $value->type()->name(), $value->toString()));
+    }
+
     public static function lenAndCapSwapped(): self
     {
         return new self('invalid argument: length and capacity swapped');

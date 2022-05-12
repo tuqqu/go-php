@@ -24,30 +24,6 @@ abstract class BaseIntValue extends SimpleNumber
         $this->value = $value;
     }
 
-    final public function becomeTyped(NamedType $type): self
-    {
-        if (!$this->type() instanceof UntypedType) {
-            throw TypeError::implicitConversionError($this, $type);
-        }
-
-        $number = $this->unwrap();
-
-        return match ($type) {
-            NamedType::Int => new IntValue($number),
-            NamedType::Int8 => new Int8Value($number),
-            NamedType::Int16 => new Int16Value($number),
-            NamedType::Int32 => new Int32Value($number),
-            NamedType::Int64 => new Int64Value($number),
-            NamedType::Uint => new UintValue($number),
-            NamedType::Uint8 => new Uint8Value($number),
-            NamedType::Uint16 => new Uint16Value($number),
-            NamedType::Uint32 => new Uint32Value($number),
-            NamedType::Uint64 => new Uint64Value($number),
-            NamedType::Uintptr => new UintptrValue($number),
-            default => throw TypeError::implicitConversionError($this, $type),
-        };
-    }
-
     public function unwrap(): int
     {
         return $this->value;
@@ -135,6 +111,30 @@ abstract class BaseIntValue extends SimpleNumber
             $value < static::MIN => self::wrap($value + static::MAX),
             $value > static::MAX => self::wrap($value - static::MAX),
             default => $value,
+        };
+    }
+
+    final protected function doBecomeTyped(NamedType $type): self
+    {
+        if (!$this->type() instanceof UntypedType) {
+            throw TypeError::implicitConversionError($this, $type);
+        }
+
+        $number = $this->unwrap();
+
+        return match ($type) {
+            NamedType::Int => new IntValue($number),
+            NamedType::Int8 => new Int8Value($number),
+            NamedType::Int16 => new Int16Value($number),
+            NamedType::Int32 => new Int32Value($number),
+            NamedType::Int64 => new Int64Value($number),
+            NamedType::Uint => new UintValue($number),
+            NamedType::Uint8 => new Uint8Value($number),
+            NamedType::Uint16 => new Uint16Value($number),
+            NamedType::Uint32 => new Uint32Value($number),
+            NamedType::Uint64 => new Uint64Value($number),
+            NamedType::Uintptr => new UintptrValue($number),
+            default => throw TypeError::implicitConversionError($this, $type),
         };
     }
 }

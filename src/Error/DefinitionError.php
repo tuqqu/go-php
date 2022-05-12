@@ -47,6 +47,17 @@ final class DefinitionError extends \LogicException
         return new self(\sprintf('Constant must of basic type, got "%s"', $type->name()));
     }
 
+    public static function valueIsNotConstant(GoValue $value): self
+    {
+        return new self(
+            \sprintf(
+                '%s (value of type %s) is not constant',
+                $value->toString(),
+                $value->type()->name(),
+            ),
+        );
+    }
+
     public static function uninitilisedVarWithNoType(): self
     {
         return new self('Variables must be typed or be initialised');

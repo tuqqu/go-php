@@ -14,8 +14,10 @@ use function GoPhp\assert_index_value;
 use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_values_compatible;
 
-final class StringValue implements Sliceable, Sequence, NonRefValue
+final class StringValue implements Sliceable, Sequence, Constantable, NonRefValue
 {
+    use ConstantableTrait;
+
     public const NAME = 'string';
 
     private string $value;
@@ -84,6 +86,8 @@ final class StringValue implements Sliceable, Sequence, NonRefValue
 
     public function mutate(Operator $op, GoValue $rhs): void
     {
+        $this->onMutate();
+
         assert_values_compatible($this, $rhs);
 
         match ($op) {

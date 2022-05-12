@@ -25,8 +25,10 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 
-abstract class SimpleNumber implements NonRefValue
+abstract class SimpleNumber implements NonRefValue, Constantable
 {
+    use ConstantableTrait;
+
     final public static function create(mixed $value): static
     {
         return new static($value);
@@ -63,7 +65,18 @@ abstract class SimpleNumber implements NonRefValue
         };
     }
 
-    abstract public function becomeTyped(NamedType $type): self;
+    final public function becomeTyped(NamedType $type): self
+    {
+        $value = $this->doBecomeTyped($type);
+
+        if ($this->constant) {
+            $value->makeConst();
+        }
+
+        return $value;
+    }
+
+    abstract protected function doBecomeTyped(NamedType $type): self;
 
     public function toString(): string
     {
@@ -109,6 +122,8 @@ abstract class SimpleNumber implements NonRefValue
 
     public function mutate(Operator $op, GoValue $rhs): void
     {
+        $this->onMutate();
+
         assert_values_compatible($this, $rhs);
 
         match ($op) {

@@ -963,13 +963,7 @@ final class Interpreter
         $value = $this->evalUnaryExpr($expr);
 
         if ($expr->op->value !== Operator::Mul->value) {
-            throw OperationError::cannotAssign(
-                \sprintf(
-                    'cannot assign to %s%s',
-                    $expr->op->value,
-                    $value->type()->name()
-                )
-            );
+            throw OperationError::cannotAssign(\sprintf('%s(%s)',$expr->op->value, $value->toString()));
         }
 
         return $value;

@@ -18,21 +18,6 @@ abstract class BaseFloatValue extends SimpleNumber
         $this->value = $value;
     }
 
-    final public function becomeTyped(NamedType $type): self
-    {
-        if ($this->type() !== UntypedType::UntypedFloat) {
-            throw TypeError::implicitConversionError($this, $type);
-        }
-
-        $number = $this->unwrap();
-
-        return match ($type) {
-            NamedType::Float32 => new Float32Value($number),
-            NamedType::Float64 => new Float64Value($number),
-            default => throw TypeError::implicitConversionError($this, $type),
-        };
-    }
-
     public function unwrap(): float
     {
         return $this->value;
@@ -98,5 +83,20 @@ abstract class BaseFloatValue extends SimpleNumber
     public function mutMul(self $value): void
     {
         $this->value *= $value->value;
+    }
+
+    final protected function doBecomeTyped(NamedType $type): self
+    {
+        if ($this->type() !== UntypedType::UntypedFloat) {
+            throw TypeError::implicitConversionError($this, $type);
+        }
+
+        $number = $this->unwrap();
+
+        return match ($type) {
+            NamedType::Float32 => new Float32Value($number),
+            NamedType::Float64 => new Float64Value($number),
+            default => throw TypeError::implicitConversionError($this, $type),
+        };
     }
 }

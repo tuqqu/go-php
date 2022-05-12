@@ -47,23 +47,4 @@ final class EnvValueTest extends TestCase
         self::assertSame('a', $envValue->name);
         self::assertEquals(NamedType::Uint32, $envValue->type);
     }
-
-    public function testMutableSet(): void
-    {
-        $envValue = new MutableValue('a', NamedType::Uint32, new Uint32Value(1));
-        $envValue->set(new UntypedIntValue(2));
-
-        self::assertInstanceOf(Uint32Value::class, $envValue->unwrap());
-        self::assertSame(2, $envValue->unwrap()->unwrap());
-        self::assertSame('a', $envValue->name);
-        self::assertEquals(NamedType::Uint32, $envValue->type);
-    }
-
-    public function testMutableFailedSet(): void
-    {
-        $envValue = new MutableValue('a', NamedType::Uint32, new Uint32Value(1));
-
-        $this->expectException(TypeError::class);
-        $envValue->set(new StringValue("2"));
-    }
 }

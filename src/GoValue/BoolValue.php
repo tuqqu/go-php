@@ -9,8 +9,10 @@ use GoPhp\GoType\NamedType;
 use GoPhp\Error\OperationError;
 use function GoPhp\assert_values_compatible;
 
-final class BoolValue implements NonRefValue
+final class BoolValue implements NonRefValue, Constantable
 {
+    use ConstantableTrait;
+
     public function __construct(
         private bool $value,
     ) {}
@@ -79,6 +81,8 @@ final class BoolValue implements NonRefValue
 
     public function mutate(Operator $op, GoValue $rhs): void
     {
+        $this->onMutate();
+
         if ($op === Operator::Eq) {
             assert_values_compatible($this, $rhs);
 

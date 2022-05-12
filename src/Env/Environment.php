@@ -10,10 +10,12 @@ use GoPhp\Env\EnvValue\MutableValue;
 use GoPhp\Env\Error\CannotBeMutatedError;
 use GoPhp\Env\Error\UndefinedTypeError;
 use GoPhp\Env\Error\UndefinedValueError;
+use GoPhp\Error\DefinitionError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BuiltinFuncValue;
+use GoPhp\GoValue\Constantable;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\TypeValue;
@@ -32,6 +34,11 @@ final class Environment
 
     public function defineConst(string $name, GoValue $value, BasicType $type): void
     {
+        if (!$value instanceof Constantable) {
+            throw DefinitionError::valueIsNotConstant($value);
+        }
+
+        $value->makeConst();
         $const = new ImmutableValue($name, $type, $value);
         $this->definedValues->add($const);
     }
