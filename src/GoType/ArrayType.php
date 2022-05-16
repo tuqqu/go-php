@@ -20,7 +20,7 @@ final class ArrayType implements GoType
         $this->elemType = $elemType;
 
         if ($len !== null) {
-            $this->setLen($len);
+            $this->finish($len);
         }
     }
 
@@ -60,22 +60,29 @@ final class ArrayType implements GoType
         return new ArrayValue($values, $this);
     }
 
-    public function setLen(int $len): void
+    /**
+     * @psalm-suppress InaccessibleProperty
+     */
+    public function finish(int $len): void
     {
+        if (!$this->isUnfinished()) {
+            return;
+        }
+
         $this->len = $len;
 
         if (
             $this->elemType instanceof self
             && $this->elemType->isUnfinished()
         ) {
-            throw new DefinitionError('invalid use of [...] array (outside a composite literal)');
+            throw DefinitionError::unfinishedArrayTypeUse();
         }
 
         $this->name = \sprintf('[%d]%s', $this->len, $this->elemType->name());
     }
 
-    public function isUnfinished(): bool
+    private function isUnfinished(): bool
     {
-        return !isset($this->len);
+        return !isset($this->len, $this->name);
     }
 }

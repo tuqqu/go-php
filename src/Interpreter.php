@@ -494,6 +494,9 @@ final class Interpreter
                     $jump->startSeeking($stmtVal->label);
 
                     if ($jump->isSameContext($blockStmt)) {
+                        /**
+                         * @psalm-suppress LoopInvalidation
+                         */
                         [$i, $gotoIndex] = [-1, $i];
                         continue;
                     }
@@ -963,7 +966,7 @@ final class Interpreter
         $value = $this->evalUnaryExpr($expr);
 
         if ($expr->op->value !== Operator::Mul->value) {
-            throw OperationError::cannotAssign(\sprintf('%s(%s)',$expr->op->value, $value->toString()));
+            throw OperationError::cannotAssign(\sprintf('%s(%s)', $expr->op->value, $value->toString())); //fixme move to err
         }
 
         return $value;

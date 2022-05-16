@@ -18,6 +18,9 @@ class StringInputStream implements InputStream
         $this->resourceStream = new ResourceInputStream($this->handle);
     }
 
+    /**
+     * @psalm-suppress InaccessibleProperty
+     */
     public function __destruct()
     {
         \fclose($this->handle);

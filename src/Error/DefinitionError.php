@@ -77,4 +77,9 @@ final class DefinitionError extends \LogicException
     {
         return new self(\sprintf('label %s not defined', $label));
     }
+
+    public static function unfinishedArrayTypeUse(): self
+    {
+        return new self('invalid use of [...] array (outside a composite literal)');
+    }
 }

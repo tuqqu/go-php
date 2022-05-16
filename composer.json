@@ -15,7 +15,8 @@
     "require-dev": {
         "symfony/var-dumper": "^6.0",
         "friendsofphp/php-cs-fixer": "^3.8",
-        "phpunit/phpunit": "^9"
+        "phpunit/phpunit": "^9",
+        "vimeo/psalm": "5.0.0-beta1"
     },
     "autoload": {
         "psr-4": {
@@ -32,8 +33,11 @@
     },
     "scripts": {
         "fix-cs": "vendor/bin/php-cs-fixer fix --diff --allow-risky=yes",
+        "check-code-style": "vendor/bin/php-cs-fixer fix --dry-run --verbose --diff --using-cache=no --allow-risky=yes",
+        "analyse": "vendor/bin/psalm --config=psalm.xml",
         "lint": [
-            "vendor/bin/php-cs-fixer fix --dry-run --verbose --diff --using-cache=no --allow-risky=yes"
+            "@check-code-style",
+            "@analyse"
         ],
         "test-unit": "vendor/bin/phpunit --testsuite=unit",
         "test-functional": "vendor/bin/phpunit --testsuite=functional",

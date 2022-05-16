@@ -6,6 +6,10 @@ namespace GoPhp\GoValue\Array;
 
 use GoPhp\GoValue\GoValue;
 
+/**
+ * @template-implements \ArrayAccess<int, GoValue>
+ * @template-implements \Iterator<int, GoValue>
+ */
 final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
 {
     /**

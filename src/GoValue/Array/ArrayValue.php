@@ -38,10 +38,9 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
     {
         $this->values = new UnderlyingArray($values);
         $this->len = $this->values->count();
+        $type->finish($this->len);
 
-        if ($type->isUnfinished()) {
-            $type->setLen($this->len);
-        } elseif ($type->len !== $this->len) {
+        if ($type->len !== $this->len) {
             throw new TypeError(\sprintf('Expected array of length %d, got %d', $type->len, $this->len));
         }
 
