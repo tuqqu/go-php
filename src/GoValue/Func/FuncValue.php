@@ -29,9 +29,12 @@ final class FuncValue implements Func, GoValue
     public readonly Environment $enclosure;
     public readonly StreamProvider $streams;
 
-    /** @var \Closure(?Environment): StmtValue */
+    /** @var \Closure(Environment): StmtValue */
     public readonly \Closure $body;
 
+    /**
+     * @param \Closure(Environment): StmtValue $body
+     */
     public function __construct(
         \Closure $body,
         Params $params,

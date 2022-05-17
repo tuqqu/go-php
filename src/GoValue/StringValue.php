@@ -123,25 +123,25 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue
         return new BoolValue($this->value === $rhs->unwrap());
     }
 
-    public function greater(self $other): BoolValue
-    {
-        // TODO: Implement greater() method.
-    }
-
-    public function greaterEq(self $other): BoolValue
-    {
-        // TODO: Implement greaterEq() method.
-    }
-
-    public function less(self $other): BoolValue
-    {
-        // TODO: Implement less() method.
-    }
-
-    public function lessEq(self $other): BoolValue
-    {
-        // TODO: Implement lessEq() method.
-    }
+//    public function greater(self $other): BoolValue
+//    {
+//        // TODO: Implement greater() method.
+//    }
+//
+//    public function greaterEq(self $other): BoolValue
+//    {
+//        // TODO: Implement greaterEq() method.
+//    }
+//
+//    public function less(self $other): BoolValue
+//    {
+//        // TODO: Implement less() method.
+//    }
+//
+//    public function lessEq(self $other): BoolValue
+//    {
+//        // TODO: Implement lessEq() method.
+//    }
 
     public function get(GoValue $at): UntypedIntValue
     {

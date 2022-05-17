@@ -34,7 +34,7 @@
     "scripts": {
         "fix-cs": "vendor/bin/php-cs-fixer fix --diff --allow-risky=yes",
         "check-code-style": "vendor/bin/php-cs-fixer fix --dry-run --verbose --diff --using-cache=no --allow-risky=yes",
-        "analyse": "vendor/bin/psalm --config=psalm.xml",
+        "analyse": "vendor/bin/psalm --config=psalm.xml --no-cache",
         "lint": [
             "@check-code-style",
             "@analyse"

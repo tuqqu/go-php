@@ -25,6 +25,9 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 
+/**
+ * @template N of self
+ */
 abstract class SimpleNumber implements NonRefValue, Sealable
 {
     use SealableTrait;
@@ -76,12 +79,12 @@ abstract class SimpleNumber implements NonRefValue, Sealable
         return $value;
     }
 
-    abstract protected function doBecomeTyped(NamedType $type): self;
-
     public function toString(): string
     {
-        return (string) $this->value;
+        return (string) $this->unwrap();
     }
+
+    abstract protected function doBecomeTyped(NamedType $type): self;
 
     public function operateOn(Operator $op, GoValue $rhs): NonRefValue
     {
@@ -112,9 +115,9 @@ abstract class SimpleNumber implements NonRefValue, Sealable
                 return $this->noop();
             case Operator::Minus:
                 return $this->negate();
-            case Operator::BitXor:
-                // fixme move to ints
-                return $this->bitwiseComplement();
+//            case Operator::BitXor:
+//                // fixme move to ints
+//                return $this->bitwiseComplement();
             default:
                 throw OperationError::undefinedOperator($op, $this);
         }
@@ -127,7 +130,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable
         assert_values_compatible($this, $rhs);
 
         match ($op) {
-            Operator::Eq => $this->value = $rhs->value,
+            Operator::Eq => $this->assign($rhs),
             Operator::PlusEq,
             Operator::Inc => $this->mutAdd($rhs),
             Operator::MinusEq,
@@ -146,26 +149,89 @@ abstract class SimpleNumber implements NonRefValue, Sealable
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return new BoolValue($this->value === $rhs->unwrap());
+        return new BoolValue($this->unwrap() === $rhs->unwrap());
     }
 
     public function greater(self $other): BoolValue
     {
-        return new BoolValue($this->value > $other->value);
+        return new BoolValue($this->unwrap() > $other->unwrap());
     }
 
     public function greaterEq(self $other): BoolValue
     {
-        return new BoolValue($this->value >= $other->value);
+        return new BoolValue($this->unwrap() >= $other->unwrap());
     }
 
     public function less(self $other): BoolValue
     {
-        return new BoolValue($this->value < $other->value);
+        return new BoolValue($this->unwrap() < $other->unwrap());
     }
 
     public function lessEq(self $other): BoolValue
     {
-        return new BoolValue($this->value <= $other->value);
+        return new BoolValue($this->unwrap() <= $other->unwrap());
     }
+
+    final protected function noop(): static
+    {
+        return $this;
+    }
+
+    abstract protected function negate(): static;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function add(self $value): static;
+
+
+    /**
+     * @param N $value
+     */
+    abstract protected function sub(self $value): static;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function div(self $value): static;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function mod(self $value): static;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function mul(self $value): static;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function mutAdd(self $value): void;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function mutSub(self $value): void;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function mutDiv(self $value): void;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function mutMod(self $value): void;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function mutMul(self $value): void;
+
+    /**
+     * @param N $value
+     */
+    abstract protected function assign(self $value): void;
 }

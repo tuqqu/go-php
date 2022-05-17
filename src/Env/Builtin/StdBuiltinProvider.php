@@ -386,7 +386,7 @@ class StdBuiltinProvider implements BuiltinProvider
         };
     }
 
-    protected static function createNumberConverter(NamedType $type): callable
+    protected static function createNumberConverter(NamedType $type): \Closure
     {
         return static fn (GoValue $value): SimpleNumber =>
             $value instanceof SimpleNumber ?

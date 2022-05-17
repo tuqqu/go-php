@@ -9,9 +9,12 @@ use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\SimpleNumber;
 
+/**
+ * @template-extends SimpleNumber<self>
+ */
 abstract class BaseFloatValue extends SimpleNumber
 {
-    public float $value;
+    protected float $value;
 
     public function __construct(float $value)
     {
@@ -23,66 +26,71 @@ abstract class BaseFloatValue extends SimpleNumber
         return $this->value;
     }
 
-    public function negate(): static
+    public function toString(): string
+    {
+        return (string) $this->value;
+    }
+
+    final protected function negate(): static
     {
         return new static(-$this->value);
     }
 
-    public function noop(): static
-    {
-        return $this;
-    }
-
     // binary
 
-    public function add(self $value): static
+    final protected function add(parent $value): static
     {
         return new static($this->value + $value->value);
     }
 
-    public function sub(self $value): static
+    final protected function sub(parent $value): static
     {
         return new static($this->value - $value->value);
     }
 
-    public function div(self $value): static
+    final protected function div(parent $value): static
     {
         return new static($this->value / $value->value);
     }
 
-    public function mod(self $value): static
+    final protected function mod(parent $value): static
     {
         return new static($this->value % $value->value);
     }
 
-    public function mul(self $value): static
+    final protected function mul(parent $value): static
     {
         return new static($this->value * $value->value);
     }
 
-    public function mutAdd(self $value): void
+    final protected function mutAdd(parent $value): void
     {
         $this->value += $value->value;
     }
 
-    public function mutSub(self $value): void
+    final protected function mutSub(parent $value): void
     {
         $this->value += $value->value;
     }
 
-    public function mutDiv(self $value): void
+    final protected function mutDiv(parent $value): void
     {
         $this->value /= $value->value;
     }
 
-    public function mutMod(self $value): void
+    final protected function mutMod(parent $value): void
     {
         $this->value %= $value->value;
     }
 
-    public function mutMul(self $value): void
+    final protected function mutMul(parent $value): void
     {
         $this->value *= $value->value;
+    }
+
+    final protected function assign(parent $value): void
+    {
+        $this->value = $value->value;
     }
 
     final protected function doBecomeTyped(NamedType $type): self

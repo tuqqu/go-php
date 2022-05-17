@@ -307,6 +307,10 @@ final class Interpreter
     {
         [$params, $returns] = $this->resolveParamsFromAstSignature($decl->signature);
 
+        if ($decl->body === null) {
+            throw new InternalError('not implemented');
+        }
+
         $funcValue = new FuncValue(
             fn (Environment $env) => $this->evalBlockStmt($decl->body, $env),
             $params,
@@ -664,6 +668,7 @@ final class Interpreter
 
     private function evalForRangeStmt(ForStmt $stmt): StmtValue
     {
+        /** @var RangeClause $iteration */
         $iteration = $stmt->iteration;
         $range = $this->evalExpr($iteration->expr);
 
@@ -832,7 +837,7 @@ final class Interpreter
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof SliceExpr => $this->evalSliceExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
-            $expr instanceof AstType => $this->evalTypeConversion($expr),
+//            $expr instanceof AstType => $this->evalTypeConversion($expr),
             default => dd('eval expr', $expr), // fixme debug
         };
     }
@@ -843,7 +848,7 @@ final class Interpreter
             // literals
             $expr instanceof RuneLit => $this->evalRuneLit($expr),
             $expr instanceof StringLit => $this->evalStringLit($expr),
-            $expr instanceof RawStringLit => $this->evalStringLit($expr),
+//            $expr instanceof RawStringLit => $this->evalStringLit($expr),
             $expr instanceof IntLit => $this->evalIntLit($expr),
             $expr instanceof FloatLit => $this->evalFloatLit($expr),
             $expr instanceof UnaryExpr => $this->evalUnaryExpr($expr),
@@ -854,10 +859,10 @@ final class Interpreter
         };
     }
 
-    private function evalTypeConversion(AstType $expr): TypeValue
-    {
-        // fixme add []byte, []rune, errors
-    }
+//    private function evalTypeConversion(AstType $expr): TypeValue
+//    {
+//        // fixme add []byte, []rune, errors
+//    }
 
     private function evalConstExpr(Expr $expr): GoValue
     {
@@ -997,10 +1002,11 @@ final class Interpreter
 
     /**
      * @return iterable<Spec>
+     * @psalm-suppress InvalidReturnStatement
      */
-    private static function wrapSpecs(VarSpec|ConstSpec|GroupSpec $spec): iterable
+    private static function wrapSpecs(Spec $spec): iterable
     {
-        return $spec->isGroup() ?
+        return $spec instanceof GroupSpec ?
             yield from $spec->specs :
             yield $spec;
     }

@@ -10,6 +10,7 @@ use function GoPhp\assert_types_compatible_with_cast;
 
 final class ArrayBuilder
 {
+    /** @var GoValue[] */
     private array $values = [];
 
     private function __construct(
