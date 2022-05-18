@@ -80,7 +80,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         return \sprintf('[%s]', \implode(' ', $str));
     }
 
-    public function slice(?int $low, ?int $high, ?int $max = null): SliceValue
+    public function slice(?int $low, ?int $high, ?int $max = null): self
     {
         $low ??= 0;
         $high ??= $this->len;

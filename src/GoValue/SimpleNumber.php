@@ -184,7 +184,6 @@ abstract class SimpleNumber implements NonRefValue, Sealable
      */
     abstract protected function add(self $value): static;
 
-
     /**
      * @param N $value
      */

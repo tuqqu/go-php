@@ -31,9 +31,7 @@ final class MapValue implements Map, GoValue
         foreach ($this->iter() as $key => $value) {
             $str[] = \sprintf(
                 '%s:%s',
-                $key instanceof GoValue ?
-                    $key->toString() :
-                    $key,
+                $key->toString(),
                 $value->toString()
             );
         }

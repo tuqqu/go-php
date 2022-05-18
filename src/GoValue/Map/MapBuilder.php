@@ -53,6 +53,6 @@ final class MapBuilder
             // fixme ass ref
             default:
                 throw new \Exception(\sprintf('invalid map key type %s', $this->type->keyType->name()));
-        };
+        }
     }
 }
