@@ -10,8 +10,8 @@ use PHPUnit\Framework\TestCase;
 
 final class InterpreterTest extends TestCase
 {
-    private const SRC_FILES_PATH = __DIR__ . '/files/';
-    private const OUTPUT_FILES_PATH = __DIR__ . '/output/';
+    private const SRC_FILES_PATH = __DIR__ . '/files';
+    private const OUTPUT_FILES_PATH = __DIR__ . '/output';
 
     /**
      * @dataProvider sourceFileProvider
@@ -40,29 +40,18 @@ final class InterpreterTest extends TestCase
 
     public function sourceFileProvider(): iterable
     {
-        $files = [
-            'variable_decl',
-            'const_decl',
-            'iota',
-            'if',
-            'for',
-            'for_range',
-            'goto',
-            'pointer',
-            'array', //fixme fmt
-            'slice', //fixme fmt, copy, :1
-            'type_conversion', //fixme fmt float
-            'slicing', //fixme fmt float
-            'variadic',
-            'defer',
-            'map',
-            'short_circuit',
-            'func',
-        ];
+//        'array', //fixme fmt
+//        'slice', //fixme fmt, copy, :1
+//        'type_conversion', //fixme fmt float
+//        'slicing', //fixme fmt float
+
+        $files = \glob(\sprintf('%s/*.go', self::SRC_FILES_PATH));
 
         foreach ($files as $file) {
-            $goProgram = \file_get_contents(\sprintf('%s%s.go', self::SRC_FILES_PATH, $file));
-            $expectedOutput = \file_get_contents(\sprintf('%s%s', self::OUTPUT_FILES_PATH, $file));
+            $goProgram = \file_get_contents($file);
+            $expectedOutput = \file_get_contents(
+                \sprintf('%s/%s.out', self::OUTPUT_FILES_PATH, \basename($file, '.go'))
+            );
 
             yield $file => [$goProgram, $expectedOutput];
         }
