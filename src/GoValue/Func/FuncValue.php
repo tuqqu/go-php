@@ -104,8 +104,7 @@ final class FuncValue implements Func, GoValue
         }
 
         // single & tuple value return
-        $i = 0;
-        foreach ($this->signature->returns->iter() as $param) {
+        foreach ($this->signature->returns->iter() as $i => $param) {
             assert_types_compatible($param->type, $stmtValue->values()[$i]->type());
         }
 
