@@ -27,6 +27,16 @@ final class BoolValue implements NonRefValue, Sealable
         return new self(false);
     }
 
+    public function isTrue(): bool
+    {
+        return $this->value;
+    }
+
+    public function isFalse(): bool
+    {
+        return !$this->value;
+    }
+
     public function reify(): NonRefValue
     {
         return $this;

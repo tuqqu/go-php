@@ -56,6 +56,8 @@ final class InterpreterTest extends TestCase
             'variadic',
             'defer',
             'map',
+            'short_circuit',
+            'func',
         ];
 
         foreach ($files as $file) {

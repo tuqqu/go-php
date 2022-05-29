@@ -935,12 +935,24 @@ final class Interpreter
 
     private function evalBinaryExpr(BinaryExpr $expr): GoValue
     {
-        return $this
-            ->evalExpr($expr->lExpr)
-            ->operateOn(
-                Operator::fromAst($expr->op),
-                $this->evalExpr($expr->rExpr),
-            );
+        $left = $this->evalExpr($expr->lExpr);
+        $op = Operator::fromAst($expr->op);
+
+        // short circuit evaluation
+        if (
+            $left instanceof BoolValue
+            && (
+                ($op === Operator::LogicAnd && $left->isFalse())
+                || ($op === Operator::LogicOr && $left->isTrue())
+            )
+        ) {
+            return $left;
+        }
+
+        return $left->operateOn(
+            $op,
+            $this->evalExpr($expr->rExpr),
+        );
     }
 
     private function evalUnaryExpr(UnaryExpr $expr): GoValue
