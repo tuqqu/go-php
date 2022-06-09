@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoParser\Ast\ConstSpec;
+use GoParser\Ast\DefaultCase;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
 use GoParser\Ast\Expr\BinaryExpr;
 use GoParser\Ast\Expr\CallExpr;
@@ -20,7 +21,6 @@ use GoParser\Ast\Expr\IntLit;
 use GoParser\Ast\Expr\MapType as AstMapType;
 use GoParser\Ast\Expr\PointerType as AstPointerType;
 use GoParser\Ast\Expr\QualifiedTypeName;
-use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\SliceExpr;
@@ -47,6 +47,8 @@ use GoParser\Ast\Stmt\ContinueStmt;
 use GoParser\Ast\Stmt\DeferStmt;
 use GoParser\Ast\Stmt\EmptyStmt;
 use GoParser\Ast\Stmt\ExprStmt;
+use GoParser\Ast\Stmt\ExprSwitchStmt;
+use GoParser\Ast\Stmt\FallthroughStmt;
 use GoParser\Ast\Stmt\ForStmt;
 use GoParser\Ast\Stmt\FuncDecl;
 use GoParser\Ast\Stmt\GotoStmt;
@@ -56,7 +58,9 @@ use GoParser\Ast\Stmt\LabeledStmt;
 use GoParser\Ast\Stmt\ReturnStmt;
 use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
+use GoParser\Ast\Stmt\SwitchStmt;
 use GoParser\Ast\Stmt\VarDecl;
+use GoParser\Ast\StmtList;
 use GoParser\Ast\VarSpec;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
@@ -116,6 +120,7 @@ final class Interpreter
     private bool $constDefinition = false;
     private JumpStack $jumpStack;
     private DeferStack $deferStack;
+    private int $switchContext = 0;
 
     public function __construct(
         private readonly Ast $ast,
@@ -197,11 +202,13 @@ final class Interpreter
             State::EntryPoint => match (true) {
                 $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt),
                 $stmt instanceof BreakStmt => $this->evalBreakStmt($stmt),
+                $stmt instanceof FallthroughStmt => $this->evalFallthroughStmt($stmt),
                 $stmt instanceof ContinueStmt => $this->evalContinueStmt($stmt),
                 $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
                 $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
                 $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
                 $stmt instanceof ForStmt => $this->evalForStmt($stmt),
+                $stmt instanceof ExprSwitchStmt => $this->evalExprSwitchStmt($stmt),
                 $stmt instanceof DeferStmt => $this->evalDeferStmt($stmt),
                 $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
                 $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
@@ -458,6 +465,15 @@ final class Interpreter
         return SimpleValue::Break;
     }
 
+    private function evalFallthroughStmt(FallthroughStmt $stmt): SimpleValue
+    {
+        if ($this->switchContext <= 0) {
+            throw new DefinitionError('fallthrough outside switch');
+        }
+
+        return SimpleValue::Fallthrough;
+    }
+
     private function evalContinueStmt(ContinueStmt $stmt): SimpleValue
     {
         return SimpleValue::Continue;
@@ -472,16 +488,21 @@ final class Interpreter
 
     private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtValue
     {
-        $jump = $this->jumpStack->peek();
-        $jump->setContext($blockStmt);
+        return $this->evalStmtList($blockStmt->stmtList, $env);
+    }
 
-        return $this->evalWithEnvWrap($env, function () use ($blockStmt, $jump): StmtValue {
+    private function evalStmtList(StmtList $stmtList, ?Environment $env = null): StmtValue
+    {
+        $jump = $this->jumpStack->peek();
+        $jump->setContext($stmtList);
+
+        return $this->evalWithEnvWrap($env, function () use ($stmtList, $jump): StmtValue {
             $stmtVal = SimpleValue::None;
-            $len = \count($blockStmt->stmtList->stmts);
+            $len = \count($stmtList->stmts);
             $gotoIndex = 0;
 
             for ($i = 0; $i < $len; ++$i) {
-                $stmt = $blockStmt->stmtList->stmts[$i];
+                $stmt = $stmtList->stmts[$i];
 
                 // fixme refactor
                 if ($jump->isSeeking()) {
@@ -497,7 +518,7 @@ final class Interpreter
                 if ($stmtVal instanceof GotoValue) {
                     $jump->startSeeking($stmtVal->label);
 
-                    if ($jump->isSameContext($blockStmt)) {
+                    if ($jump->isSameContext($stmtList)) {
                         /**
                          * @psalm-suppress LoopInvalidation
                          */
@@ -514,6 +535,10 @@ final class Interpreter
                     || $stmtVal === SimpleValue::Break
                 ) {
                     break;
+                }
+
+                if ($stmtVal === SimpleValue::Fallthrough && $i + 1 < $len) {
+                    throw new DefinitionError('fallthrough can only appear in last statement');
                 }
             }
 
@@ -664,6 +689,94 @@ final class Interpreter
 
             return SimpleValue::None;
         });
+    }
+
+    private function evalExprSwitchStmt(ExprSwitchStmt $stmt): StmtValue
+    {
+        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtValue {
+            ++$this->switchContext;
+
+            if ($stmt->init !== null) {
+                $this->evalStmt($stmt->init);
+            }
+
+            $condition = $stmt->condition === null ?
+                BoolValue::true() :
+                $this->evalExpr($stmt->condition);
+
+            $stmtValue = SimpleValue::None;
+            $defaultCaseIndex = null;
+
+            foreach ($stmt->caseClauses as $i => $caseClause) {
+                if ($caseClause->case instanceof DefaultCase) {
+                    if ($defaultCaseIndex !== null) {
+                        throw new DefinitionError('Multiple default cases in switch');
+                    }
+
+                    $defaultCaseIndex = $i;
+                    continue;
+                }
+
+                foreach ($caseClause->case->exprList->exprs as $expr) {
+                    $caseCondition = $this->evalExpr($expr);
+                    $equal = $caseCondition->operateOn(Operator::EqEq, $condition);
+
+                    if ($equal instanceof BoolValue && $equal->unwrap()) {
+                        // todo fall last
+                        $stmtValue = $this->evalStmtList($caseClause->stmtList);
+
+                        if ($stmtValue === SimpleValue::Fallthrough) {
+                            $stmtValue = $this->evalSwitchWithFallthrough($stmt, $i + 1);
+
+                            goto end_switch;
+                        } elseif ($stmtValue === SimpleValue::Break) {
+                            $stmtValue = SimpleValue::None;
+
+                            goto end_switch;
+                        }
+
+                        return $stmtValue;
+                    }
+                }
+            }
+
+            if ($defaultCaseIndex !== null) {
+                $stmtValue = $this->evalStmtList($stmt->caseClauses[$defaultCaseIndex]->stmtList);
+
+                if ($stmtValue === SimpleValue::Fallthrough) {
+                    $stmtValue = $this->evalSwitchWithFallthrough($stmt, $defaultCaseIndex + 1);
+                }
+            }
+
+            end_switch:
+
+            --$this->switchContext;
+
+            return $stmtValue;
+        });
+    }
+
+    private function evalSwitchWithFallthrough(SwitchStmt $stmt, int $fromCase): StmtValue
+    {
+        $stmtValue = SimpleValue::None;
+
+        for (
+            $i = $fromCase,
+            $caseClausesLen = \count($stmt->caseClauses);
+            $i < $caseClausesLen;
+            $i++
+        ) {
+            $stmtValue = $this->evalStmtList($stmt->caseClauses[$i]->stmtList);
+
+            if ($stmtValue === SimpleValue::Fallthrough) {
+                $stmtValue = SimpleValue::None;
+                continue;
+            }
+
+            break;
+        }
+
+        return $stmtValue;
     }
 
     private function evalForRangeStmt(ForStmt $stmt): StmtValue

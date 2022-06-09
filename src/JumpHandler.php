@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
-use GoParser\Ast\Stmt\BlockStmt as BlockContext;
 use GoParser\Ast\Stmt\Decl;
 use GoParser\Ast\Stmt\LabeledStmt;
 use GoParser\Ast\Stmt\Stmt;
@@ -16,10 +15,10 @@ use GoPhp\Error\ProgramError;
 final class JumpHandler
 {
     private ?string $soughtForLabel = null;
-    private ?BlockContext $context = null;
+    private ?object $context = null;
     private array $metLabels = [];
 
-    public function setContext(BlockContext $context): void
+    public function setContext(object $context): void
     {
         $this->context ??= $context;
     }
@@ -36,6 +35,7 @@ final class JumpHandler
 
     public function addLabel(LabeledStmt $label): void
     {
+        dump($label->label->name);
         if ($this->hasMet($label)) {
             throw DefinitionError::labelAlreadyDefined($label->label->name);
         }
@@ -43,7 +43,7 @@ final class JumpHandler
         $this->metLabels[$label->label->name] = \spl_object_id($label);
     }
 
-    public function isSameContext(BlockContext $context): bool
+    public function isSameContext(object $context): bool
     {
         return $this->context === $context;
     }

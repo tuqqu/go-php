@@ -109,9 +109,12 @@ final class BoolValue implements NonRefValue, Sealable
         return new self($this->value === $rhs->value);
     }
 
-    public function copy(): static
+    public function copy(): self
     {
-        return $this;
+        $cloned = clone $this;
+        $cloned->sealed = false;
+
+        return $cloned;
     }
 
     private function logicOr(self $other): self
