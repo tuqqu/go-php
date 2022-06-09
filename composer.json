@@ -44,6 +44,11 @@
         "test": [
             "@test-unit",
             "@test-functional"
+        ],
+        "all-checks": [
+            "@lint",
+            "@analyse",
+            "@test"
         ]
     }
 }

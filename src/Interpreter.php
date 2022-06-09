@@ -28,7 +28,9 @@ use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\UnaryExpr;
+use GoParser\Ast\ExprCaseClause;
 use GoParser\Ast\ExprList;
+use GoParser\Ast\ExprSwitchCase;
 use GoParser\Ast\File as Ast;
 use GoParser\Ast\ForClause;
 use GoParser\Ast\GroupSpec;
@@ -538,7 +540,7 @@ final class Interpreter
                 }
 
                 if ($stmtVal === SimpleValue::Fallthrough && $i + 1 < $len) {
-                    throw new DefinitionError('fallthrough can only appear in last statement');
+                    throw new DefinitionError('fallthrough can only appear as the last statement');
                 }
             }
 
@@ -721,31 +723,18 @@ final class Interpreter
                     $caseCondition = $this->evalExpr($expr);
                     $equal = $caseCondition->operateOn(Operator::EqEq, $condition);
 
-                    if ($equal instanceof BoolValue && $equal->unwrap()) {
-                        // todo fall last
-                        $stmtValue = $this->evalStmtList($caseClause->stmtList);
+                    if ($equal instanceof BoolValue && $equal->isTrue()) {
+                        // todo check for fall last
+                        // todo and not the last case
+                        $stmtValue = $this->evalExprCaseClause($caseClause, $i, $stmt);
 
-                        if ($stmtValue === SimpleValue::Fallthrough) {
-                            $stmtValue = $this->evalSwitchWithFallthrough($stmt, $i + 1);
-
-                            goto end_switch;
-                        } elseif ($stmtValue === SimpleValue::Break) {
-                            $stmtValue = SimpleValue::None;
-
-                            goto end_switch;
-                        }
-
-                        return $stmtValue;
+                        goto end_switch;
                     }
                 }
             }
 
             if ($defaultCaseIndex !== null) {
-                $stmtValue = $this->evalStmtList($stmt->caseClauses[$defaultCaseIndex]->stmtList);
-
-                if ($stmtValue === SimpleValue::Fallthrough) {
-                    $stmtValue = $this->evalSwitchWithFallthrough($stmt, $defaultCaseIndex + 1);
-                }
+                $stmtValue = $this->evalExprCaseClause($stmt->caseClauses[$defaultCaseIndex], $defaultCaseIndex, $stmt);
             }
 
             end_switch:
@@ -754,6 +743,21 @@ final class Interpreter
 
             return $stmtValue;
         });
+    }
+
+    private function evalExprCaseClause(ExprCaseClause $caseClause, int $caseIndex, ExprSwitchStmt $stmt): StmtValue
+    {
+        $stmtValue = $this->evalStmtList($caseClause->stmtList);
+
+        if ($stmtValue === SimpleValue::Fallthrough) {
+            $stmtValue = $this->evalSwitchWithFallthrough($stmt, $caseIndex + 1);
+        }
+
+        if ($stmtValue === SimpleValue::Break) {
+            $stmtValue = SimpleValue::None;
+        }
+
+        return $stmtValue;
     }
 
     private function evalSwitchWithFallthrough(SwitchStmt $stmt, int $fromCase): StmtValue

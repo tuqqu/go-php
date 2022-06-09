@@ -35,7 +35,6 @@ final class JumpHandler
 
     public function addLabel(LabeledStmt $label): void
     {
-        dump($label->label->name);
         if ($this->hasMet($label)) {
             throw DefinitionError::labelAlreadyDefined($label->label->name);
         }

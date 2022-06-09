@@ -1,0 +1,22 @@
+test_switch_1
+test_switch_2
+true
+test_switch_3
+33, 34 + 1
+test_switch_4
+return100
+return100
+test_switch_5
+return100
+return100
+default
+test_switch_6
+100
+test_switch_7
+default
+101
+test_switch_8
+100
+101
+102
+end for
