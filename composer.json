@@ -23,7 +23,7 @@
             "GoPhp\\": "src/"
         },
         "files": [
-            "src/functions.php"
+            "src/asserts.php"
         ]
     },
     "autoload-dev": {
