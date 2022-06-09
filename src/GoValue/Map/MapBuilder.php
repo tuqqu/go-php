@@ -45,12 +45,13 @@ final class MapBuilder
     {
         switch (true) {
             // fixme add types
-            // fixme || $this->type->keyType instanceof ArrayType
+            // fixme make sure if the check $this->type->keyType instanceof ArrayType is more correct here
             case $this->type->keyType instanceof BasicType:
                 /** @var NonRefValue $default */
                 $default = $this->type->keyType->defaultValue();
+
                 return new NonRefKeyMap($default::create(...));
-            // fixme ass ref
+            // fixme add ref
             default:
                 throw new \Exception(\sprintf('invalid map key type %s', $this->type->keyType->name()));
         }

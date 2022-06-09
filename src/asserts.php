@@ -95,7 +95,7 @@ function assert_index_positive(int $index): void
 
 function assert_slice_indices(int $cap, int $low, int $high, ?int $max = null): void
 {
-    //fixme revisit -1
+    //fixme revisit -1 weird cases
     assert_index_exists($low, $cap);
     assert_index_exists($high - 1, $cap);
 

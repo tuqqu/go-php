@@ -58,6 +58,7 @@ final class OperationError extends \RuntimeException
         return new self('invalid argument: length and capacity swapped');
     }
 
+    // fixme check if this is correct
 //    public static function cannotIndirect(GoType $type): self
 //    {
 //        return new self(\sprintf('invalid operation: cannot indirect value of type %s', $type->name()));

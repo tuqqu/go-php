@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\Slice\SliceValue;
 
 final class SliceType implements RefType

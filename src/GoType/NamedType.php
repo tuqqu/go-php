@@ -51,18 +51,6 @@ enum NamedType: string implements BasicType
 
     case Bool = 'bool';
     case String = 'string';
-//
-//    // non-ref
-//    case Array = 'array';
-//    case Struct = 'struct';
-//
-//    // ref
-//    case Pointer = 'pointer';
-//    case Slice = 'slice';
-//    case Map = 'map';
-//    case Func = 'func';
-//    case Channel = 'channel';
-//    case Interface = 'interface';
 
     public function name(): string
     {
@@ -95,11 +83,12 @@ enum NamedType: string implements BasicType
             self::Uintptr => new UintptrValue(0),
             self::Float32 => new Float32Value(0),
             self::Float64 => new Float64Value(0),
-//            self::Complex64 =>
-//            self::Complex128 =>
+            //fixme add complex types
+            // self::Complex64 =>
+            // self::Complex128 =>
             self::Bool => BoolValue::false(),
             self::String => new StringValue(''),
-            // fixme remvoe after complex
+            // fixme remove after complex
             default => throw new \UnhandledMatchError('not impls def val'),
         };
     }
