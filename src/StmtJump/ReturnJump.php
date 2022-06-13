@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\StmtValue;
+namespace GoPhp\StmtJump;
 
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\TupleValue;
 
-final class ReturnValue implements StmtValue
+final class ReturnJump implements StmtJump
 {
     private function __construct(
         public readonly ?GoValue $value,

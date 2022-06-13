@@ -15,9 +15,9 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\VoidValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\Operator;
-use GoPhp\StmtValue\ReturnValue;
-use GoPhp\StmtValue\SimpleValue;
-use GoPhp\StmtValue\StmtValue;
+use GoPhp\StmtJump\ReturnJump;
+use GoPhp\StmtJump\None;
+use GoPhp\StmtJump\StmtJump;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_type;
 use function GoPhp\assert_nil_comparison;
@@ -25,15 +25,14 @@ use function GoPhp\assert_types_compatible;
 
 final class FuncValue implements Func, GoValue
 {
+    /** @var \Closure(Environment): StmtJump */
+    public readonly \Closure $body;
     public readonly Signature $signature;
     public readonly Environment $enclosure;
     public readonly StreamProvider $streams;
 
-    /** @var \Closure(Environment): StmtValue */
-    public readonly \Closure $body;
-
     /**
-     * @param \Closure(Environment): StmtValue $body
+     * @param \Closure(Environment): StmtJump $body
      */
     public function __construct(
         \Closure $body,
@@ -81,34 +80,34 @@ final class FuncValue implements Func, GoValue
             }
         }
 
-        /** @var StmtValue $stmtValue */
-        $stmtValue = ($this->body)($env);
+        /** @var StmtJump $stmtJump */
+        $stmtJump = ($this->body)($env);
 
-        if ($stmtValue === SimpleValue::None) {
+        if ($stmtJump instanceof None) {
             return $this->signature->returnArity === 0 ?
                 new VoidValue() :
                 throw ProgramError::wrongReturnValueNumber([], $this->signature->returns);
         }
 
-        if (!$stmtValue instanceof ReturnValue) {
+        if (!$stmtJump instanceof ReturnJump) {
             throw new InternalError('Unexpected return statement');
         }
 
-        if ($this->signature->returnArity !== $stmtValue->len) {
-            throw ProgramError::wrongReturnValueNumber($stmtValue->values(), $this->signature->returns);
+        if ($this->signature->returnArity !== $stmtJump->len) {
+            throw ProgramError::wrongReturnValueNumber($stmtJump->values(), $this->signature->returns);
         }
 
         // void return
-        if ($stmtValue->len === 0) {
+        if ($stmtJump->len === 0) {
             return new VoidValue();
         }
 
         // single & tuple value return
         foreach ($this->signature->returns->iter() as $i => $param) {
-            assert_types_compatible($param->type, $stmtValue->values()[$i]->type());
+            assert_types_compatible($param->type, $stmtJump->values()[$i]->type());
         }
 
-        return $stmtValue->value;
+        return $stmtJump->value;
     }
 
     public function copy(): static

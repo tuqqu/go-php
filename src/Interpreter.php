@@ -105,10 +105,13 @@ use GoPhp\GoValue\Sliceable;
 use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\TypeValue;
-use GoPhp\StmtValue\GotoValue;
-use GoPhp\StmtValue\ReturnValue;
-use GoPhp\StmtValue\SimpleValue;
-use GoPhp\StmtValue\StmtValue;
+use GoPhp\StmtJump\BreakJump;
+use GoPhp\StmtJump\ContinueJump;
+use GoPhp\StmtJump\FallthroughJump;
+use GoPhp\StmtJump\GotoJump;
+use GoPhp\StmtJump\ReturnJump;
+use GoPhp\StmtJump\None;
+use GoPhp\StmtJump\StmtJump;
 use GoPhp\Stream\StdStreamProvider;
 use GoPhp\Stream\StreamProvider;
 
@@ -198,7 +201,7 @@ final class Interpreter
         return ExecCode::Success;
     }
 
-    private function evalStmt(Stmt $stmt): StmtValue
+    private function evalStmt(Stmt $stmt): StmtJump
     {
         return match ($this->state) {
             State::EntryPoint => match (true) {
@@ -232,7 +235,7 @@ final class Interpreter
         };
     }
 
-    private function evalConstDeclStmt(ConstDecl $decl): SimpleValue
+    private function evalConstDeclStmt(ConstDecl $decl): None
     {
         $this->constDefinition = true;
         $initExprs = [];
@@ -277,10 +280,10 @@ final class Interpreter
 
         $this->constDefinition = false;
 
-        return SimpleValue::None;
+        return None::get();
     }
 
-    private function evalVarDeclStmt(VarDecl $decl): SimpleValue
+    private function evalVarDeclStmt(VarDecl $decl): None
     {
         foreach (self::wrapSpecs($decl->spec) as $spec) {
             /** @var VarSpec $spec */
@@ -309,10 +312,10 @@ final class Interpreter
             }
         }
 
-        return SimpleValue::None;
+        return None::get();
     }
 
-    private function evalFuncDeclStmt(FuncDecl $decl): SimpleValue
+    private function evalFuncDeclStmt(FuncDecl $decl): None
     {
         [$params, $returns] = $this->resolveParamsFromAstSignature($decl->signature);
 
@@ -331,10 +334,10 @@ final class Interpreter
         $this->env->defineFunc($decl->name->name, $funcValue);
         $this->checkEntryPoint($decl->name->name, $funcValue);
 
-        return SimpleValue::None;
+        return None::get();
     }
 
-    private function evalDeferStmt(DeferStmt $stmt): SimpleValue
+    private function evalDeferStmt(DeferStmt $stmt): None
     {
         if (!$stmt->expr instanceof CallExpr) {
             throw new InternalError('Call expression expected in defer statement');
@@ -343,7 +346,7 @@ final class Interpreter
         $fn = $this->evalCallExprWithoutCall($stmt->expr);
         $this->deferStack->push($fn);
 
-        return SimpleValue::None;
+        return None::get();
     }
 
     private function evalCallExprWithoutCall(CallExpr $expr): callable
@@ -457,49 +460,49 @@ final class Interpreter
         return $index->unwrap();
     }
 
-    private function evalEmptyStmt(EmptyStmt $stmt): SimpleValue
+    private function evalEmptyStmt(EmptyStmt $stmt): None
     {
-        return SimpleValue::None;
+        return None::get();
     }
 
-    private function evalBreakStmt(BreakStmt $stmt): SimpleValue
+    private function evalBreakStmt(BreakStmt $stmt): BreakJump
     {
-        return SimpleValue::Break;
+        return new BreakJump();
     }
 
-    private function evalFallthroughStmt(FallthroughStmt $stmt): SimpleValue
+    private function evalFallthroughStmt(FallthroughStmt $stmt): FallthroughJump
     {
         if ($this->switchContext <= 0) {
             throw new DefinitionError('fallthrough outside switch');
         }
 
-        return SimpleValue::Fallthrough;
+        return new FallthroughJump();
     }
 
-    private function evalContinueStmt(ContinueStmt $stmt): SimpleValue
+    private function evalContinueStmt(ContinueStmt $stmt): ContinueJump
     {
-        return SimpleValue::Continue;
+        return new ContinueJump();
     }
 
-    private function evalExprStmt(ExprStmt $stmt): SimpleValue
+    private function evalExprStmt(ExprStmt $stmt): None
     {
         $this->evalExpr($stmt->expr);
 
-        return SimpleValue::None;
+        return None::get();
     }
 
-    private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtValue
+    private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtJump
     {
         return $this->evalStmtList($blockStmt->stmtList, $env);
     }
 
-    private function evalStmtList(StmtList $stmtList, ?Environment $env = null): StmtValue
+    private function evalStmtList(StmtList $stmtList, ?Environment $env = null): StmtJump
     {
         $jump = $this->jumpStack->peek();
         $jump->setContext($stmtList);
 
-        return $this->evalWithEnvWrap($env, function () use ($stmtList, $jump): StmtValue {
-            $stmtVal = SimpleValue::None;
+        return $this->evalWithEnvWrap($env, function () use ($stmtList, $jump): StmtJump {
+            $stmtJump = None::get();
             $len = \count($stmtList->stmts);
             $gotoIndex = 0;
 
@@ -515,10 +518,10 @@ final class Interpreter
                     }
                 }
 
-                $stmtVal = $this->evalStmt($stmt);
+                $stmtJump = $this->evalStmt($stmt);
 
-                if ($stmtVal instanceof GotoValue) {
-                    $jump->startSeeking($stmtVal->label);
+                if ($stmtJump instanceof GotoJump) {
+                    $jump->startSeeking($stmtJump->label);
 
                     if ($jump->isSameContext($stmtList)) {
                         /**
@@ -528,47 +531,47 @@ final class Interpreter
                         continue;
                     }
 
-                    return $stmtVal;
+                    return $stmtJump;
                 }
 
                 if (
-                    $stmtVal instanceof ReturnValue
-                    || $stmtVal === SimpleValue::Continue
-                    || $stmtVal === SimpleValue::Break
+                    $stmtJump instanceof ReturnJump
+                    || $stmtJump instanceof ContinueJump
+                    || $stmtJump instanceof BreakJump
                 ) {
                     break;
                 }
 
-                if ($stmtVal === SimpleValue::Fallthrough && $i + 1 < $len) {
+                if ($stmtJump instanceof FallthroughJump && $i + 1 < $len) {
                     throw new DefinitionError('fallthrough can only appear as the last statement');
                 }
             }
 
-            if ($stmtVal instanceof GotoValue) {
+            if ($stmtJump instanceof GotoJump) {
                 throw DefinitionError::undefinedLabel($jump->getLabel());
             }
 
-            return $stmtVal;
+            return $stmtJump;
         });
     }
 
     /**
-     * @var callable(): SimpleValue $code
+     * @var callable(): None $code
      */
-    private function evalWithEnvWrap(?Environment $env, callable $code): StmtValue
+    private function evalWithEnvWrap(?Environment $env, callable $code): StmtJump
     {
         $prevEnv = $this->env;
         $this->env = $env ?? new Environment($this->env);
-        $stmtValue = $code();
+        $stmtJump = $code();
         $this->env = $prevEnv;
 
-        return $stmtValue;
+        return $stmtJump;
     }
 
-    private function evalReturnStmt(ReturnStmt $stmt): ReturnValue
+    private function evalReturnStmt(ReturnStmt $stmt): ReturnJump
     {
         if (empty($stmt->exprList->exprs)) {
-            return ReturnValue::fromVoid();
+            return ReturnJump::fromVoid();
         }
 
         $values = [];
@@ -580,34 +583,34 @@ final class Interpreter
                 if (!empty($values)) {
                     throw ValueError::multipleValueInSingleContext();
                 }
-                return ReturnValue::fromTuple($value);
+                return ReturnJump::fromTuple($value);
             }
 
             $values[] = $value;
         }
 
         if (\count($values) === 1) {
-            return ReturnValue::fromSingle($values[0]);
+            return ReturnJump::fromSingle($values[0]);
         }
 
-        return ReturnValue::fromMultiple($values);
+        return ReturnJump::fromMultiple($values);
     }
 
-    private function evalLabeledStmt(LabeledStmt $stmt): StmtValue
+    private function evalLabeledStmt(LabeledStmt $stmt): StmtJump
     {
         $this->jumpStack->peek()->addLabel($stmt);
 
         return $this->evalStmt($stmt->stmt);
     }
 
-    private function evalGotoStmt(GotoStmt $stmt): GotoValue
+    private function evalGotoStmt(GotoStmt $stmt): GotoJump
     {
-        return new GotoValue($stmt->label->name);
+        return new GotoJump($stmt->label->name);
     }
 
-    private function evalIfStmt(IfStmt $stmt): StmtValue
+    private function evalIfStmt(IfStmt $stmt): StmtJump
     {
-        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtValue {
+        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtJump {
             if ($stmt->init !== null) {
                 $this->evalStmt($stmt->init);
             }
@@ -622,13 +625,13 @@ final class Interpreter
                 return $this->evalStmt($stmt->elseBody);
             }
 
-            return SimpleValue::None;
+            return None::get();
         });
     }
 
-    private function evalForStmt(ForStmt $stmt): StmtValue
+    private function evalForStmt(ForStmt $stmt): StmtJump
     {
-        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtValue {
+        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtJump {
             switch (true) {
                 // for range {}
                 case $stmt->iteration instanceof RangeClause:
@@ -665,21 +668,21 @@ final class Interpreter
                 $condition === null
                 || self::isTrue($this->evalExpr($condition))
             ) {
-                $stmtValue = $this->evalBlockStmt($stmt->body);
+                $stmtJump = $this->evalBlockStmt($stmt->body);
 
                 switch (true) {
-                    case $stmtValue === SimpleValue::None:
+                    case $stmtJump instanceof None:
                         break;
-                    case $stmtValue === SimpleValue::Continue:
+                    case $stmtJump instanceof ContinueJump:
                         if ($post !== null) {
                             $this->evalStmt($post);
                         }
                         continue 2;
-                    case $stmtValue === SimpleValue::Break:
-                        return SimpleValue::None;
-                    case $stmtValue instanceof ReturnValue
-                        || $stmtValue instanceof GotoValue:
-                        return $stmtValue;
+                    case $stmtJump instanceof BreakJump:
+                        return None::get();
+                    case $stmtJump instanceof ReturnJump
+                        || $stmtJump instanceof GotoJump:
+                        return $stmtJump;
                     default:
                         throw new InternalError('Unknown statement value');
                 }
@@ -689,13 +692,13 @@ final class Interpreter
                 }
             }
 
-            return SimpleValue::None;
+            return None::get();
         });
     }
 
-    private function evalExprSwitchStmt(ExprSwitchStmt $stmt): StmtValue
+    private function evalExprSwitchStmt(ExprSwitchStmt $stmt): StmtJump
     {
-        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtValue {
+        return $this->evalWithEnvWrap(null, function () use ($stmt): StmtJump {
             ++$this->switchContext;
 
             if ($stmt->init !== null) {
@@ -706,7 +709,7 @@ final class Interpreter
                 BoolValue::true() :
                 $this->evalExpr($stmt->condition);
 
-            $stmtValue = SimpleValue::None;
+            $stmtJump = None::get();
             $defaultCaseIndex = null;
 
             foreach ($stmt->caseClauses as $i => $caseClause) {
@@ -726,7 +729,7 @@ final class Interpreter
                     if ($equal instanceof BoolValue && $equal->isTrue()) {
                         // todo check for fall last
                         // todo and not the last case
-                        $stmtValue = $this->evalExprCaseClause($caseClause, $i, $stmt);
+                        $stmtJump = $this->evalExprCaseClause($caseClause, $i, $stmt);
 
                         goto end_switch;
                     }
@@ -734,35 +737,35 @@ final class Interpreter
             }
 
             if ($defaultCaseIndex !== null) {
-                $stmtValue = $this->evalExprCaseClause($stmt->caseClauses[$defaultCaseIndex], $defaultCaseIndex, $stmt);
+                $stmtJump = $this->evalExprCaseClause($stmt->caseClauses[$defaultCaseIndex], $defaultCaseIndex, $stmt);
             }
 
             end_switch:
 
             --$this->switchContext;
 
-            return $stmtValue;
+            return $stmtJump;
         });
     }
 
-    private function evalExprCaseClause(ExprCaseClause $caseClause, int $caseIndex, ExprSwitchStmt $stmt): StmtValue
+    private function evalExprCaseClause(ExprCaseClause $caseClause, int $caseIndex, ExprSwitchStmt $stmt): StmtJump
     {
-        $stmtValue = $this->evalStmtList($caseClause->stmtList);
+        $stmtJump = $this->evalStmtList($caseClause->stmtList);
 
-        if ($stmtValue === SimpleValue::Fallthrough) {
-            $stmtValue = $this->evalSwitchWithFallthrough($stmt, $caseIndex + 1);
+        if ($stmtJump instanceof FallthroughJump) {
+            $stmtJump = $this->evalSwitchWithFallthrough($stmt, $caseIndex + 1);
         }
 
-        if ($stmtValue === SimpleValue::Break) {
-            $stmtValue = SimpleValue::None;
+        if ($stmtJump instanceof BreakJump) {
+            $stmtJump = None::get();
         }
 
-        return $stmtValue;
+        return $stmtJump;
     }
 
-    private function evalSwitchWithFallthrough(SwitchStmt $stmt, int $fromCase): StmtValue
+    private function evalSwitchWithFallthrough(SwitchStmt $stmt, int $fromCase): StmtJump
     {
-        $stmtValue = SimpleValue::None;
+        $stmtJump = None::get();
 
         for (
             $i = $fromCase,
@@ -770,20 +773,20 @@ final class Interpreter
             $i < $caseClausesLen;
             $i++
         ) {
-            $stmtValue = $this->evalStmtList($stmt->caseClauses[$i]->stmtList);
+            $stmtJump = $this->evalStmtList($stmt->caseClauses[$i]->stmtList);
 
-            if ($stmtValue === SimpleValue::Fallthrough) {
-                $stmtValue = SimpleValue::None;
+            if ($stmtJump instanceof FallthroughJump) {
+                $stmtJump = None::get();
                 continue;
             }
 
             break;
         }
 
-        return $stmtValue;
+        return $stmtJump;
     }
 
-    private function evalForRangeStmt(ForStmt $stmt): StmtValue
+    private function evalForRangeStmt(ForStmt $stmt): StmtJump
     {
         /** @var RangeClause $iteration */
         $iteration = $stmt->iteration;
@@ -831,28 +834,28 @@ final class Interpreter
                 $this->evalLhsExpr($valVar)->mutate(Operator::Eq, $value->copy());
             }
 
-            $stmtValue = $this->evalBlockStmt($stmt->body);
+            $stmtJump = $this->evalBlockStmt($stmt->body);
 
             // fixme unify
             switch (true) {
-                case $stmtValue === SimpleValue::None:
+                case $stmtJump instanceof None:
                     break;
-                case $stmtValue === SimpleValue::Continue:
+                case $stmtJump instanceof ContinueJump:
                     continue 2;
-                case $stmtValue === SimpleValue::Break:
-                    return SimpleValue::None;
-                case $stmtValue instanceof ReturnValue
-                    || $stmtValue instanceof GotoValue:
-                    return $stmtValue;
+                case $stmtJump instanceof BreakJump:
+                    return None::get();
+                case $stmtJump instanceof ReturnJump
+                    || $stmtJump instanceof GotoJump:
+                    return $stmtJump;
                 default:
                     throw new InternalError('Unknown statement value');
             }
         }
 
-        return SimpleValue::None;
+        return None::get();
     }
 
-    private function evalIncDecStmt(IncDecStmt $stmt): SimpleValue
+    private function evalIncDecStmt(IncDecStmt $stmt): None
     {
         $this
             ->evalExpr($stmt->lhs)
@@ -861,10 +864,10 @@ final class Interpreter
                 new UntypedIntValue(1)
             );
 
-        return SimpleValue::None;
+        return None::get();
     }
 
-    private function evalAssignmentStmt(AssignmentStmt $stmt): SimpleValue
+    private function evalAssignmentStmt(AssignmentStmt $stmt): None
     {
         $op = Operator::fromAst($stmt->op);
 
@@ -884,10 +887,10 @@ final class Interpreter
             $lhs[$i]->mutate($op, $rhs[$i]);
         }
 
-        return SimpleValue::None;
+        return None::get();
     }
 
-    private function evalShortVarDeclStmt(ShortVarDecl $stmt): SimpleValue
+    private function evalShortVarDeclStmt(ShortVarDecl $stmt): None
     {
         $len = \count($stmt->identList->idents);
         $values = $this->collectValuesFromExprList($stmt->exprList, $len);
@@ -896,7 +899,7 @@ final class Interpreter
             $this->defineVar($ident->name, $values[$i]);
         }
 
-        return SimpleValue::None;
+        return None::get();
     }
 
     private function collectValuesFromExprList(ExprList $exprList, int $expectedLen): array

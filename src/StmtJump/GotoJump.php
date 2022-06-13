@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\StmtValue;
+namespace GoPhp\StmtJump;
 
-final class GotoValue implements StmtValue
+final class GotoJump implements StmtJump
 {
     public function __construct(
         public readonly string $label,
