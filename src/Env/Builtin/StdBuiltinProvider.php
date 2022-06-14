@@ -126,7 +126,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
         $this->env->defineType(
             'int32',
-            new TypeValue(
+            $int32 = new TypeValue(
                 NamedType::Int32,
                 self::createNumberConverter(NamedType::Int32)
             ),
@@ -150,7 +150,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
         $this->env->defineType(
             'uint8',
-            new TypeValue(
+            $uint8 = new TypeValue(
                 NamedType::Uint8,
                 self::createNumberConverter(NamedType::Uint8)
             ),
@@ -204,8 +204,8 @@ class StdBuiltinProvider implements BuiltinProvider
             ),
         );
 
-        $this->env->defineTypeAlias('uint8', 'byte');
-        $this->env->defineTypeAlias('int32', 'rune');
+        $this->env->defineTypeAlias('byte', $uint8);
+        $this->env->defineTypeAlias('rune', $int32);
     }
 
     /**

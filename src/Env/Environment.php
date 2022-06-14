@@ -69,19 +69,18 @@ final class Environment
 
     public function defineType(string $name, TypeValue $value): void
     {
-        $var = new ImmutableValue($name, $value->type, $value);
-        $this->definedValues->add($var);
+        $type = new ImmutableValue($name, $value->type, $value);
+        $this->definedValues->add($type);
     }
 
-    public function defineTypeAlias(string $name, string $alias): void
+    public function defineTypeAlias(string $alias, TypeValue $value): void
     {
-        $this->definedValues->alias($alias, $name);
+        $this->defineType($alias, $value);
     }
 
     public function get(string $name): EnvValue
     {
-        return $this->definedValues->tryGet($name) ??
-            $this->enclosing?->get($name) ??
+        return $this->tryGet($name) ??
             throw new UndefinedValueError($name);
     }
 
@@ -103,5 +102,12 @@ final class Environment
         return $envValue->unwrap() instanceof TypeValue ?
             $envValue :
             throw new UndefinedTypeError($name);
+    }
+
+    private function tryGet(string $name): ?EnvValue
+    {
+        return $this->definedValues->tryGet($name) ??
+            $this->enclosing?->get($name) ??
+            null;
     }
 }

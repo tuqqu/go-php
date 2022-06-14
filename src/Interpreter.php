@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use GoParser\Ast\AliasDecl;
 use GoParser\Ast\ConstSpec;
 use GoParser\Ast\DefaultCase;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
@@ -30,7 +31,6 @@ use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\ExprCaseClause;
 use GoParser\Ast\ExprList;
-use GoParser\Ast\ExprSwitchCase;
 use GoParser\Ast\File as Ast;
 use GoParser\Ast\ForClause;
 use GoParser\Ast\GroupSpec;
@@ -61,8 +61,10 @@ use GoParser\Ast\Stmt\ReturnStmt;
 use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
 use GoParser\Ast\Stmt\SwitchStmt;
+use GoParser\Ast\Stmt\TypeDecl;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\StmtList;
+use GoParser\Ast\TypeSpec;
 use GoParser\Ast\VarSpec;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
@@ -109,8 +111,8 @@ use GoPhp\StmtJump\BreakJump;
 use GoPhp\StmtJump\ContinueJump;
 use GoPhp\StmtJump\FallthroughJump;
 use GoPhp\StmtJump\GotoJump;
-use GoPhp\StmtJump\ReturnJump;
 use GoPhp\StmtJump\None;
+use GoPhp\StmtJump\ReturnJump;
 use GoPhp\StmtJump\StmtJump;
 use GoPhp\Stream\StdStreamProvider;
 use GoPhp\Stream\StreamProvider;
@@ -223,12 +225,14 @@ final class Interpreter
                 $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
                 $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
                 $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
+                $stmt instanceof TypeDecl => $this->evalTypeDeclStmt($stmt),
                 $stmt instanceof FuncDecl => throw new ProgramError('Function declaration in a function scope'),
                 default => throw new ProgramError(\sprintf('Unknown statement %s', $stmt::class)),
              },
             State::DeclEvaluation => match (true) {
                 $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
                 $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
+                $stmt instanceof TypeDecl => $this->evalTypeDeclStmt($stmt),
                 $stmt instanceof FuncDecl => $this->evalFuncDeclStmt($stmt),
                 default => throw new ProgramError('Non-declaration on a top-level'),
             },
@@ -313,6 +317,27 @@ final class Interpreter
         }
 
         return None::get();
+    }
+
+    private function evalTypeDeclStmt(TypeDecl $decl): None
+    {
+        foreach (self::wrapSpecs($decl->spec) as $spec) {
+            /** @var TypeSpec $spec */
+            match (true) {
+                $spec->value instanceof AliasDecl => $this->evalAliasDeclStmt($spec->value),
+                default => throw new \Exception('unimplemented'),
+            };
+        }
+
+        return None::get();
+    }
+
+    private function evalAliasDeclStmt(AliasDecl $decl): void
+    {
+        $alias = $decl->ident->name;
+        $type = new TypeValue($this->resolveType($decl->type));
+
+        $this->env->defineTypeAlias($alias, $type);
     }
 
     private function evalFuncDeclStmt(FuncDecl $decl): None

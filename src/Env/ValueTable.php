@@ -35,9 +35,4 @@ final class ValueTable
 
         $this->values[$envValue->name] = $envValue;
     }
-
-    public function alias(string $alias, string $name): void
-    {
-        $this->values[$alias] = $this->get($name);
-    }
 }
