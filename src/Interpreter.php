@@ -119,7 +119,6 @@ use GoPhp\Stream\StreamProvider;
 
 final class Interpreter
 {
-    private State $state = State::DeclEvaluation;
     private Environment $env;
     private Iota $iota;
     private ?string $curPackage = null;
@@ -174,68 +173,82 @@ final class Interpreter
         $this->curPackage = $this->ast->package->identifier->name;
 
         try {
-            foreach ($this->ast->decls as $decl) {
-                $this->evalStmt($decl);
+            $this->evalDeclsInOrder();
+
+            if ($this->entryPoint === null) {
+                throw new ProgramError('no entry point');
             }
+
+            $this->callFunc(
+                fn (): GoValue => ($this->entryPoint)(...$this->argv)
+            );
         } catch (\Throwable $throwable) {
             $this->streams->stderr()->writeln($throwable->getMessage());
 
             return ExecCode::Failure;
         }
 
-        if ($this->entryPoint !== null) {
-            $this->state = State::EntryPoint;
+        return ExecCode::Success;
+    }
 
-            try {
-                $this->callFunc(
-                    fn (): GoValue => ($this->entryPoint)(...$this->argv)
-                );
-            } catch (\Throwable $throwable) {
-                dump($throwable);
-                $this->streams->stderr()->writeln($throwable->getMessage());
+    private function evalDeclsInOrder(): void
+    {
+        $types = [];
+        $vars = [];
+        $funcs = [];
+        $consts = [];
 
-                return ExecCode::Failure;
-            }
-        } else {
-            dd($this->env, 'no entry'); // fixme debug
+        foreach ($this->ast->decls as $i => $decl) {
+            match (true) {
+                $decl instanceof ConstDecl => $consts[] = $i,
+                $decl instanceof VarDecl => $vars[] = $i,
+                $decl instanceof TypeDecl => $types[] = $i,
+                $decl instanceof FuncDecl => $funcs[] = $i,
+                default => throw new ProgramError('Non-declaration on a top-level'),
+            };
         }
 
-        return ExecCode::Success;
+        foreach ($types as $i) {
+            $this->evalTypeDeclStmt($this->ast->decls[$i]);
+        }
+
+        foreach ($consts as $i) {
+            $this->evalConstDeclStmt($this->ast->decls[$i]);
+        }
+
+        foreach ($vars as $i) {
+            $this->evalVarDeclStmt($this->ast->decls[$i]);
+        }
+
+        foreach ($funcs as $i) {
+            $this->evalFuncDeclStmt($this->ast->decls[$i]);
+        }
     }
 
     private function evalStmt(Stmt $stmt): StmtJump
     {
-        return match ($this->state) {
-            State::EntryPoint => match (true) {
-                $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt),
-                $stmt instanceof BreakStmt => $this->evalBreakStmt($stmt),
-                $stmt instanceof FallthroughStmt => $this->evalFallthroughStmt($stmt),
-                $stmt instanceof ContinueStmt => $this->evalContinueStmt($stmt),
-                $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
-                $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
-                $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
-                $stmt instanceof ForStmt => $this->evalForStmt($stmt),
-                $stmt instanceof ExprSwitchStmt => $this->evalExprSwitchStmt($stmt),
-                $stmt instanceof DeferStmt => $this->evalDeferStmt($stmt),
-                $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
-                $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
-                $stmt instanceof LabeledStmt => $this->evalLabeledStmt($stmt),
-                $stmt instanceof GotoStmt => $this->evalGotoStmt($stmt),
-                $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
-                $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
-                $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
-                $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
-                $stmt instanceof TypeDecl => $this->evalTypeDeclStmt($stmt),
-                $stmt instanceof FuncDecl => throw new ProgramError('Function declaration in a function scope'),
-                default => throw new ProgramError(\sprintf('Unknown statement %s', $stmt::class)),
-             },
-            State::DeclEvaluation => match (true) {
-                $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
-                $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
-                $stmt instanceof TypeDecl => $this->evalTypeDeclStmt($stmt),
-                $stmt instanceof FuncDecl => $this->evalFuncDeclStmt($stmt),
-                default => throw new ProgramError('Non-declaration on a top-level'),
-            },
+        return match (true) {
+            $stmt instanceof EmptyStmt => $this->evalEmptyStmt($stmt),
+            $stmt instanceof BreakStmt => $this->evalBreakStmt($stmt),
+            $stmt instanceof FallthroughStmt => $this->evalFallthroughStmt($stmt),
+            $stmt instanceof ContinueStmt => $this->evalContinueStmt($stmt),
+            $stmt instanceof ExprStmt => $this->evalExprStmt($stmt),
+            $stmt instanceof BlockStmt => $this->evalBlockStmt($stmt),
+            $stmt instanceof IfStmt => $this->evalIfStmt($stmt),
+            $stmt instanceof ForStmt => $this->evalForStmt($stmt),
+            $stmt instanceof ExprSwitchStmt => $this->evalExprSwitchStmt($stmt),
+            $stmt instanceof DeferStmt => $this->evalDeferStmt($stmt),
+            $stmt instanceof IncDecStmt => $this->evalIncDecStmt($stmt),
+            $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
+            $stmt instanceof LabeledStmt => $this->evalLabeledStmt($stmt),
+            $stmt instanceof GotoStmt => $this->evalGotoStmt($stmt),
+            $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
+            $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
+            $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
+            $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
+            $stmt instanceof TypeDecl => $this->evalTypeDeclStmt($stmt),
+            $stmt instanceof FuncDecl => throw new ProgramError('Function declaration in a function scope'),
+            default => throw new ProgramError(\sprintf('Unknown statement %s', $stmt::class)),
         };
     }
 
