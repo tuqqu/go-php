@@ -6,6 +6,7 @@ namespace GoPhp\GoType;
 
 use GoPhp\Error\DefinitionError;
 use GoPhp\Error\InternalError;
+use GoPhp\Error\TypeError;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\GoValue;
 
@@ -84,5 +85,12 @@ final class ArrayType implements GoType
     private function isUnfinished(): bool
     {
         return !isset($this->len, $this->name);
+    }
+
+    public function convert(GoValue $value): GoValue
+    {
+        return $this->equals($value->type()) ?
+            $value :
+            throw TypeError::conversionError($value, $this);
     }
 }

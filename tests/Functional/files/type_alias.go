@@ -5,6 +5,8 @@ func main() {
 	test_2()
 	test_3()
 	test_4()
+	test_5()
+	test_6()
 }
 
 type (
@@ -32,10 +34,12 @@ func test_2() {
 	type StrMap = map[Str]Str
 
 	var t = make(StrMap)
+	var s = StrMap{ "a": "b" }
 
 	t["foo"] = "bar"
 
 	println(t["foo"])
+	println(s["a"])
 }
 
 func test_3() {
@@ -60,4 +64,29 @@ func test_4() {
 	var k uint = j + 3
 
 	println(i, j, k)
+}
+
+func test_5() {
+	println("test_5")
+
+	type IntSlice = []int
+	var x IntSlice = IntSlice{1, 2, 3}
+
+	x = append(x, 4)
+
+	var y IntSlice = IntSlice(x)
+
+	println(x[0], x[1], x[2], x[3], y[0], y[1], y[2], y[3])
+}
+
+func test_6() {
+	println("test_6")
+
+	type unsignedInt = uint
+
+	var x int = 1
+
+	var y unsignedInt = unsignedInt(x) + 1
+
+	println(y)
 }

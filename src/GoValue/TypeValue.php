@@ -20,7 +20,6 @@ final class TypeValue implements Invocable, GoValue
 {
     public function __construct(
         public readonly GoType $type,
-        public readonly ?\Closure $conversion = null,
     ) {}
 
     public function __invoke(GoValue ...$argv): GoValue
@@ -31,11 +30,7 @@ final class TypeValue implements Invocable, GoValue
             default => throw new OperationError(\sprintf('too many arguments in conversion to %s', $this->type->name())),
         };
 
-        if ($this->conversion === null) {
-            throw TypeError::conversionError($value, $this->type);
-        }
-
-        return ($this->conversion)($value);
+        return $this->type->convert($value);
     }
 
     public function unwrap(): GoType

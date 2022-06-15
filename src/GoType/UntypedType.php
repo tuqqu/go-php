@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\Error\ProgramError;
+use GoPhp\GoValue\GoValue;
+
 enum UntypedType implements BasicType
 {
     case UntypedInt;
@@ -69,5 +72,10 @@ enum UntypedType implements BasicType
             },
             self::UntypedBool => $this->equals($other)
         };
+    }
+
+    public function convert(GoValue $value): GoValue
+    {
+        throw new ProgramError('cannot convert to untyped type');
     }
 }

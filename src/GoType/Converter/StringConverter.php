@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\Env\Builtin;
+namespace GoPhp\GoType\Converter;
 
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;

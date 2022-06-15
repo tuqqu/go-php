@@ -17,4 +17,6 @@ interface GoType
     public function reify(): self;
 
     public function defaultValue(): GoValue;
+
+    public function convert(GoValue $value): GoValue;
 }

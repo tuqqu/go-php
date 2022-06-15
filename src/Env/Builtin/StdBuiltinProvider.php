@@ -6,7 +6,6 @@ namespace GoPhp\Env\Builtin;
 
 use GoPhp\Env\Environment;
 use GoPhp\Error\OperationError;
-use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\NamedType;
@@ -23,12 +22,11 @@ use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapValue;
 use GoPhp\GoValue\NilValue;
-use GoPhp\GoValue\VoidValue;
 use GoPhp\GoValue\Sequence;
-use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\TypeValue;
+use GoPhp\GoValue\VoidValue;
 use GoPhp\Stream\StreamProvider;
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
@@ -87,122 +85,21 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineTypes(): void
     {
-        $this->env->defineType(
-            'bool',
-            new TypeValue(NamedType::Bool),
-        );
-
-        $this->env->defineType(
-            'string',
-            new TypeValue(
-                NamedType::String,
-                StringConverter::convert(...),
-            ),
-        );
-
-        $this->env->defineType(
-            'int',
-            new TypeValue(
-                NamedType::Int,
-                self::createNumberConverter(NamedType::Int)
-            ),
-        );
-
-        $this->env->defineType(
-            'int8',
-            new TypeValue(
-                NamedType::Int8,
-                self::createNumberConverter(NamedType::Int8)
-            ),
-        );
-
-        $this->env->defineType(
-            'int16',
-            new TypeValue(
-                NamedType::Int16,
-                self::createNumberConverter(NamedType::Int16)
-            ),
-        );
-
-        $this->env->defineType(
-            'int32',
-            $int32 = new TypeValue(
-                NamedType::Int32,
-                self::createNumberConverter(NamedType::Int32)
-            ),
-        );
-
-        $this->env->defineType(
-            'int64',
-            new TypeValue(
-                NamedType::Int64,
-                self::createNumberConverter(NamedType::Int64)
-            ),
-        );
-
-        $this->env->defineType(
-            'uint',
-            new TypeValue(
-                NamedType::Uint,
-                self::createNumberConverter(NamedType::Uint)
-            ),
-        );
-
-        $this->env->defineType(
-            'uint8',
-            $uint8 = new TypeValue(
-                NamedType::Uint8,
-                self::createNumberConverter(NamedType::Uint8)
-            ),
-        );
-
-        $this->env->defineType(
-            'uint16',
-            new TypeValue(
-                NamedType::Uint16,
-                self::createNumberConverter(NamedType::Uint16)
-            ),
-        );
-
-        $this->env->defineType(
-            'uint32',
-            new TypeValue(
-                NamedType::Uint32,
-                self::createNumberConverter(NamedType::Uint32)
-            ),
-        );
-
-        $this->env->defineType(
-            'uint64',
-            new TypeValue(
-                NamedType::Uint64,
-                self::createNumberConverter(NamedType::Int16)
-            ),
-        );
-
-        $this->env->defineType(
-            'uintptr',
-            new TypeValue(
-                NamedType::Uintptr,
-                self::createNumberConverter(NamedType::Uintptr)
-            ),
-        );
-
-        $this->env->defineType(
-            'float32',
-            new TypeValue(
-                NamedType::Float32,
-                self::createNumberConverter(NamedType::Float32)
-            ),
-        );
-
-        $this->env->defineType(
-            'float64',
-            new TypeValue(
-                NamedType::Float64,
-                self::createNumberConverter(NamedType::Float64)
-            ),
-        );
+        $this->env->defineType('bool', new TypeValue(NamedType::Bool));
+        $this->env->defineType('string', new TypeValue(NamedType::String));
+        $this->env->defineType('int', new TypeValue(NamedType::Int), );
+        $this->env->defineType('int8', new TypeValue(NamedType::Int8), );
+        $this->env->defineType('int16', new TypeValue(NamedType::Int16), );
+        $this->env->defineType('int32', $int32 = new TypeValue(NamedType::Int32), );
+        $this->env->defineType('int64', new TypeValue(NamedType::Int64));
+        $this->env->defineType('uint', new TypeValue(NamedType::Uint));
+        $this->env->defineType('uint8', $uint8 = new TypeValue(NamedType::Uint8));
+        $this->env->defineType('uint16', new TypeValue(NamedType::Uint16));
+        $this->env->defineType('uint32', new TypeValue(NamedType::Uint32));
+        $this->env->defineType('uint64', new TypeValue(NamedType::Uint64));
+        $this->env->defineType('uintptr', new TypeValue(NamedType::Uintptr));
+        $this->env->defineType('float32', new TypeValue(NamedType::Float32), );
+        $this->env->defineType('float64', new TypeValue(NamedType::Float64));
 
         $this->env->defineTypeAlias('byte', $uint8);
         $this->env->defineTypeAlias('rune', $int32);
@@ -384,13 +281,5 @@ class StdBuiltinProvider implements BuiltinProvider
                 $this->value = $value;
             }
         };
-    }
-
-    protected static function createNumberConverter(NamedType $type): \Closure
-    {
-        return static fn (GoValue $value): SimpleNumber =>
-            $value instanceof SimpleNumber ?
-                $value->convertTo($type) :
-                throw TypeError::conversionError($value, $type);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\Error\TypeError;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Slice\SliceValue;
 
@@ -45,5 +46,12 @@ final class SliceType implements RefType
     public function defaultValue(): GoValue
     {
         return SliceValue::nil($this);
+    }
+
+    public function convert(GoValue $value): GoValue
+    {
+        return $this->equals($value->type()) ?
+            $value :
+            throw TypeError::conversionError($value, $this);
     }
 }

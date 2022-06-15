@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\GoValue\GoValue;
+
 final class BuiltinFuncType implements GoType
 {
     public function name(): never
@@ -27,6 +29,11 @@ final class BuiltinFuncType implements GoType
     }
 
     public function defaultValue(): never
+    {
+        throw new \Exception('(built-in) must be called');
+    }
+
+    public function convert(GoValue $value): GoValue
     {
         throw new \Exception('(built-in) must be called');
     }

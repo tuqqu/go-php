@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\Error\TypeError;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NilValue;
 
@@ -37,5 +38,12 @@ final class PointerType implements RefType
     public function defaultValue(): GoValue
     {
         return new NilValue($this);
+    }
+
+    public function convert(GoValue $value): GoValue
+    {
+        return $this->equals($value->type()) ?
+            $value :
+            throw TypeError::conversionError($value, $this);
     }
 }

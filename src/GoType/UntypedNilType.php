@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\Error\TypeError;
 use GoPhp\GoValue\GoValue;
 
 final class UntypedNilType implements RefType
@@ -31,5 +32,10 @@ final class UntypedNilType implements RefType
     public function isCompatible(GoType $other): bool
     {
         return $other instanceof RefType;
+    }
+
+    public function convert(GoValue $value): GoValue
+    {
+        throw new TypeError('invalid operation: cannot call non-function nil');
     }
 }

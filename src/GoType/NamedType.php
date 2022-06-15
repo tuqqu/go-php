@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\Error\TypeError;
+use GoPhp\GoType\Converter\NumberConverter;
+use GoPhp\GoType\Converter\StringConverter;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
+use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\Int16Value;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\Int64Value;
@@ -124,6 +128,26 @@ enum NamedType: string implements BasicType
                 default => $this->equals($other),
             },
             default => $this->equals($other),
+        };
+    }
+
+    public function convert(GoValue $value): GoValue
+    {
+        return match ($this) {
+            self::Int,
+            self::Int8,
+            self::Int32,
+            self::Int64,
+            self::Uint,
+            self::Uint8,
+            self::Uint16,
+            self::Uint32,
+            self::Uint64,
+            self::Uintptr,
+            self::Float64,
+            self::Float32 => NumberConverter::convert($value, $this),
+            self::String => StringConverter::convert($value),
+            default => throw TypeError::conversionError($value, $this),
         };
     }
 }
