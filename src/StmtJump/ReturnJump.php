@@ -6,17 +6,18 @@ namespace GoPhp\StmtJump;
 
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\TupleValue;
+use GoPhp\GoValue\VoidValue;
 
 final class ReturnJump implements StmtJump
 {
     private function __construct(
-        public readonly ?GoValue $value,
+        public readonly GoValue $value,
         public readonly int $len,
     ) {}
 
     public static function fromVoid(): self
     {
-        return new self(null, 0);
+        return new self(new VoidValue(), 0);
     }
 
     public static function fromTuple(TupleValue $tuple): self

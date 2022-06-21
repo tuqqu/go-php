@@ -100,14 +100,10 @@ final class FuncValue implements Func, GoValue
             throw ProgramError::wrongReturnValueNumber($stmtJump->values(), $this->signature->returns);
         }
 
-        // void return
-        if ($stmtJump->len === 0) {
-            return new VoidValue();
-        }
-
-        // single & tuple value return
+        // void & single & tuple value return
+        $values = $stmtJump->values();
         foreach ($this->signature->returns->iter() as $i => $param) {
-            assert_types_compatible($param->type, $stmtJump->values()[$i]->type());
+            assert_types_compatible($param->type, $values[$i]->type());
         }
 
         return $stmtJump->value;
