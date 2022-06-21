@@ -20,6 +20,17 @@ final class WrappedValue implements GoValue
         return $this->underlyingValue->unwrap();
     }
 
+    public function unwind(): GoValue
+    {
+        $type = $this;
+
+        while ($type instanceof self) {
+            $type = $type->underlyingValue;
+        }
+
+        return $type;
+    }
+
     public function operate(Operator $op): GoValue
     {
         return $this->enwrapNew($this->underlyingValue->operate($op));
