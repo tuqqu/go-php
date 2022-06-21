@@ -42,7 +42,7 @@ class StdBuiltinProvider implements BuiltinProvider
     {
         $this->env = new Environment();
         $this->streams = $streams;
-        $this->iota = self::createIota();
+        $this->iota = static::createIota();
 
         $this->defineStdConsts();
         $this->defineStdVars();

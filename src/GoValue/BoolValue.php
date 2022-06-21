@@ -12,6 +12,7 @@ use function GoPhp\assert_values_compatible;
 final class BoolValue implements NonRefValue, Sealable
 {
     use SealableTrait;
+    use NamedTrait;
 
     public function __construct(
         private bool $value,

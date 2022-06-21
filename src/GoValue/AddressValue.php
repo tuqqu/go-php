@@ -10,6 +10,8 @@ use GoPhp\Operator;
 
 final class AddressValue implements GoValue
 {
+    use NamedTrait;
+
     public readonly PointerType $type;
 
     public function __construct(

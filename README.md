@@ -28,23 +28,6 @@ Incomplete list of features:
 
 Implemented:
 
-* basic types (ints, floats, strings, bools)
-* function types
-* var, const, function declarations
-* control flows, loops (for, for range, while, if, switch)
-* goto and labels
-* builtin.go (mostly)
-* maps
-* arrays
-* slices, slicing
-* nil values
-* references, pointers and pointer types
-* multiple return values
-* iota
-* variadic functions
-* defer statements
-* type conversions
-
 see [tests](tests/Functional/files/)
 
 TODO:
@@ -54,7 +37,6 @@ To be implemented:
 * go statements
 * channels and select statements
 * structs and methods
-* type declarations
 * type assertions
 * interfaces
 * panic recovering
@@ -65,3 +47,5 @@ To be implemented:
 Known bugs:
 * goto from loop body
 * underlying array capacity is not correctly set
+* complex type definitions
+* untyped string + bool

@@ -24,4 +24,8 @@ interface GoValue
     public function type(): GoType;
 
     public function toString(): string;
+
+    public function isNamed(): bool;
+
+    public function makeNamed(): void;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Error\InternalError;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
@@ -60,5 +61,15 @@ final class BuiltinFuncValue implements Invocable, GoValue
     public function copy(): static
     {
         throw new \BadMethodCallException('cannot operate');
+    }
+
+    public function isNamed(): bool
+    {
+        throw InternalError::unreachableMethodCall();
+    }
+
+    public function makeNamed(): void
+    {
+        throw InternalError::unreachableMethodCall();
     }
 }

@@ -12,6 +12,7 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NamedTrait;
 use GoPhp\GoValue\VoidValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\Operator;
@@ -25,6 +26,8 @@ use function GoPhp\assert_types_compatible;
 
 final class FuncValue implements Func, GoValue
 {
+    use NamedTrait;
+
     /** @var \Closure(Environment): StmtJump */
     public readonly \Closure $body;
     public readonly Signature $signature;

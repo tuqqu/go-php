@@ -72,7 +72,7 @@ function assert_arg_value(GoValue $arg, string $value, string $name, int $pos): 
 
 function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
 {
-    if (!$arg->type()->isCompatible($type)) {
+    if (!$type->isCompatible($arg->type())) {
         throw OperationError::wrongArgumentType($arg->type(), $type->name(), $pos);
     }
 }

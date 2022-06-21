@@ -49,4 +49,14 @@ final class VoidValue implements GoValue
     {
         throw InternalError::unreachableMethodCall();
     }
+
+    public function isNamed(): bool
+    {
+        throw InternalError::unreachableMethodCall();
+    }
+
+    public function makeNamed(): void
+    {
+        throw InternalError::unreachableMethodCall();
+    }
 }

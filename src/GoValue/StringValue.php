@@ -17,6 +17,7 @@ use function GoPhp\assert_values_compatible;
 final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue
 {
     use SealableTrait;
+    use NamedTrait;
 
     public const NAME = 'string';
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-use GoPhp\Error\TypeError;
+use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoType\Converter\NumberConverter;
 use GoPhp\GoType\Converter\StringConverter;
 use GoPhp\GoValue\BoolValue;
@@ -147,7 +147,7 @@ enum NamedType: string implements BasicType
             self::Float64,
             self::Float32 => NumberConverter::convert($value, $this),
             self::String => StringConverter::convert($value),
-            default => throw TypeError::conversionError($value, $this),
+            default => DefaultConverter::convert($value, $this),
         };
     }
 }

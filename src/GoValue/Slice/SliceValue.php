@@ -12,6 +12,7 @@ use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\NamedTrait;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Sliceable;
 use GoPhp\Operator;
@@ -23,6 +24,8 @@ use function GoPhp\assert_types_compatible;
 
 final class SliceValue implements Sliceable, Sequence, GoValue
 {
+    use NamedTrait;
+
     public const NAME = 'slice';
 
     private bool $nil = false;

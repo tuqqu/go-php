@@ -31,6 +31,7 @@ use function GoPhp\assert_values_compatible;
 abstract class SimpleNumber implements NonRefValue, Sealable
 {
     use SealableTrait;
+    use NamedTrait;
 
     final public static function create(mixed $value): static
     {

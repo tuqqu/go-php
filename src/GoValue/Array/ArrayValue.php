@@ -13,6 +13,7 @@ use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\NamedTrait;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\Sliceable;
@@ -25,6 +26,8 @@ use function GoPhp\assert_values_compatible;
 
 final class ArrayValue implements Sliceable, Sequence, GoValue
 {
+    use NamedTrait;
+
     public const NAME = 'array';
 
     private UnderlyingArray $values;

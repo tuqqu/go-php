@@ -39,24 +39,32 @@ final class Environment
         }
 
         $value->seal();
+        $value->makeNamed();
+
         $const = new ImmutableValue($name, $type, $value);
         $this->definedValues->add($const);
     }
 
     public function defineVar(string $name, GoValue $value, GoType $type): void
     {
+        $value->makeNamed();
+
         $var = new MutableValue($name, $type, $value);
         $this->definedValues->add($var);
     }
 
     public function defineImmutableVar(string $name, GoValue $value, GoType $type): void
     {
+        $value->makeNamed();
+
         $var = new ImmutableValue($name, $type, $value);
         $this->definedValues->add($var);
     }
 
     public function defineFunc(string $name, FuncValue $value): void
     {
+        $value->makeNamed();
+
         $func = new ImmutableValue($name, $value->signature->type, $value);
         $this->definedValues->add($func);
     }

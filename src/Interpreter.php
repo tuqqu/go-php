@@ -64,6 +64,7 @@ use GoParser\Ast\Stmt\SwitchStmt;
 use GoParser\Ast\Stmt\TypeDecl;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\StmtList;
+use GoParser\Ast\TypeDef;
 use GoParser\Ast\TypeSpec;
 use GoParser\Ast\VarSpec;
 use GoParser\Lexer\Token;
@@ -86,6 +87,7 @@ use GoPhp\GoType\MapType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\PointerType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
@@ -338,7 +340,7 @@ final class Interpreter
             /** @var TypeSpec $spec */
             match (true) {
                 $spec->value instanceof AliasDecl => $this->evalAliasDeclStmt($spec->value),
-                default => throw new \Exception('unimplemented'),
+                $spec->value instanceof TypeDef => $this->evalTypeDefStmt($spec->value),
             };
         }
 
@@ -348,12 +350,24 @@ final class Interpreter
     private function evalAliasDeclStmt(AliasDecl $decl): void
     {
         $alias = $decl->ident->name;
-        $type = new TypeValue($this->resolveType($decl->type));
+        $typeValue = new TypeValue($this->resolveType($decl->type));
 
-        $this->env->defineTypeAlias($alias, $type);
+        $this->env->defineTypeAlias($alias, $typeValue);
     }
 
-    private function evalFuncDeclStmt(FuncDecl $decl): None
+    private function evalTypeDefStmt(TypeDef $stmt): void
+    {
+        $name = $stmt->ident->name;
+        $type = $this->resolveType($stmt->type);
+
+        $typeValue = new TypeValue(new WrappedType($name, $type));
+
+        // fixme add generics support
+
+        $this->env->defineType($name, $typeValue);
+    }
+
+    private function evalFuncDeclStmt(FuncDecl $decl): void
     {
         [$params, $returns] = $this->resolveParamsFromAstSignature($decl->signature);
 
@@ -371,8 +385,6 @@ final class Interpreter
 
         $this->env->defineFunc($decl->name->name, $funcValue);
         $this->checkEntryPoint($decl->name->name, $funcValue);
-
-        return None::get();
     }
 
     private function evalDeferStmt(DeferStmt $stmt): None

@@ -72,4 +72,14 @@ final class TypeValue implements Invocable, GoValue
     {
         throw new \Exception();
     }
+
+    public function isNamed(): never
+    {
+        throw new \Exception();
+    }
+
+    public function makeNamed(): never
+    {
+        throw new \Exception();
+    }
 }
