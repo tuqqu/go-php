@@ -24,7 +24,7 @@ final class MapValue implements Map, GoValue
     //fixme add nil
 
     public function __construct(
-        private readonly Map $innerMap,
+        private Map $innerMap,
         private readonly MapType $type,
     ) {}
 
@@ -122,7 +122,8 @@ final class MapValue implements Map, GoValue
     {
         if ($op === Operator::Eq) {
             assert_types_compatible($this->type, $rhs->type());
-            $this->values = $rhs->values;
+            /** @var self $rhs */
+            $this->innerMap = $rhs->innerMap;
             return;
         }
 
