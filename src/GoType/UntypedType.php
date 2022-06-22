@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\InternalError;
 use GoPhp\GoValue\GoValue;
 
 enum UntypedType implements BasicType
@@ -39,11 +39,6 @@ enum UntypedType implements BasicType
         };
     }
 
-    public function defaultValue(): never
-    {
-        throw new \UnhandledMatchError('not impls def val');
-    }
-
     public function isCompatible(GoType $other): bool
     {
         if (!$other instanceof BasicType) {
@@ -70,12 +65,20 @@ enum UntypedType implements BasicType
                 NamedType::Float64 => true,
                 default => $this->equals($other),
             },
-            self::UntypedBool => $this->equals($other)
+            self::UntypedBool => match ($other) {
+                NamedType::Bool => true,
+                default => $this->equals($other),
+            },
         };
     }
 
-    public function convert(GoValue $value): GoValue
+    public function convert(GoValue $value): never
     {
-        throw new ProgramError('cannot convert to untyped type');
+        throw InternalError::unreachableMethodCall();
+    }
+
+    public function defaultValue(): never
+    {
+        throw InternalError::unreachableMethodCall();
     }
 }

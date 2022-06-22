@@ -46,4 +46,4 @@ To be implemented:
 Known bugs:
 * goto from loop body
 * underlying array capacity is not correctly set
-* untyped string + bool types
+* untyped string

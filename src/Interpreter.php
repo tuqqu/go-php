@@ -266,6 +266,7 @@ final class Interpreter
 
             /** @var ConstSpec $spec */
             $type = null;
+
             if ($spec->type !== null) {
                 $type = $this->resolveType($spec->type);
             }
@@ -293,8 +294,8 @@ final class Interpreter
 
                 $this->env->defineConst(
                     $ident->name,
-                    $value,
-                    ($type ?? $value->type())->reify(),
+                    $value->copy(),
+                    $type?->reify() ?? $value->type(),
                 );
             }
         }
