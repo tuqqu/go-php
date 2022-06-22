@@ -53,6 +53,7 @@ use GoParser\Ast\Stmt\ExprSwitchStmt;
 use GoParser\Ast\Stmt\FallthroughStmt;
 use GoParser\Ast\Stmt\ForStmt;
 use GoParser\Ast\Stmt\FuncDecl;
+use GoParser\Ast\Stmt\GoStmt;
 use GoParser\Ast\Stmt\GotoStmt;
 use GoParser\Ast\Stmt\IfStmt;
 use GoParser\Ast\Stmt\IncDecStmt;
@@ -244,6 +245,7 @@ final class Interpreter
             $stmt instanceof ReturnStmt => $this->evalReturnStmt($stmt),
             $stmt instanceof LabeledStmt => $this->evalLabeledStmt($stmt),
             $stmt instanceof GotoStmt => $this->evalGotoStmt($stmt),
+            $stmt instanceof GoStmt => $this->evalGoStmt($stmt),
             $stmt instanceof AssignmentStmt => $this->evalAssignmentStmt($stmt),
             $stmt instanceof ShortVarDecl => $this->evalShortVarDeclStmt($stmt),
             $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
@@ -656,6 +658,13 @@ final class Interpreter
     private function evalGotoStmt(GotoStmt $stmt): GotoJump
     {
         return new GotoJump($stmt->label->name);
+    }
+
+    private function evalGoStmt(GoStmt $stmt): None
+    {
+        $this->evalCallExpr($stmt->expr);
+
+        return None::get();
     }
 
     private function evalIfStmt(IfStmt $stmt): StmtJump

@@ -34,7 +34,6 @@ TODO:
 
 To be implemented:
 * complex numbers
-* go statements
 * channels and select statements
 * structs and methods
 * type assertions
@@ -47,5 +46,4 @@ To be implemented:
 Known bugs:
 * goto from loop body
 * underlying array capacity is not correctly set
-* complex type definitions
-* untyped string + bool
+* untyped string + bool types
