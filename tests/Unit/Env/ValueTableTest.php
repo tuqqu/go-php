@@ -17,6 +17,7 @@ final class ValueTableTest extends TestCase
     private ValueTable $table;
     private EnvValue $valueA;
     private EnvValue $valueB;
+    private EnvValue $valueGlobal;
 
     protected function setUp(): void
     {
@@ -25,34 +26,47 @@ final class ValueTableTest extends TestCase
         $this->table = new ValueTable();
         $this->valueA = self::createEnvValue('a');
         $this->valueB = self::createEnvValue('b');
+        $this->valueGlobal = self::createEnvValue('g');
 
-        $this->table->add($this->valueA);
-        $this->table->add($this->valueB);
-    }
-
-    public function testHas(): void
-    {
-        self::assertTrue($this->table->has('a'));
-        self::assertTrue($this->table->has('b'));
-
-        self::assertFalse($this->table->has('c'));
+        $this->table->add($this->valueA, 'A');
+        $this->table->add($this->valueB, 'B');
+        $this->table->add($this->valueGlobal, '');
     }
 
     public function testGet(): void
     {
-        self::assertSame($this->valueA, $this->table->tryGet('a'));
-        self::assertSame($this->valueB, $this->table->get('b'));
-
-        self::assertNull($this->table->tryGet('c'));
+        self::assertSame($this->valueA, $this->table->get('a', 'A'));
+        self::assertSame($this->valueB, $this->table->get('b', 'B'));
+        self::assertSame($this->valueGlobal, $this->table->get('g', ''));
 
         $this->expectException(UndefinedValueError::class);
-        $this->table->get('c');
+        $this->table->get('b', 'A');
+
+        $this->expectException(UndefinedValueError::class);
+        $this->table->get('b', '');
+
+        $this->expectException(UndefinedValueError::class);
+        $this->table->get('c', 'A');
+
+        $this->expectException(UndefinedValueError::class);
+        $this->table->get('c', '');
+    }
+
+    public function testTryGet(): void
+    {
+        self::assertNull($this->table->tryGet('c', 'A'));
+        self::assertNull($this->table->tryGet('c', ''));
+
+        self::assertSame($this->valueA, $this->table->tryGet('a', 'A'));
     }
 
     public function testAdd(): void
     {
+        $this->table->add(self::createEnvValue('a'), 'B');
+        $this->table->add(self::createEnvValue('a'), '');
+
         $this->expectException(AlreadyDefinedError::class);
-        $this->table->add(self::createEnvValue('a'));
+        $this->table->add(self::createEnvValue('a'), 'A');
     }
 
     private static function createEnvValue(string $name): EnvValue

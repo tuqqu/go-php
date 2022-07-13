@@ -18,6 +18,7 @@ use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\Sliceable;
 use GoPhp\Operator;
+
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_value;
 use function GoPhp\assert_slice_indices;

@@ -21,7 +21,7 @@ final class MainEntryPointTest extends TestCase
             new Params([]),
         );
 
-        self::assertTrue($validator->validate('main', 'main', $signature));
+        self::assertTrue($validator->validate('main', $signature));
     }
 
     public function testWrongSignature(): void
@@ -32,10 +32,10 @@ final class MainEntryPointTest extends TestCase
             new Params([new Param(NamedType::Int)]),
         );
 
-        self::assertFalse($validator->validate('main', 'main', $signature));
+        self::assertFalse($validator->validate('main', $signature));
     }
 
-    public function testWrongPackageName(): void
+    public function testWrongFunctionName(): void
     {
         $validator = new MainEntryPoint();
         $signature = new Signature(
@@ -43,6 +43,6 @@ final class MainEntryPointTest extends TestCase
             new Params([]),
         );
 
-        self::assertFalse($validator->validate('fmt', 'main', $signature));
+        self::assertFalse($validator->validate('print', $signature));
     }
 }

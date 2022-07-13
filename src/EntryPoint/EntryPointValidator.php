@@ -8,5 +8,7 @@ use GoPhp\GoValue\Func\Signature;
 
 interface EntryPointValidator
 {
-    public function validate(string $package, string $func, Signature $signature): bool;
+    public function isEntryPackage(string $package): bool;
+
+    public function validate(string $func, Signature $signature): bool;
 }

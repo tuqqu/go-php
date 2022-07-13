@@ -7,7 +7,6 @@ namespace GoPhp\Env;
 use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\EnvValue\ImmutableValue;
 use GoPhp\Env\EnvValue\MutableValue;
-use GoPhp\Env\Error\CannotBeMutatedError;
 use GoPhp\Env\Error\UndefinedTypeError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Error\DefinitionError;
@@ -25,14 +24,13 @@ final class Environment
     private readonly ValueTable $definedValues;
     private readonly ?self $enclosing;
 
-    public function __construct(
-        ?self $enclosing = null,
-    ) {
+    public function __construct(?self $enclosing = null)
+    {
         $this->definedValues = new ValueTable();
         $this->enclosing = $enclosing;
     }
 
-    public function defineConst(string $name, GoValue $value, BasicType $type): void
+    public function defineConst(string $name, string $namespace, GoValue $value, BasicType $type): void
     {
         if (!$value instanceof Sealable) {
             throw DefinitionError::valueIsNotConstant($value);
@@ -42,80 +40,69 @@ final class Environment
         $value->makeNamed();
 
         $const = new ImmutableValue($name, $type, $value);
-        $this->definedValues->add($const);
+        $this->definedValues->add($const, $namespace);
     }
 
-    public function defineVar(string $name, GoValue $value, GoType $type): void
+    public function defineVar(string $name, string $namespace, GoValue $value, GoType $type): void
     {
         $value->makeNamed();
 
         $var = new MutableValue($name, $type, $value);
-        $this->definedValues->add($var);
+        $this->definedValues->add($var, $namespace);
     }
 
-    public function defineImmutableVar(string $name, GoValue $value, GoType $type): void
+    public function defineImmutableVar(string $name, string $namespace, GoValue $value, GoType $type): void
     {
         $value->makeNamed();
 
         $var = new ImmutableValue($name, $type, $value);
-        $this->definedValues->add($var);
+        $this->definedValues->add($var, $namespace);
     }
 
-    public function defineFunc(string $name, FuncValue $value): void
+    public function defineFunc(string $name, string $namespace, FuncValue $value): void
     {
         $value->makeNamed();
 
         $func = new ImmutableValue($name, $value->signature->type, $value);
-        $this->definedValues->add($func);
+        $this->definedValues->add($func, $namespace);
     }
 
-    public function defineBuiltinFunc(string $name, BuiltinFuncValue $value): void
+    public function defineBuiltinFunc(string $name, string $namespace, BuiltinFuncValue $value): void
     {
         $func = new ImmutableValue($name, new BuiltinFuncType(), $value);
-        $this->definedValues->add($func);
+        $this->definedValues->add($func, $namespace);
     }
 
-    public function defineType(string $name, TypeValue $value): void
+    public function defineType(string $name, string $namespace, TypeValue $value): void
     {
         $type = new ImmutableValue($name, $value->type, $value);
-        $this->definedValues->add($type);
+        $this->definedValues->add($type, $namespace);
     }
 
-    public function defineTypeAlias(string $alias, TypeValue $value): void
+    public function defineTypeAlias(string $alias, string $namespace, TypeValue $value): void
     {
-        $this->defineType($alias, $value);
+        $this->defineType($alias, $namespace, $value);
     }
 
-    public function get(string $name): EnvValue
+    public function get(string $name, string $namespace): EnvValue
     {
-        return $this->tryGet($name) ??
+        return $this->tryGet($name, $namespace) ??
             throw new UndefinedValueError($name);
     }
 
-    public function getMut(string $name): MutableValue
+    public function getType(string $name, string $namespace): EnvValue
     {
-        $value = $this->get($name);
-
-        if (!$value instanceof MutableValue) {
-            throw new CannotBeMutatedError($name);
-        }
-
-        return $value;
-    }
-
-    public function getType(string $name): EnvValue
-    {
-        $envValue = $this->get($name);
+        $envValue = $this->get($name, $namespace);
 
         return $envValue->unwrap() instanceof TypeValue ?
             $envValue :
             throw new UndefinedTypeError($name);
     }
 
-    private function tryGet(string $name): ?EnvValue
+    public function tryGet(string $name, string $namespace): ?EnvValue
     {
-        return $this->definedValues->tryGet($name) ??
-            $this->enclosing?->get($name) ??
+        return $this->definedValues->tryGet($name, $namespace) ??
+            $this->enclosing?->tryGet($name, $namespace) ??
             null;
     }
 }

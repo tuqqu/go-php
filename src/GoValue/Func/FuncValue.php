@@ -20,22 +20,27 @@ use GoPhp\StmtJump\ReturnJump;
 use GoPhp\StmtJump\None;
 use GoPhp\StmtJump\StmtJump;
 use GoPhp\Stream\StreamProvider;
+
 use function GoPhp\assert_arg_type;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
 
+/**
+ * @psalm-type FunctionBody = \Closure(Environment, string): StmtJump
+ */
 final class FuncValue implements Func, GoValue
 {
     use NamedTrait;
 
-    /** @var \Closure(Environment): StmtJump */
+    /** @var FunctionBody */
     public readonly \Closure $body;
     public readonly Signature $signature;
     public readonly Environment $enclosure;
     public readonly StreamProvider $streams;
+    private readonly ?string $namespace;
 
     /**
-     * @param \Closure(Environment): StmtJump $body
+     * @param FunctionBody $body
      */
     public function __construct(
         \Closure $body,
@@ -43,9 +48,11 @@ final class FuncValue implements Func, GoValue
         Params $returns,
         Environment $enclosure,
         StreamProvider $streams,
+        ?string $namespace,
     ) {
         $this->body = $body;
         $this->streams = $streams;
+        $this->namespace = $namespace;
         $this->signature = new Signature($params, $returns);
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
     }
@@ -69,6 +76,7 @@ final class FuncValue implements Func, GoValue
 
                 $env->defineVar(
                     $param->names[0],
+                    $this->namespace,
                     $sliceBuilder->build(),
                     $sliceType
                 );
@@ -79,12 +87,17 @@ final class FuncValue implements Func, GoValue
             assert_arg_type($argv[$i], $param->type, $i);
 
             foreach ($param->names as $name) {
-                $env->defineVar($name, $argv[$i++], $param->type);
+                $env->defineVar(
+                    $name,
+                    $this->namespace,
+                    $argv[$i++],
+                    $param->type,
+                );
             }
         }
 
         /** @var StmtJump $stmtJump */
-        $stmtJump = ($this->body)($env);
+        $stmtJump = ($this->body)($env, $this->namespace);
 
         if ($stmtJump instanceof None) {
             return $this->signature->returnArity === 0 ?

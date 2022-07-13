@@ -23,6 +23,7 @@ use GoParser\Ast\Expr\MapType as AstMapType;
 use GoParser\Ast\Expr\PointerType as AstPointerType;
 use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RuneLit;
+use GoParser\Ast\Expr\SelectorExpr;
 use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\SliceExpr;
 use GoParser\Ast\Expr\SliceType as AstSliceType;
@@ -35,6 +36,7 @@ use GoParser\Ast\File as Ast;
 use GoParser\Ast\ForClause;
 use GoParser\Ast\GroupSpec;
 use GoParser\Ast\IdentList;
+use GoParser\Ast\ImportSpec;
 use GoParser\Ast\ParamDecl;
 use GoParser\Ast\Params as AstParams;
 use GoParser\Ast\Punctuation;
@@ -56,6 +58,7 @@ use GoParser\Ast\Stmt\FuncDecl;
 use GoParser\Ast\Stmt\GoStmt;
 use GoParser\Ast\Stmt\GotoStmt;
 use GoParser\Ast\Stmt\IfStmt;
+use GoParser\Ast\Stmt\ImportDecl;
 use GoParser\Ast\Stmt\IncDecStmt;
 use GoParser\Ast\Stmt\LabeledStmt;
 use GoParser\Ast\Stmt\ReturnStmt;
@@ -122,21 +125,23 @@ use GoPhp\Stream\StreamProvider;
 
 final class Interpreter
 {
+    private Ast $ast;
     private Environment $env;
     private Iota $iota;
-    private ?string $curPackage = null;
-    private ?FuncValue $entryPoint = null;
-    private bool $constDefinition = false;
     private JumpStack $jumpStack;
     private DeferStack $deferStack;
+    private string $currentPackage;
+    private ?FuncValue $entryPoint = null;
+    private bool $constDefinition = false;
     private int $switchContext = 0;
 
     public function __construct(
-        private readonly Ast $ast,
+        Ast $ast,
         private readonly array $argv = [],
         private readonly StreamProvider $streams = new StdStreamProvider(),
         private readonly EntryPointValidator $entryPointValidator = new MainEntryPoint(),
         ?BuiltinProvider $builtin = null,
+        private readonly string $gopath = '',
     ) {
         if ($builtin === null) {
             $builtin = new StdBuiltinProvider($this->streams);
@@ -146,35 +151,24 @@ final class Interpreter
         $this->jumpStack = new JumpStack();
         $this->deferStack = new DeferStack();
         $this->env = new Environment($builtin->env());
+        $this->setAst($ast);
     }
 
     public static function fromString(
-        string $src,
+        string $source,
         array $argv = [],
         StreamProvider $streams = new StdStreamProvider(),
         EntryPointValidator $entryPointValidator = new MainEntryPoint(),
         ?BuiltinProvider $builtin = null,
+        string $gopath = '',
     ): self {
-        // fixme add onerror
-        $parser = new Parser($src);
-        $ast = $parser->parse();
+        $ast = self::parseSourceToAst($source);
 
-        if ($parser->hasErrors()) {
-            // fixme handle errs
-            dump('has parse errs');
-            foreach ($parser->getErrors() as $error) {
-                dump((string)$error);
-            }
-            die;
-        }
-
-        return new self($ast, $argv, $streams, $entryPointValidator, $builtin);
+        return new self($ast, $argv, $streams, $entryPointValidator, $builtin, $gopath);
     }
 
     public function run(): ExecCode
     {
-        $this->curPackage = $this->ast->package->identifier->name;
-
         try {
             $this->evalDeclsInOrder();
 
@@ -196,6 +190,10 @@ final class Interpreter
 
     private function evalDeclsInOrder(): void
     {
+        foreach ($this->ast->imports as $import) {
+            $this->evalImportDeclStmt($import);
+        }
+
         $types = [];
         $vars = [];
         $funcs = [];
@@ -226,6 +224,58 @@ final class Interpreter
         foreach ($funcs as $i) {
             $this->evalFuncDeclStmt($this->ast->decls[$i]);
         }
+    }
+
+    private function evalImportDeclStmt(ImportDecl $decl): void
+    {
+        $mainAst = $this->ast;
+
+        foreach (self::wrapSpecs($decl->spec) as $spec) {
+            /** @var ImportSpec $spec */
+            $path = \trim(\trim($spec->path->str, '"'), '"');
+            $path = $this->resolveImportPath($path);
+            $source = \file_get_contents($path);
+            $ast = self::parseSourceToAst($source);
+
+            $this->setAst($ast);
+            $this->evalDeclsInOrder();
+        }
+
+        $this->setAst($mainAst);
+    }
+
+    private function setAst(Ast $ast): void
+    {
+        $this->ast = $ast;
+        $this->currentPackage = $ast->package->identifier->name;
+    }
+
+    private function resolveImportPath(string $path): string
+    {
+        // fixme add _ . support
+        // fixme add go.mod support
+        $path = \sprintf('%s%s.go', $this->gopath, $path);
+
+        return $path;
+    }
+
+    private static function parseSourceToAst(string $source): Ast
+    {
+        // fixme add onerror
+        $parser = new Parser($source);
+        /** @var Ast $ast */
+        $ast = $parser->parse();
+
+        if ($parser->hasErrors()) {
+            // fixme handle errs
+            dump('has parse errs');
+            foreach ($parser->getErrors() as $error) {
+                dump((string)$error);
+            }
+            die; //fixme
+        }
+
+        return $ast;
     }
 
     private function evalStmt(Stmt $stmt): StmtJump
@@ -294,6 +344,7 @@ final class Interpreter
 
                 $this->env->defineConst(
                     $ident->name,
+                    $this->currentPackage,
                     $value->copy(),
                     $type?->reify() ?? $value->type(),
                 );
@@ -355,7 +406,7 @@ final class Interpreter
         $alias = $decl->ident->name;
         $typeValue = new TypeValue($this->resolveType($decl->type));
 
-        $this->env->defineTypeAlias($alias, $typeValue);
+        $this->env->defineTypeAlias($alias, $this->currentPackage, $typeValue);
     }
 
     private function evalTypeDefStmt(TypeDef $stmt): void
@@ -367,7 +418,7 @@ final class Interpreter
 
         // fixme add generics support
 
-        $this->env->defineType($name, $typeValue);
+        $this->env->defineType($name, $this->currentPackage, $typeValue);
     }
 
     private function evalFuncDeclStmt(FuncDecl $decl): void
@@ -379,14 +430,21 @@ final class Interpreter
         }
 
         $funcValue = new FuncValue(
-            fn (Environment $env) => $this->evalBlockStmt($decl->body, $env),
+            function (Environment $env, string $withPackage) use ($decl): StmtJump {
+                [$this->currentPackage, $withPackage] = [$withPackage, $this->currentPackage];
+                $jump = $this->evalBlockStmt($decl->body, $env);
+                $this->currentPackage = $withPackage;
+
+                return $jump;
+            },
             $params,
             $returns,
             $this->env,
             $this->streams,
+            $this->currentPackage,
         ); //fixme body null
 
-        $this->env->defineFunc($decl->name->name, $funcValue);
+        $this->env->defineFunc($decl->name->name, $this->currentPackage, $funcValue);
         $this->checkEntryPoint($decl->name->name, $funcValue);
     }
 
@@ -1034,6 +1092,7 @@ final class Interpreter
             $expr instanceof UnaryExpr => $this->evalUnaryExpr($expr),
             $expr instanceof BinaryExpr => $this->evalBinaryExpr($expr),
             $expr instanceof GroupExpr => $this->evalGroupExpr($expr),
+            $expr instanceof SelectorExpr => $this->evalSelectorExpr($expr),
             $expr instanceof Ident => $this->evalIdent($expr),
             default => null,
         };
@@ -1147,9 +1206,28 @@ final class Interpreter
         return $this->evalExpr($expr->expr);
     }
 
+    private function evalSelectorExpr(SelectorExpr $expr): GoValue
+    {
+        $namespace = $this->currentPackage;
+
+        if ($expr->expr instanceof Ident) {
+            $goValue = $this->env->tryGet($expr->expr->name, $namespace);
+
+            if ($goValue === null) {
+                $namespace = $expr->expr->name;
+
+                return $this->env->get($expr->selector->name, $namespace)->unwrap();
+            }
+        }
+
+        // fixme
+        dump('not supported');
+        exit;
+    }
+
     private function evalIdent(Ident $ident): GoValue
     {
-        $value = $this->env->get($ident->name)->unwrap();
+        $value = $this->env->get($ident->name, $this->currentPackage)->unwrap();
 
         if ($value === $this->iota && !$this->constDefinition) {
             throw new \Exception('cannot use iota outside constant declaration');
@@ -1181,12 +1259,9 @@ final class Interpreter
     private function checkEntryPoint(string $name, FuncValue $funcValue): void
     {
         if (
-            !isset($this->entryPoint) &&
-            $this->entryPointValidator->validate(
-                $this->curPackage ?? '',
-                $name,
-                $funcValue->signature,
-            )
+            $this->entryPointValidator->isEntryPackage($this->currentPackage)
+            && !isset($this->entryPoint)
+            && $this->entryPointValidator->validate($name, $funcValue->signature)
         ) {
             $this->entryPoint = $funcValue;
         }
@@ -1206,8 +1281,8 @@ final class Interpreter
     private function resolveType(AstType $type, bool $composite = false): GoType
     {
         return match (true) {
-            $type instanceof SingleTypeName => $this->env->getType($type->name->name)->getType(),
-            $type instanceof QualifiedTypeName => $this->env->getType(self::resolveQualifiedTypeName($type))->getType(),
+            $type instanceof SingleTypeName => $this->env->getType($type->name->name, $this->currentPackage)->getType(),
+            $type instanceof QualifiedTypeName => $this->env->getType(self::resolveQualifiedTypeName($type), $this->currentPackage)->getType(),
             $type instanceof AstFuncType => $this->resolveTypeFromAstSignature($type->signature),
             $type instanceof AstArrayType => $this->resolveArrayType($type, $composite),
             $type instanceof AstSliceType => $this->resolveSliceType($type, $composite),
@@ -1311,6 +1386,7 @@ final class Interpreter
     {
         $this->env->defineVar(
             $name,
+            $this->currentPackage,
             $value->copy(),
             ($type ?? $value->type())->reify(),
         );

@@ -9,6 +9,7 @@ use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\Operator;
+
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_value;
 use function GoPhp\assert_slice_indices;

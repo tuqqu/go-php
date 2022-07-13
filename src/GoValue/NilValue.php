@@ -9,6 +9,7 @@ use GoPhp\GoType\RefType;
 use GoPhp\GoType\UntypedNilType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\Operator;
+
 use function GoPhp\assert_values_compatible;
 
 final class NilValue implements GoValue

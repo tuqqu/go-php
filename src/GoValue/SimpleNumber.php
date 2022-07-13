@@ -23,6 +23,7 @@ use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UintptrValue;
 use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
+
 use function GoPhp\assert_values_compatible;
 
 /**

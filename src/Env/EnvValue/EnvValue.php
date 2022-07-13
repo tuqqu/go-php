@@ -9,6 +9,7 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
+
 use function GoPhp\assert_types_compatible;
 
 abstract class EnvValue

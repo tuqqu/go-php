@@ -29,8 +29,9 @@ final class InterpreterTest extends TestCase
         );
 
         $interpreter = Interpreter::fromString(
-            src: $goProgram,
+            source: $goProgram,
             streams: $streams,
+            gopath: __DIR__ . '/imports/',
         );
 
         $interpreter->run();

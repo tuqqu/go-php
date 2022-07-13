@@ -11,6 +11,7 @@ use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NamedTrait;
 use GoPhp\Operator;
+
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;

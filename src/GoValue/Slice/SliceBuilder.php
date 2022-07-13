@@ -6,6 +6,7 @@ namespace GoPhp\GoValue\Slice;
 
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\GoValue;
+
 use function GoPhp\assert_types_compatible_with_cast;
 
 final class SliceBuilder

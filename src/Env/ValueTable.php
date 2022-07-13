@@ -9,30 +9,35 @@ use GoPhp\Env\Error\{AlreadyDefinedError, UndefinedValueError};
 
 final class ValueTable
 {
-    /** @var array<string, EnvValue> */
+    /** @var array<string, array<string, EnvValue>> */
     private array $values = [];
 
-    public function has(string $name): bool
+    public function tryGet(string $name, string $namespace): ?EnvValue
     {
-        return isset($this->values[$name]);
+        return $this->values[$namespace][$name]
+            ?? $this->values[''][$name]
+            ?? null;
     }
 
-    public function tryGet(string $name): ?EnvValue
+    public function get(string $name, string $namespace): EnvValue
     {
-        return $this->values[$name] ?? null;
+        return $this->tryGet($name, $namespace) ?? throw new UndefinedValueError($name);
     }
 
-    public function get(string $name): EnvValue
+    public function add(EnvValue $envValue, ?string $namespace): void
     {
-        return $this->tryGet($name) ?? throw new UndefinedValueError($name);
-    }
-
-    public function add(EnvValue $envValue): void
-    {
-        if ($this->has($envValue->name)) {
+        if ($this->has($envValue->name, $namespace)) {
             throw new AlreadyDefinedError($envValue->name);
         }
 
-        $this->values[$envValue->name] = $envValue;
+        $this->values[$namespace][$envValue->name] = $envValue;
+    }
+
+    private function has(string $name, string $namespace): bool
+    {
+        return isset(
+            $this->values[$namespace][$name],
+            $this->values[''][$name],
+        );
     }
 }

@@ -19,18 +19,14 @@ final class EnvironmentTest extends TestCase
         $valueA = new IntValue(1);
         $valueB = new IntValue(2);
 
-        $env->defineVar('a', $valueA, $valueA->type());
-        $env->defineConst('b', $valueB, $valueB->type());
+        $env->defineVar('a', 'main', $valueA, $valueA->type());
+        $env->defineConst('b', 'main', $valueB, $valueB->type());
 
-        self::assertSame($valueA, $env->get('a')->unwrap());
-        self::assertSame($valueB, $env->get('b')->unwrap());
-        self::assertSame($valueA, $env->getMut('a')->unwrap());
-
-        $this->expectException(CannotBeMutatedError::class);
-        $env->getMut('b');
+        self::assertSame($valueA, $env->get('a', 'main')->unwrap());
+        self::assertSame($valueB, $env->get('b', 'main')->unwrap());
 
         $this->expectException(UndefinedValueError::class);
-        $env->get('c');
+        $env->get('c', 'main');
     }
 
     public function testWithEnclosing(): void
@@ -43,24 +39,19 @@ final class EnvironmentTest extends TestCase
         $valueC = new IntValue(3);
         $valueD = new IntValue(4);
 
-        $enclosing->defineVar('a', $valueA, $valueA->type());
-        $enclosing->defineConst('b', $valueB, $valueB->type());
+        $enclosing->defineVar('a', 'main', $valueA, $valueA->type());
+        $enclosing->defineConst('b', 'main', $valueB, $valueB->type());
 
-        $env->defineConst('a', $valueC, $valueC->type());
+        $env->defineConst('a', 'main', $valueC, $valueC->type());
 
         // enclosing value is overwritten
-        self::assertSame($valueC, $env->get('a')->unwrap());
+        self::assertSame($valueC, $env->get('a', 'main')->unwrap());
 
         // enclosing value is extracted
-        self::assertSame($valueB, $env->get('b')->unwrap());
+        self::assertSame($valueB, $env->get('b', 'main')->unwrap());
 
-        // enclosing value is mutable, but env is not
-        $this->expectException(CannotBeMutatedError::class);
-        $env->getMut('a');
+        $env->defineVar('b', 'main', $valueD, $valueD->type());
 
-        $env->defineVar('b', $valueD, $valueD->type());
-
-        // enclosing value is const, but env is mutable
-        self::assertSame($valueD, $env->getMut('a'));
+        self::assertSame($valueD, $env->get('b', 'main')->unwrap());
     }
 }

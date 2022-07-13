@@ -8,6 +8,7 @@ use GoPhp\GoType\BasicType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NonRefValue;
+
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_types_compatible_with_cast;
 

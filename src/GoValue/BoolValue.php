@@ -7,6 +7,7 @@ namespace GoPhp\GoValue;
 use GoPhp\Operator;
 use GoPhp\GoType\NamedType;
 use GoPhp\Error\OperationError;
+
 use function GoPhp\assert_values_compatible;
 
 final class BoolValue implements NonRefValue, Sealable

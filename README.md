@@ -39,7 +39,7 @@ To be implemented:
 * type assertions
 * interfaces
 * panic recovering
-* imports
+* modules
 * lambda functions
 * generics
 
