@@ -28,7 +28,7 @@ final class InterpreterTest extends TestCase
             $stdin,
         );
 
-        $interpreter = Interpreter::fromString(
+        $interpreter = new Interpreter(
             source: $goProgram,
             streams: $streams,
             gopath: __DIR__ . '/imports/',

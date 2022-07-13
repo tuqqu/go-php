@@ -42,13 +42,8 @@ class StdBuiltinProvider implements BuiltinProvider
     public function __construct(StreamProvider $streams)
     {
         $this->env = new Environment();
-        $this->streams = $streams;
         $this->iota = static::createIota();
-
-        $this->defineStdConsts();
-        $this->defineStdVars();
-        $this->defineFuncs();
-        $this->defineTypes();
+        $this->streams = $streams;
     }
 
     public function iota(): Iota
@@ -58,6 +53,11 @@ class StdBuiltinProvider implements BuiltinProvider
 
     public function env(): Environment
     {
+        $this->defineStdConsts();
+        $this->defineStdVars();
+        $this->defineFuncs();
+        $this->defineTypes();
+
         return $this->env;
     }
 

@@ -73,8 +73,8 @@ use GoParser\Ast\TypeSpec;
 use GoParser\Ast\VarSpec;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
-use GoPhp\EntryPoint\EntryPointValidator;
-use GoPhp\EntryPoint\MainEntryPoint;
+use GoPhp\EntryPoint\FunctionMatcher;
+use GoPhp\EntryPoint\VoidFunctionMatcher;
 use GoPhp\Env\Builtin\BuiltinProvider;
 use GoPhp\Env\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
@@ -136,13 +136,14 @@ final class Interpreter
     private int $switchContext = 0;
 
     public function __construct(
-        Ast $ast,
+        string $source,
+        ?BuiltinProvider $builtin = null,
         private readonly array $argv = [],
         private readonly StreamProvider $streams = new StdStreamProvider(),
-        private readonly EntryPointValidator $entryPointValidator = new MainEntryPoint(),
-        ?BuiltinProvider $builtin = null,
+        private readonly FunctionMatcher $entryPointMatcher = new VoidFunctionMatcher('main', 'main'),
         private readonly string $gopath = '',
     ) {
+        //fixme default provider
         if ($builtin === null) {
             $builtin = new StdBuiltinProvider($this->streams);
         }
@@ -151,20 +152,9 @@ final class Interpreter
         $this->jumpStack = new JumpStack();
         $this->deferStack = new DeferStack();
         $this->env = new Environment($builtin->env());
-        $this->setAst($ast);
-    }
 
-    public static function fromString(
-        string $source,
-        array $argv = [],
-        StreamProvider $streams = new StdStreamProvider(),
-        EntryPointValidator $entryPointValidator = new MainEntryPoint(),
-        ?BuiltinProvider $builtin = null,
-        string $gopath = '',
-    ): self {
         $ast = self::parseSourceToAst($source);
-
-        return new self($ast, $argv, $streams, $entryPointValidator, $builtin, $gopath);
+        $this->setAst($ast);
     }
 
     public function run(): ExecCode
@@ -445,7 +435,14 @@ final class Interpreter
         ); //fixme body null
 
         $this->env->defineFunc($decl->name->name, $this->currentPackage, $funcValue);
-        $this->checkEntryPoint($decl->name->name, $funcValue);
+
+        if ($this->entryPointMatcher->matches(
+            $this->currentPackage,
+            $decl->name->name,
+            $funcValue->signature
+        )) {
+            $this->entryPoint = $funcValue;
+        }
     }
 
     private function evalDeferStmt(DeferStmt $stmt): None
@@ -1254,17 +1251,6 @@ final class Interpreter
         }
 
         return $value->unwrap();
-    }
-
-    private function checkEntryPoint(string $name, FuncValue $funcValue): void
-    {
-        if (
-            $this->entryPointValidator->isEntryPackage($this->currentPackage)
-            && !isset($this->entryPoint)
-            && $this->entryPointValidator->validate($name, $funcValue->signature)
-        ) {
-            $this->entryPoint = $funcValue;
-        }
     }
 
     /**

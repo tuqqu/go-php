@@ -35,9 +35,6 @@ final class ValueTable
 
     private function has(string $name, string $namespace): bool
     {
-        return isset(
-            $this->values[$namespace][$name],
-            $this->values[''][$name],
-        );
+        return isset($this->values[$namespace][$name]);
     }
 }
