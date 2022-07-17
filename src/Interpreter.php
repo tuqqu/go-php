@@ -131,6 +131,7 @@ final class Interpreter
     private JumpStack $jumpStack;
     private DeferStack $deferStack;
     private string $currentPackage;
+    private bool $packageScope = false;
     private ?FuncValue $entryPoint = null;
     private bool $constDefinition = false;
     private int $switchContext = 0;
@@ -202,6 +203,8 @@ final class Interpreter
             };
         }
 
+        $this->packageScope = true;
+
         foreach ($types as $i) {
             $this->evalTypeDeclStmt($this->ast->decls[$i]);
         }
@@ -214,14 +217,16 @@ final class Interpreter
             $this->evalVarDeclStmt($this->ast->decls[$i]);
         }
 
-        foreach ($this->initializers as $initializer) {
-            $this->callFunc($initializer);
-        }
-        $this->initializers = [];
-
         foreach ($funcs as $i) {
             $this->evalFuncDeclStmt($this->ast->decls[$i]);
         }
+
+        foreach ($this->initializers as $initializer) {
+            $this->callFunc($initializer);
+        }
+
+        $this->initializers = [];
+        $this->packageScope = false;
     }
 
     private function evalImportDeclStmt(ImportDecl $decl): void
@@ -344,7 +349,7 @@ final class Interpreter
 
                 $this->env->defineConst(
                     $ident->name,
-                    $this->currentPackage,
+                    $this->resolveDefinitionScope(),
                     $value->copy(),
                     $type?->reify() ?? $value->type(),
                 );
@@ -407,7 +412,12 @@ final class Interpreter
         $typeValue = new TypeValue($this->resolveType($decl->type));
 
         $this->checkNonDeclarableNames($alias);
-        $this->env->defineTypeAlias($alias, $this->currentPackage, $typeValue);
+
+        $this->env->defineTypeAlias(
+            $alias,
+            $this->resolveDefinitionScope(),
+            $typeValue,
+        );
     }
 
     private function evalTypeDefStmt(TypeDef $stmt): void
@@ -420,7 +430,12 @@ final class Interpreter
         // fixme add generics support
 
         $this->checkNonDeclarableNames($name);
-        $this->env->defineType($name, $this->currentPackage, $typeValue);
+
+        $this->env->defineType(
+            $name,
+            $this->resolveDefinitionScope(),
+            $typeValue,
+        );
     }
 
     private function evalFuncDeclStmt(FuncDecl $decl): void
@@ -1232,7 +1247,7 @@ final class Interpreter
             if ($goValue === null) {
                 $namespace = $expr->expr->name;
 
-                return $this->env->get($expr->selector->name, $namespace)->unwrap();
+                return $this->env->get($expr->selector->name, $namespace, false)->unwrap();
             }
         }
 
@@ -1393,7 +1408,7 @@ final class Interpreter
 
         $this->env->defineVar(
             $name,
-            $this->currentPackage,
+            $this->resolveDefinitionScope(),
             $value->copy(),
             ($type ?? $value->type())->reify(),
         );
@@ -1418,5 +1433,10 @@ final class Interpreter
                 throw new InternalError(\sprintf('cannot declare %s - must be func', $nonDeclarableName));
             }
         }
+    }
+
+    private function resolveDefinitionScope(): string
+    {
+        return $this->packageScope ? $this->currentPackage : '';
     }
 }

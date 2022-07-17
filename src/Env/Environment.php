@@ -84,25 +84,25 @@ final class Environment
         $this->defineType($alias, $namespace, $value);
     }
 
-    public function get(string $name, string $namespace): EnvValue
+    public function get(string $name, string $namespace, bool $implicit = true): EnvValue
     {
-        return $this->tryGet($name, $namespace) ??
-            throw new UndefinedValueError($name);
+        return $this->tryGet($name, $namespace, $implicit)
+            ?? throw new UndefinedValueError($name);
     }
 
-    public function getType(string $name, string $namespace): EnvValue
+    public function getType(string $name, string $namespace, bool $implicit = true): EnvValue
     {
-        $envValue = $this->get($name, $namespace);
+        $envValue = $this->get($name, $namespace, $implicit);
 
         return $envValue->unwrap() instanceof TypeValue ?
             $envValue :
             throw new UndefinedTypeError($name);
     }
 
-    public function tryGet(string $name, string $namespace): ?EnvValue
+    public function tryGet(string $name, string $namespace, bool $implicit = true): ?EnvValue
     {
-        return $this->definedValues->tryGet($name, $namespace) ??
-            $this->enclosing?->tryGet($name, $namespace) ??
+        return $this->definedValues->tryGet($name, $namespace, $implicit) ??
+            $this->enclosing?->tryGet($name, $namespace, $implicit) ??
             null;
     }
 }

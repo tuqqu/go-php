@@ -12,19 +12,24 @@ final class ValueTable
     /** @var array<string, array<string, EnvValue>> */
     private array $values = [];
 
-    public function tryGet(string $name, string $namespace): ?EnvValue
+    public function tryGet(string $name, string $namespace, bool $implicit): ?EnvValue
     {
+        if (!$implicit) {
+            return $this->values[$namespace][$name] ?? null;
+        }
+
         return $this->values[$namespace][$name]
             ?? $this->values[''][$name]
             ?? null;
     }
 
-    public function get(string $name, string $namespace): EnvValue
+    public function get(string $name, string $namespace, bool $implicit): EnvValue
     {
-        return $this->tryGet($name, $namespace) ?? throw new UndefinedValueError($name);
+        return $this->tryGet($name, $namespace, $implicit)
+            ?? throw new UndefinedValueError($name);
     }
 
-    public function add(EnvValue $envValue, ?string $namespace): void
+    public function add(EnvValue $envValue, string $namespace): void
     {
         if ($this->has($envValue->name, $namespace)) {
             throw new AlreadyDefinedError($envValue->name);

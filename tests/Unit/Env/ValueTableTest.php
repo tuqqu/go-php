@@ -35,29 +35,29 @@ final class ValueTableTest extends TestCase
 
     public function testGet(): void
     {
-        self::assertSame($this->valueA, $this->table->get('a', 'A'));
-        self::assertSame($this->valueB, $this->table->get('b', 'B'));
-        self::assertSame($this->valueGlobal, $this->table->get('g', ''));
+        self::assertSame($this->valueA, $this->table->get('a', 'A', true));
+        self::assertSame($this->valueB, $this->table->get('b', 'B', true));
+        self::assertSame($this->valueGlobal, $this->table->get('g', '', true));
 
         $this->expectException(UndefinedValueError::class);
-        $this->table->get('b', 'A');
+        $this->table->get('b', 'A', true);
 
         $this->expectException(UndefinedValueError::class);
-        $this->table->get('b', '');
+        $this->table->get('b', '', true);
 
         $this->expectException(UndefinedValueError::class);
-        $this->table->get('c', 'A');
+        $this->table->get('c', 'A', true);
 
         $this->expectException(UndefinedValueError::class);
-        $this->table->get('c', '');
+        $this->table->get('c', '', true);
     }
 
     public function testTryGet(): void
     {
-        self::assertNull($this->table->tryGet('c', 'A'));
-        self::assertNull($this->table->tryGet('c', ''));
+        self::assertNull($this->table->tryGet('c', 'A', true));
+        self::assertNull($this->table->tryGet('c', '', true));
 
-        self::assertSame($this->valueA, $this->table->tryGet('a', 'A'));
+        self::assertSame($this->valueA, $this->table->tryGet('a', 'A', true));
     }
 
     public function testAdd(): void
