@@ -73,7 +73,6 @@ use GoParser\Ast\TypeSpec;
 use GoParser\Ast\VarSpec;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
-use GoPhp\FunctionValidator\FunctionValidator;
 use GoPhp\Env\Builtin\BuiltinProvider;
 use GoPhp\Env\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
@@ -83,6 +82,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
 use GoPhp\Error\ValueError;
+use GoPhp\FunctionValidator\FunctionValidator;
 use GoPhp\FunctionValidator\VoidFunctionValidator;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\FuncType;
@@ -174,7 +174,7 @@ final class Interpreter
                 fn (): GoValue => ($this->entryPoint)(...$this->argv)
             );
         } catch (\Throwable $throwable) {
-            $this->streams->stderr()->writeln($throwable->getMessage());
+            $this->onError($throwable->getMessage());
 
             return ExecCode::Failure;
         }
@@ -262,20 +262,19 @@ final class Interpreter
         return $path;
     }
 
-    private static function parseSourceToAst(string $source): Ast
+    private function parseSourceToAst(string $source): Ast
     {
-        // fixme add onerror
         $parser = new Parser($source);
+
         /** @var Ast $ast */
         $ast = $parser->parse();
 
         if ($parser->hasErrors()) {
-            // fixme handle errs
-            dump('has parse errs');
             foreach ($parser->getErrors() as $error) {
-                dump((string)$error);
+                $this->onError((string) $error);
             }
-            die; //fixme
+
+            exit(1);
         }
 
         return $ast;
@@ -985,7 +984,6 @@ final class Interpreter
 
             $stmtJump = $this->evalBlockStmt($stmt->body);
 
-            // fixme unify
             switch (true) {
                 case $stmtJump instanceof None:
                     break;
@@ -1129,11 +1127,6 @@ final class Interpreter
         };
     }
 
-//    private function evalTypeConversion(AstType $expr): TypeValue
-//    {
-//        // fixme add []byte, []rune, errors
-//    }
-
     private function evalConstExpr(Expr $expr): GoValue
     {
         return $this->tryEvalConstExpr($expr) ?? throw new \Exception('cannot eval const expr');
@@ -1148,7 +1141,7 @@ final class Interpreter
             $expr instanceof Ident => $this->evalIdent($expr),
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof UnaryExpr => $this->evalPointerUnaryExpr($expr),
-            default => dd($expr), // fixme debug
+            default => throw OperationError::cannotAssign($this->evalExpr($expr)),
         };
     }
 
@@ -1272,7 +1265,7 @@ final class Interpreter
         $value = $this->evalUnaryExpr($expr);
 
         if ($expr->op->value !== Operator::Mul->value) {
-            throw OperationError::cannotAssign(\sprintf('%s(%s)', $expr->op->value, $value->toString())); //fixme move to err
+            throw OperationError::cannotAssign($value);
         }
 
         return $value;
@@ -1438,5 +1431,10 @@ final class Interpreter
     private function resolveDefinitionScope(): string
     {
         return $this->packageScope ? $this->currentPackage : '';
+    }
+
+    private function onError(string $error): void
+    {
+        $this->streams->stderr()->writeln($error);
     }
 }

@@ -43,9 +43,14 @@ final class OperationError extends \RuntimeException
         );
     }
 
-    public static function cannotAssign(string $name): self
+    public static function cannotAssign(GoValue $value): self
     {
-        return new self(\sprintf('cannot assign to %s', $name));
+        return new self(\sprintf(
+            'cannot assign to %s (%s%s)',
+            $value->toString(),
+            $value->type()->name(),
+            $value->isNamed() ? '' : ' constant'
+        ));
     }
 
     public static function cannotAssignToConst(GoValue $value): self
