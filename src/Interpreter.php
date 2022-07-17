@@ -73,8 +73,7 @@ use GoParser\Ast\TypeSpec;
 use GoParser\Ast\VarSpec;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
-use GoPhp\EntryPoint\FunctionMatcher;
-use GoPhp\EntryPoint\VoidFunctionMatcher;
+use GoPhp\FunctionValidator\FunctionValidator;
 use GoPhp\Env\Builtin\BuiltinProvider;
 use GoPhp\Env\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
@@ -84,6 +83,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
 use GoPhp\Error\ValueError;
+use GoPhp\FunctionValidator\VoidFunctionValidator;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\GoType;
@@ -134,13 +134,16 @@ final class Interpreter
     private ?FuncValue $entryPoint = null;
     private bool $constDefinition = false;
     private int $switchContext = 0;
+    /** @var array<FuncValue> */
+    private array $initializers = [];
 
     public function __construct(
         string $source,
         ?BuiltinProvider $builtin = null,
         private readonly array $argv = [],
         private readonly StreamProvider $streams = new StdStreamProvider(),
-        private readonly FunctionMatcher $entryPointMatcher = new VoidFunctionMatcher('main', 'main'),
+        private readonly FunctionValidator $entryPointMatcher = new VoidFunctionValidator('main', 'main'),
+        private readonly FunctionValidator $initMatcher = new VoidFunctionValidator('init'),
         private readonly string $gopath = '',
     ) {
         //fixme default provider
@@ -210,6 +213,11 @@ final class Interpreter
         foreach ($vars as $i) {
             $this->evalVarDeclStmt($this->ast->decls[$i]);
         }
+
+        foreach ($this->initializers as $initializer) {
+            $this->callFunc($initializer);
+        }
+        $this->initializers = [];
 
         foreach ($funcs as $i) {
             $this->evalFuncDeclStmt($this->ast->decls[$i]);
@@ -332,6 +340,8 @@ final class Interpreter
                     throw DefinitionError::uninitialisedConstant($ident->name);
                 }
 
+                $this->checkNonDeclarableNames($ident->name);
+
                 $this->env->defineConst(
                     $ident->name,
                     $this->currentPackage,
@@ -396,6 +406,7 @@ final class Interpreter
         $alias = $decl->ident->name;
         $typeValue = new TypeValue($this->resolveType($decl->type));
 
+        $this->checkNonDeclarableNames($alias);
         $this->env->defineTypeAlias($alias, $this->currentPackage, $typeValue);
     }
 
@@ -408,6 +419,7 @@ final class Interpreter
 
         // fixme add generics support
 
+        $this->checkNonDeclarableNames($name);
         $this->env->defineType($name, $this->currentPackage, $typeValue);
     }
 
@@ -434,15 +446,22 @@ final class Interpreter
             $this->currentPackage,
         ); //fixme body null
 
-        $this->env->defineFunc($decl->name->name, $this->currentPackage, $funcValue);
 
-        if ($this->entryPointMatcher->matches(
-            $this->currentPackage,
-            $decl->name->name,
-            $funcValue->signature
-        )) {
+        if ($this->entryPointMatcher->forFunc($decl->name->name, $this->currentPackage)) {
+            $this->entryPointMatcher->validate($funcValue->signature);
             $this->entryPoint = $funcValue;
         }
+
+        if ($this->initMatcher->forFunc($decl->name->name, $this->currentPackage)) {
+            $this->entryPointMatcher->validate($funcValue->signature);
+            // the identifier itself is not declared
+            // init functions cannot be referred to from anywhere in a program
+            $this->initializers[] = $funcValue;
+
+            return;
+        }
+
+        $this->env->defineFunc($decl->name->name, $this->currentPackage, $funcValue);
     }
 
     private function evalDeferStmt(DeferStmt $stmt): None
@@ -1370,11 +1389,34 @@ final class Interpreter
 
     private function defineVar(string $name, GoValue $value, ?GoType $type = null): void
     {
+        $this->checkNonDeclarableNames($name);
+
         $this->env->defineVar(
             $name,
             $this->currentPackage,
             $value->copy(),
             ($type ?? $value->type())->reify(),
         );
+    }
+
+    private function checkNonDeclarableNames(string $name): void
+    {
+        if ($this->currentPackage !== '') {
+            return;
+        }
+
+        /** @var array<FunctionValidator> $matchers */
+        $matchers = [
+            $this->entryPointMatcher,
+            $this->initMatcher,
+        ];
+
+        foreach ($matchers as $matcher) {
+            $nonDeclarableName = $matcher->funcName();
+
+            if ($nonDeclarableName === $name) {
+                throw new InternalError(\sprintf('cannot declare %s - must be func', $nonDeclarableName));
+            }
+        }
     }
 }

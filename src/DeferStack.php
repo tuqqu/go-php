@@ -21,14 +21,14 @@ final class DeferStack
     }
 
     /**
-     * @return callable[]
+     * @return iterable<callable>
      */
-    public function pop(): array
+    public function pop(): iterable
     {
         $defers = $this->stack[$this->pos - 1] ?? [];
         unset($this->stack[$this->pos - 1]);
         $this->pos--;
 
-        return \array_reverse($defers);
+        yield from \array_reverse($defers);
     }
 }
