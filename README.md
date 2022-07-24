@@ -6,14 +6,28 @@ TBD
 
 # Example
 
-TBD
-
 ```php
-$interpreter = \GoPhp\Interpreter::fromString(<<<GO
+use GoPhp\Interpreter;
+
+$interpreter = new Interpreter(<<<GO
     package main
+    
+    type person struct {
+        name string
+        age  int
+    }
+    
+    func newPerson(name string) *person {
+        p := person{name: name}
+        p.age = 42
+
+        return &p
+    }
 
     func main() {
-        println("Hello, World!")
+        s := newPerson("John Doe")
+    
+        println("Hello, " + s.name)
     }
 GO);
 
@@ -35,11 +49,10 @@ TODO:
 To be implemented:
 * complex numbers
 * channels and select statements
-* structs and methods
+* methods
 * type assertions
 * interfaces
 * panic recovering
-* modules
 * lambda functions
 * generics
 
@@ -47,3 +60,4 @@ Known bugs:
 * goto from loop body
 * underlying array capacity is not correctly set
 * untyped string
+* weird cases for type definitions

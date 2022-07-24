@@ -22,17 +22,21 @@ final class WrappedValue implements GoValue
 
     public function unwind(): GoValue
     {
-        $type = $this;
+        $value = $this;
 
-        while ($type instanceof self) {
-            $type = $type->underlyingValue;
+        while ($value instanceof self) {
+            $value = $value->underlyingValue;
         }
 
-        return $type;
+        return $value;
     }
 
     public function operate(Operator $op): GoValue
     {
+        if ($op === Operator::BitAnd) {
+            return new AddressValue($this);
+        }
+
         return $this->enwrapNew($this->underlyingValue->operate($op));
     }
 

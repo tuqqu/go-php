@@ -19,6 +19,17 @@ final class WrappedType implements GoType
         return $this->name;
     }
 
+    public function unwind(): GoType
+    {
+        $type = $this;
+
+        while ($type instanceof self) {
+            $type = $type->underlyingType;
+        }
+
+        return $type;
+    }
+
     public function equals(GoType $other): bool
     {
         return $other instanceof self
@@ -47,6 +58,11 @@ final class WrappedType implements GoType
             $this->underlyingType->defaultValue(),
             $this,
         );
+    }
+
+    public function valueCallback(): callable
+    {
+        return fn (GoValue $value): WrappedValue => new WrappedValue($value, $this);
     }
 
     public function convert(GoValue $value): WrappedValue

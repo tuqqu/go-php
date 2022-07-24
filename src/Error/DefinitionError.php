@@ -42,6 +42,25 @@ final class DefinitionError extends \LogicException
         return new self(\sprintf('Constant "%s" must have default value', $name));
     }
 
+    public static function invalidFieldName(?string $field = null): self
+    {
+        return new self(\sprintf(
+            'invalid field name %s in struct literal',
+            $field === null ?: \sprintf('\'%s\'', $field),
+        ));
+    }
+
+    public static function undefinedFieldAccess(string $valueName, string $field, GoType $type): self
+    {
+        return new self(\sprintf(
+            '%s.%s undefined (type %s has no field or method %s)',
+            $valueName,
+            $field,
+            $type->name(),
+            $field,
+        ));
+    }
+
     public static function constantExpectsBasicType(GoType $type): self
     {
         return new self(\sprintf('Constant must of basic type, got "%s"', $type->name()));

@@ -21,6 +21,7 @@ use GoParser\Ast\Expr\IndexExpr;
 use GoParser\Ast\Expr\IntLit;
 use GoParser\Ast\Expr\MapType as AstMapType;
 use GoParser\Ast\Expr\PointerType as AstPointerType;
+use GoParser\Ast\Expr\StructType as AstStructType;
 use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SelectorExpr;
@@ -76,6 +77,8 @@ use GoParser\Parser;
 use GoPhp\Env\Builtin\BuiltinProvider;
 use GoPhp\Env\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
+use GoPhp\Env\EnvValue\MutableValue;
+use GoPhp\Env\ValueTable;
 use GoPhp\Error\DefinitionError;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
@@ -91,7 +94,9 @@ use GoPhp\GoType\MapType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\PointerType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoType\StructType;
 use GoPhp\GoType\WrappedType;
+use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
@@ -111,8 +116,11 @@ use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\Sliceable;
 use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\Struct\StructBuilder;
+use GoPhp\GoValue\Struct\StructValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\TypeValue;
+use GoPhp\GoValue\WrappedValue;
 use GoPhp\StmtJump\BreakJump;
 use GoPhp\StmtJump\ContinueJump;
 use GoPhp\StmtJump\FallthroughJump;
@@ -175,6 +183,7 @@ final class Interpreter
             );
         } catch (\Throwable $throwable) {
             $this->onError($throwable->getMessage());
+            throw $throwable;
 
             return ExecCode::Failure;
         }
@@ -467,7 +476,7 @@ final class Interpreter
         }
 
         if ($this->initMatcher->forFunc($decl->name->name, $this->currentPackage)) {
-            $this->entryPointMatcher->validate($funcValue->signature);
+            $this->initMatcher->validate($funcValue->signature);
             // the identifier itself is not declared
             // init functions cannot be referred to from anywhere in a program
             $this->initializers[] = $funcValue;
@@ -1141,6 +1150,7 @@ final class Interpreter
             $expr instanceof Ident => $this->evalIdent($expr),
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof UnaryExpr => $this->evalPointerUnaryExpr($expr),
+            $expr instanceof SelectorExpr => $this->evalSelectorExpr($expr),
             default => throw OperationError::cannotAssign($this->evalExpr($expr)),
         };
     }
@@ -1149,19 +1159,28 @@ final class Interpreter
     {
         $type = $this->resolveType($lit->type, true);
 
+        return $this->resolveCompositeLitLiteralWithType($lit, $type);
+    }
+
+    private function resolveCompositeLitLiteralWithType(CompositeLit $lit, GoType $type, ?callable $wrapper = null): GoValue
+    {
+        $builtValue = null;
+
         switch (true) {
             case $type instanceof ArrayType:
                 $builder = ArrayBuilder::fromType($type);
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->push($this->evalExpr($element->element));
                 }
-                return $builder->build();
+                $builtValue = $builder->build();
+                break;
             case $type instanceof SliceType:
                 $builder = SliceBuilder::fromType($type);
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->push($this->evalExpr($element->element));
                 }
-                return $builder->build();
+                $builtValue = $builder->build();
+                break;
             case $type instanceof MapType:
                 $builder = MapBuilder::fromType($type);
                 foreach ($lit->elementList->elements ?? [] as $element) {
@@ -1170,10 +1189,35 @@ final class Interpreter
                         $this->evalExpr($element->key ?? throw new InternalError('Expected element key')),
                     );
                 }
-                return $builder->build();
+                $builtValue = $builder->build();
+                break;
+            case $type instanceof StructType:
+                $builder = StructBuilder::fromType($type);
+                foreach ($lit->elementList->elements ?? [] as $element) {
+                    if (!$element->key instanceof Ident) {
+                        throw DefinitionError::invalidFieldName();
+                    }
+
+                    $builder->addField(
+                        $element->key->name,
+                        $this->evalExpr($element->element),
+                    );
+                }
+                $builtValue = $builder->build();
+                break;
+            case $type instanceof WrappedType:
+                $builtValue = $this->resolveCompositeLitLiteralWithType($lit, $type->unwind(), $type->valueCallback());
+                break;
+            default:
+                throw new InternalError(sprintf('Unknown composite literal "%s" with type "%s"', $lit::class, $type->name()));
         }
 
-        throw new InternalError('Unknown composite literal');
+
+        if ($wrapper !== null) {
+            $builtValue = $wrapper($builtValue);
+        }
+
+        return $builtValue;
     }
 
     private function evalRuneLit(RuneLit $lit): UntypedIntValue
@@ -1234,19 +1278,41 @@ final class Interpreter
     {
         $namespace = $this->currentPackage;
 
-        if ($expr->expr instanceof Ident) {
-            $goValue = $this->env->tryGet($expr->expr->name, $namespace);
-
-            if ($goValue === null) {
-                $namespace = $expr->expr->name;
-
-                return $this->env->get($expr->selector->name, $namespace, false)->unwrap();
-            }
+        // package access
+        if (
+            $expr->expr instanceof Ident
+            && $this->env->isNamespaceDefined($expr->expr->name)
+        ) {
+            return $this->env->get($expr->selector->name, $expr->expr->name, false)->unwrap();
         }
 
-        // fixme
-        dump('not supported');
-        exit;
+        // struct access
+        $value = $this->env->get($expr->expr->name, $this->currentPackage)->unwrap();
+
+        // fixme add wrapped check (to asserts)
+        do {
+            $check = false;
+
+            if ($value instanceof WrappedValue) {
+                $value = $value->unwind();
+                $check = true;
+            }
+
+            if ($value instanceof AddressValue) {
+                $value = $value->pointsTo;
+                $check = true;
+            }
+        } while ($check);
+
+        if (!$value instanceof StructValue) {
+            throw DefinitionError::undefinedFieldAccess(
+                $expr->expr->name,
+                $expr->selector->name,
+                $value->type()
+            );
+        }
+
+        return $value->accessField($expr->selector->name);
     }
 
     private function evalIdent(Ident $ident): GoValue
@@ -1294,15 +1360,28 @@ final class Interpreter
     private function resolveType(AstType $type, bool $composite = false): GoType
     {
         return match (true) {
-            $type instanceof SingleTypeName => $this->env->getType($type->name->name, $this->currentPackage)->getType(),
-            $type instanceof QualifiedTypeName => $this->env->getType(self::resolveQualifiedTypeName($type), $this->currentPackage)->getType(),
+            $type instanceof SingleTypeName => $this->resolveTypeFromSingleName($type),
+            $type instanceof QualifiedTypeName => $this->resolveTypeFromQualifiedName($type),
             $type instanceof AstFuncType => $this->resolveTypeFromAstSignature($type->signature),
             $type instanceof AstArrayType => $this->resolveArrayType($type, $composite),
             $type instanceof AstSliceType => $this->resolveSliceType($type, $composite),
             $type instanceof AstMapType => $this->resolveMapType($type, $composite),
             $type instanceof AstPointerType => $this->resolvePointerType($type, $composite),
+            $type instanceof AstStructType => $this->resolveStructType($type, $composite),
             default => dd('unresolved type', $type), // fixme debug
         };
+    }
+
+    private function resolveTypeFromSingleName(SingleTypeName $type): GoType
+    {
+        return $this->env->getType($type->name->name, $this->currentPackage)->getType();
+    }
+
+    private function resolveTypeFromQualifiedName(QualifiedTypeName $type): GoType
+    {
+        //fixme revisit
+        //return $this->resolveTypeFromSingleName(\sprintf('%s.%s', $type->packageName->name, $type->typeName->name->name));
+        throw new InternalError('unimplemented');
     }
 
     private function resolveTypeFromAstSignature(AstSignature $signature): FuncType
@@ -1354,6 +1433,29 @@ final class Interpreter
         );
     }
 
+    private function resolveStructType(AstStructType $structType, bool $composite): StructType
+    {
+        /** @var array<string, GoType> $fields */
+        $fields = [];
+
+        foreach ($structType->fieldDecls as $fieldDecl) {
+            if ($fieldDecl->identList === null) {
+                // fixme add anonymous fields
+            }
+
+            $type = $this->resolveType($fieldDecl->type, $composite);
+
+            foreach ($fieldDecl->identList->idents as $ident) {
+                if (isset($fields[$ident->name])) {
+                    throw new InternalError('same name'); //fixme
+                }
+                $fields[$ident->name] = $type;
+            }
+        }
+
+        return new StructType($fields);
+    }
+
     /**
      * @return array{Params, Params}
      */
@@ -1388,11 +1490,6 @@ final class Interpreter
     private static function arrayFromIdents(IdentList $identList): array
     {
         return \array_map(static fn (Ident $ident): string => $ident->name, $identList->idents);
-    }
-
-    private static function resolveQualifiedTypeName(QualifiedTypeName $typeName): string
-    {
-        return \sprintf('%s.%s', $typeName->packageName->name, $typeName->typeName->name->name);
     }
 
     private function defineVar(string $name, GoValue $value, ?GoType $type = null): void

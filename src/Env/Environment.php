@@ -94,15 +94,21 @@ final class Environment
     {
         $envValue = $this->get($name, $namespace, $implicit);
 
-        return $envValue->unwrap() instanceof TypeValue ?
-            $envValue :
-            throw new UndefinedTypeError($name);
+        return $envValue->unwrap() instanceof TypeValue
+            ? $envValue
+            : throw new UndefinedTypeError($name);
     }
 
     public function tryGet(string $name, string $namespace, bool $implicit = true): ?EnvValue
     {
-        return $this->definedValues->tryGet($name, $namespace, $implicit) ??
-            $this->enclosing?->tryGet($name, $namespace, $implicit) ??
-            null;
+        return $this->definedValues->tryGet($name, $namespace, $implicit)
+            ?? $this->enclosing?->tryGet($name, $namespace, $implicit)
+            ?? null;
+    }
+
+    public function isNamespaceDefined(string $namespace): bool
+    {
+        return $this->definedValues->hasNamespace($namespace)
+            || $this->enclosing?->isNamespaceDefined($namespace);
     }
 }
