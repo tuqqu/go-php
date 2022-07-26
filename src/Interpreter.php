@@ -21,7 +21,6 @@ use GoParser\Ast\Expr\IndexExpr;
 use GoParser\Ast\Expr\IntLit;
 use GoParser\Ast\Expr\MapType as AstMapType;
 use GoParser\Ast\Expr\PointerType as AstPointerType;
-use GoParser\Ast\Expr\StructType as AstStructType;
 use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SelectorExpr;
@@ -29,6 +28,7 @@ use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\SliceExpr;
 use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StringLit;
+use GoParser\Ast\Expr\StructType as AstStructType;
 use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\ExprCaseClause;
@@ -77,8 +77,6 @@ use GoParser\Parser;
 use GoPhp\Env\Builtin\BuiltinProvider;
 use GoPhp\Env\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
-use GoPhp\Env\EnvValue\MutableValue;
-use GoPhp\Env\ValueTable;
 use GoPhp\Error\DefinitionError;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
@@ -151,8 +149,8 @@ final class Interpreter
         ?BuiltinProvider $builtin = null,
         private readonly array $argv = [],
         private readonly StreamProvider $streams = new StdStreamProvider(),
-        private readonly FunctionValidator $entryPointMatcher = new VoidFunctionValidator('main', 'main'),
-        private readonly FunctionValidator $initMatcher = new VoidFunctionValidator('init'),
+        private readonly FunctionValidator $entryPointValidator = new VoidFunctionValidator('main', 'main'),
+        private readonly FunctionValidator $initValidator = new VoidFunctionValidator('init'),
         private readonly string $gopath = '',
     ) {
         //fixme default provider
@@ -175,7 +173,7 @@ final class Interpreter
             $this->evalDeclsInOrder();
 
             if ($this->entryPoint === null) {
-                throw new ProgramError('no entry point');
+                throw ProgramError::noEntryPoint($this->entryPointValidator->funcName());
             }
 
             $this->callFunc(
@@ -183,7 +181,6 @@ final class Interpreter
             );
         } catch (\Throwable $throwable) {
             $this->onError($throwable->getMessage());
-            throw $throwable;
 
             return ExecCode::Failure;
         }
@@ -208,7 +205,7 @@ final class Interpreter
                 $decl instanceof VarDecl => $vars[] = $i,
                 $decl instanceof TypeDecl => $types[] = $i,
                 $decl instanceof FuncDecl => $funcs[] = $i,
-                default => throw new ProgramError('Non-declaration on a top-level'),
+                default => throw ProgramError::nonDeclarationOnTopLevel(),
             };
         }
 
@@ -283,7 +280,7 @@ final class Interpreter
                 $this->onError((string) $error);
             }
 
-            exit(1);
+            exit(1); //fixme
         }
 
         return $ast;
@@ -312,8 +309,8 @@ final class Interpreter
             $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
             $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
             $stmt instanceof TypeDecl => $this->evalTypeDeclStmt($stmt),
-            $stmt instanceof FuncDecl => throw new ProgramError('Function declaration in a function scope'),
-            default => throw new ProgramError(\sprintf('Unknown statement %s', $stmt::class)),
+            $stmt instanceof FuncDecl => throw ProgramError::nestedFunction(),
+            default => throw InternalError::unknownStatement($stmt),
         };
     }
 
@@ -341,7 +338,7 @@ final class Interpreter
             }
 
             if (\count($initExprs) > \count($spec->identList->idents)) {
-                throw new \Exception('extra init expr');
+                throw ProgramError::extraInitExpr();
             }
 
             foreach ($spec->identList->idents as $i => $ident) {
@@ -451,6 +448,7 @@ final class Interpreter
         [$params, $returns] = $this->resolveParamsFromAstSignature($decl->signature);
 
         if ($decl->body === null) {
+            // fixme
             throw new InternalError('not implemented');
         }
 
@@ -470,13 +468,13 @@ final class Interpreter
         ); //fixme body null
 
 
-        if ($this->entryPointMatcher->forFunc($decl->name->name, $this->currentPackage)) {
-            $this->entryPointMatcher->validate($funcValue->signature);
+        if ($this->entryPointValidator->forFunc($decl->name->name, $this->currentPackage)) {
+            $this->entryPointValidator->validate($funcValue->signature);
             $this->entryPoint = $funcValue;
         }
 
-        if ($this->initMatcher->forFunc($decl->name->name, $this->currentPackage)) {
-            $this->initMatcher->validate($funcValue->signature);
+        if ($this->initValidator->forFunc($decl->name->name, $this->currentPackage)) {
+            $this->initValidator->validate($funcValue->signature);
             // the identifier itself is not declared
             // init functions cannot be referred to from anywhere in a program
             $this->initializers[] = $funcValue;
@@ -623,7 +621,7 @@ final class Interpreter
     private function evalFallthroughStmt(FallthroughStmt $stmt): FallthroughJump
     {
         if ($this->switchContext <= 0) {
-            throw new DefinitionError('fallthrough outside switch');
+            throw ProgramError::misplacedFallthrough();
         }
 
         return new FallthroughJump();
@@ -693,7 +691,7 @@ final class Interpreter
                 }
 
                 if ($stmtJump instanceof FallthroughJump && $i + 1 < $len) {
-                    throw new DefinitionError('fallthrough can only appear as the last statement');
+                    throw ProgramError::misplacedFallthrough();
                 }
             }
 
@@ -872,7 +870,7 @@ final class Interpreter
             foreach ($stmt->caseClauses as $i => $caseClause) {
                 if ($caseClause->case instanceof DefaultCase) {
                     if ($defaultCaseIndex !== null) {
-                        throw new DefinitionError('Multiple default cases in switch');
+                        throw ProgramError::multipleDefaults();
                     }
 
                     $defaultCaseIndex = $i;
@@ -950,7 +948,7 @@ final class Interpreter
         $range = $this->evalExpr($iteration->expr);
 
         if (!$range instanceof Sequence) {
-            throw new ProgramError(\sprintf('cannot range over %s', $range->type()->name()));
+            throw OperationError::invalidRangeValue($range);
         }
 
         [$define, $iterVars] = match (true) {
@@ -963,7 +961,7 @@ final class Interpreter
             0 => [null, null],
             1 => [$iterVars[0], null],
             2 => $iterVars,
-            default => throw new ProgramError('range clause permits at most two iteration variables'),
+            default => throw ProgramError::tooManyRangeVars(),
         };
 
         foreach ($range->iter() as $key => $value) {
@@ -1136,11 +1134,6 @@ final class Interpreter
         };
     }
 
-    private function evalConstExpr(Expr $expr): GoValue
-    {
-        return $this->tryEvalConstExpr($expr) ?? throw new \Exception('cannot eval const expr');
-    }
-
     /**
      * Evaluate left-hand-side (lhs) expression of an assignment statement.
      */
@@ -1159,10 +1152,10 @@ final class Interpreter
     {
         $type = $this->resolveType($lit->type, true);
 
-        return $this->resolveCompositeLitLiteralWithType($lit, $type);
+        return $this->resolveCompositeLitWithType($lit, $type);
     }
 
-    private function resolveCompositeLitLiteralWithType(CompositeLit $lit, GoType $type, ?callable $wrapper = null): GoValue
+    private function resolveCompositeLitWithType(CompositeLit $lit, GoType $type, ?callable $wrapper = null): GoValue
     {
         $builtValue = null;
 
@@ -1206,7 +1199,7 @@ final class Interpreter
                 $builtValue = $builder->build();
                 break;
             case $type instanceof WrappedType:
-                $builtValue = $this->resolveCompositeLitLiteralWithType($lit, $type->unwind(), $type->valueCallback());
+                $builtValue = $this->resolveCompositeLitWithType($lit, $type->unwind(), $type->valueCallback());
                 break;
             default:
                 throw new InternalError(sprintf('Unknown composite literal "%s" with type "%s"', $lit::class, $type->name()));
@@ -1320,7 +1313,7 @@ final class Interpreter
         $value = $this->env->get($ident->name, $this->currentPackage)->unwrap();
 
         if ($value === $this->iota && !$this->constDefinition) {
-            throw new \Exception('cannot use iota outside constant declaration');
+            throw ProgramError::iotaMisuse();
         }
 
         return $value;
@@ -1392,13 +1385,13 @@ final class Interpreter
     private function resolveArrayType(AstArrayType $arrayType, bool $composite): ArrayType
     {
         if (
-            $arrayType->len instanceof Punctuation &&
-            $arrayType->len->value === Token::Ellipsis->value &&
-            $composite
+            $arrayType->len instanceof Punctuation
+            && $arrayType->len->value === Token::Ellipsis->value
+            && $composite
         ) {
             $len = null;
         } elseif ($arrayType->len instanceof Expr) {
-            $len = $this->evalConstExpr($arrayType->len);
+            $len = $this->tryEvalConstExpr($arrayType->len) ?? throw ProgramError::invalidArrayLength();
 
             if (!$len instanceof BaseIntValue) {
                 throw TypeError::valueOfWrongType($len, NamedType::Int);
@@ -1447,7 +1440,7 @@ final class Interpreter
 
             foreach ($fieldDecl->identList->idents as $ident) {
                 if (isset($fields[$ident->name])) {
-                    throw new InternalError('same name'); //fixme
+                    throw ProgramError::redeclaredName($ident->name);
                 }
                 $fields[$ident->name] = $type;
             }
@@ -1512,15 +1505,15 @@ final class Interpreter
 
         /** @var array<FunctionValidator> $matchers */
         $matchers = [
-            $this->entryPointMatcher,
-            $this->initMatcher,
+            $this->entryPointValidator,
+            $this->initValidator,
         ];
 
         foreach ($matchers as $matcher) {
             $nonDeclarableName = $matcher->funcName();
 
             if ($nonDeclarableName === $name) {
-                throw new InternalError(\sprintf('cannot declare %s - must be func', $nonDeclarableName));
+                throw ProgramError::nameMustBeFunc($nonDeclarableName);
             }
         }
     }

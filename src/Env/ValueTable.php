@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace GoPhp\Env;
 
 use GoPhp\Env\EnvValue\EnvValue;
-use GoPhp\Env\Error\{AlreadyDefinedError, UndefinedValueError};
+use GoPhp\Env\Error\UndefinedValueError;
+use GoPhp\Error\ProgramError;
 
 final class ValueTable
 {
@@ -33,7 +34,7 @@ final class ValueTable
     public function add(EnvValue $envValue, string $namespace = ''): void
     {
         if ($this->has($envValue->name, $namespace)) {
-            throw new AlreadyDefinedError($envValue->name);
+            throw ProgramError::redeclaredNameInBlock($envValue->name);
         }
 
         $this->values[$namespace][$envValue->name] = $envValue;

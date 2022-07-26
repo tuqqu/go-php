@@ -45,12 +45,12 @@ final class OperationError extends \RuntimeException
 
     public static function cannotAssign(GoValue $value): self
     {
-        return new self(\sprintf(
-            'cannot assign to %s (%s%s)',
-            $value->toString(),
-            $value->type()->name(),
-            $value->isNamed() ? '' : ' constant'
-        ));
+        return new self(\sprintf('cannot assign to %s', self::valueToString($value)));
+    }
+
+    public static function invalidRangeValue(GoValue $value): self
+    {
+        return new self(\sprintf('cannot range over %s', self::valueToString($value)));
     }
 
     public static function cannotAssignToConst(GoValue $value): self
@@ -127,5 +127,15 @@ final class OperationError extends \RuntimeException
     public static function cannotFullSliceString(): self
     {
         return new self('invalid operation: 3-index slice of string');
+    }
+
+    private static function valueToString(GoValue $value): string
+    {
+        return \sprintf(
+            '%s (%s%s)',
+            $value->toString(),
+            $value->type()->name(),
+            $value->isNamed() ? '' : ' constant',
+        );
     }
 }

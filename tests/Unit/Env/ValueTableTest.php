@@ -9,6 +9,7 @@ use GoPhp\Env\EnvValue\ImmutableValue;
 use GoPhp\Env\Error\AlreadyDefinedError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Env\ValueTable;
+use GoPhp\Error\ProgramError;
 use GoPhp\GoType\NamedType;
 use PHPUnit\Framework\TestCase;
 
@@ -65,7 +66,7 @@ final class ValueTableTest extends TestCase
         $this->table->add(self::createEnvValue('a'), 'B');
         $this->table->add(self::createEnvValue('a'), '');
 
-        $this->expectException(AlreadyDefinedError::class);
+        $this->expectException(ProgramError::class);
         $this->table->add(self::createEnvValue('a'), 'A');
     }
 
