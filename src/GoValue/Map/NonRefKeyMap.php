@@ -14,10 +14,10 @@ final class NonRefKeyMap implements Map
     private int $len = 0;
 
     /**
-     * @param \Closure(mixed): NonRefValue
+     * @param \Closure(mixed): NonRefValue $wrapper
      */
     public function __construct(
-        private \Closure $wrapper,
+        private readonly \Closure $wrapper,
     ) {}
 
     public function has(GoValue $at): bool

@@ -31,6 +31,8 @@ final class MapBuilder
 
     public function set(GoValue $value, GoValue $at): void
     {
+        $value = $value->copy();
+
         assert_index_type($at, $this->type->keyType, self::NAME);
         assert_types_compatible_with_cast($this->type->elemType, $value);
 

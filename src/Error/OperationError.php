@@ -69,6 +69,16 @@ final class OperationError extends \RuntimeException
 //        return new self(\sprintf('invalid operation: cannot indirect value of type %s', $type->name()));
 //    }
 
+    public static function cannotTakeAddressOfMapValue(GoType $type): self
+    {
+        return new self(
+            \sprintf(
+                'invalid operation: cannot take address of value (map index expression of type %s)',
+                $type->name(),
+            )
+        );
+    }
+
     public static function unsupportedOperation(string $operation, GoValue $value): self
     {
         return new self(
