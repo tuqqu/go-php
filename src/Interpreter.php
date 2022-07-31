@@ -38,7 +38,6 @@ use GoParser\Ast\ForClause;
 use GoParser\Ast\GroupSpec;
 use GoParser\Ast\IdentList;
 use GoParser\Ast\ImportSpec;
-use GoParser\Ast\ParamDecl;
 use GoParser\Ast\Params as AstParams;
 use GoParser\Ast\Punctuation;
 use GoParser\Ast\RangeClause;
@@ -497,6 +496,9 @@ final class Interpreter
         return None::get();
     }
 
+    /**
+     * @return callable(): mixed
+     */
     private function evalCallExprWithoutCall(CallExpr $expr): callable
     {
         $func = $this->evalExpr($expr->expr);
@@ -505,10 +507,10 @@ final class Interpreter
             throw OperationError::nonFunctionCall($func);
         }
 
+        /** @var Invocable $func */
         $argv = [];
         $exprLen = \count($expr->args->exprs);
 
-        // fixme move this to sep fn
         if (
             $func instanceof BuiltinFuncValue
             && $exprLen > 0
@@ -521,22 +523,13 @@ final class Interpreter
             $argv[] = $this->evalExpr($expr->args->exprs[$i])->copy();
         }
 
-        // fixme assert_argc refactor
-        if ($func instanceof FuncValue) {
-            // we have to do it here to validate argc before the slice unpacking
-            assert_argc(
-                $argv,
-                $func->signature->arity,
-                $func->signature->variadic,
-                $func->signature->params
-            );
-        }
-
         if ($expr->ellipsis !== null) {
             $slice = \array_pop($argv);
-            assert_arg_value($slice, SliceValue::class, SliceValue::NAME, $exprLen - 1);
 
-            /** @var SliceValue $slice */
+            if (!$slice instanceof SliceValue) {
+                throw TypeError::expectedSliceInArgumentUnpacking($slice, $func);
+            }
+
             $argv = [...$argv, ...$slice->unwrap()];
         }
 
@@ -1455,29 +1448,38 @@ final class Interpreter
     private function resolveParamsFromAstSignature(AstSignature $signature): array
     {
         return [
-            new Params($this->resolveParamsFromAstParams($signature->params)),
-            new Params(match (true) {
-                $signature->result === null => [],
-                $signature->result instanceof AstType => [new Param($this->resolveType($signature->result))],
+            $this->resolveParamsFromAstParams($signature->params),
+            match (true) {
+                $signature->result === null => Params::empty(),
+                $signature->result instanceof AstType => Params::fromParam(new Param($this->resolveType($signature->result))),
                 $signature->result instanceof AstParams => $this->resolveParamsFromAstParams($signature->result),
-            }),
+            },
         ];
     }
 
-    private function resolveParamsFromAstParams(AstParams $params): array
+    private function resolveParamsFromAstParams(AstParams $astParams): Params
     {
-        return \array_map($this->paramFromAstParamDecl(...), $params->paramList);
-    }
+        $params = [];
+        foreach ($astParams->paramList as $paramDecl) {
+            if ($paramDecl->identList === null) {
+                $params[] = new Param(
+                    $this->resolveType($paramDecl->type),
+                    null,
+                    $paramDecl->ellipsis !== null,
+                );
+                continue;
+            }
 
-    private function paramFromAstParamDecl(ParamDecl $paramDecl): Param
-    {
-        return new Param(
-            $this->resolveType($paramDecl->type),
-            $paramDecl->identList === null ?
-                [] :
-                self::arrayFromIdents($paramDecl->identList), // fixme maybe anon option for perf
-            $paramDecl->ellipsis !== null,
-        );
+            foreach ($paramDecl->identList->idents as $ident) {
+                $params[] = new Param(
+                    $this->resolveType($paramDecl->type),
+                    $ident->name,
+                    $paramDecl->ellipsis !== null,
+                );
+            }
+        }
+
+        return new Params($params);
     }
 
     private static function arrayFromIdents(IdentList $identList): array

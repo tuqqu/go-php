@@ -32,7 +32,9 @@ final class StringConverter
 
         $char = \mb_chr($int, 'UTF-8');
 
-        return $char === false ? self::INVALID_RANGE_CHAR : $char;
+        return $char === false
+            ? self::INVALID_RANGE_CHAR
+            : $char;
     }
 
     private static function chars(array $values): string

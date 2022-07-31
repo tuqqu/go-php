@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\InternalError;
-use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
 final class VoidValue implements GoValue
 {
-    public function unwrap(): callable
+    public function unwrap(): never
     {
         throw InternalError::unreachableMethodCall();
     }
 
-    public function type(): GoType
+    public function type(): never
     {
         throw InternalError::unreachableMethodCall();
     }
@@ -35,12 +34,12 @@ final class VoidValue implements GoValue
         throw InternalError::unreachableMethodCall();
     }
 
-    public function equals(GoValue $rhs): BoolValue
+    public function equals(GoValue $rhs): never
     {
         throw InternalError::unreachableMethodCall();
     }
 
-    public function toString(): string
+    public function toString(): never
     {
         throw InternalError::unreachableMethodCall();
     }
@@ -50,12 +49,12 @@ final class VoidValue implements GoValue
         throw InternalError::unreachableMethodCall();
     }
 
-    public function isNamed(): bool
+    public function isNamed(): never
     {
         throw InternalError::unreachableMethodCall();
     }
 
-    public function makeNamed(): void
+    public function makeNamed(): never
     {
         throw InternalError::unreachableMethodCall();
     }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
-use GoParser\Ast\Stmt\Stmt;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 
@@ -24,8 +23,6 @@ final class ProgramError extends \LogicException
     {
         return new self('function declaration in a function scope');
     }
-
-
 
     public static function multipleDefaults(): self
     {

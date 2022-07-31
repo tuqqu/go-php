@@ -6,13 +6,11 @@ namespace GoPhp\Tests\Unit\Env\EnvValue;
 
 use GoPhp\Env\EnvValue\ImmutableValue;
 use GoPhp\Env\EnvValue\MutableValue;
-use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\Uint32Value;
 use GoPhp\GoValue\Int\UintValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
-use GoPhp\GoValue\StringValue;
 use PHPUnit\Framework\TestCase;
 
 final class EnvValueTest extends TestCase

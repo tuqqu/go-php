@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\Tests\Unit\Env;
 
 use GoPhp\Env\Environment;
-use GoPhp\Env\Error\CannotBeMutatedError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\GoValue\Int\IntValue;
 use PHPUnit\Framework\TestCase;

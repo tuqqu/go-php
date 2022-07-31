@@ -10,8 +10,8 @@ use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
 /**
- * Represents types in environment.
- * As well as type "values", that are passed to some builtin functions as an argument
+ * Represents types in environment
+ * as well as type "values", that are passed to some built-in functions as arguments
  *
  * e.g. make([]int, 2, 3)
  *           ^^^^^

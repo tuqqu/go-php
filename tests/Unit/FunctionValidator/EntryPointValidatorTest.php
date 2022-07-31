@@ -26,8 +26,8 @@ final class VoidFunctionValidatorTest extends TestCase
     public function testValidate(): void
     {
         $signature = new Signature(
-            new Params([]),
-            new Params([]),
+            Params::empty(),
+            Params::empty(),
         );
 
         $this->validator->validate($signature);
@@ -37,8 +37,8 @@ final class VoidFunctionValidatorTest extends TestCase
     public function testFailedValidate(): void
     {
         $signature = new Signature(
-            new Params([new Param(NamedType::Int)]),
-            new Params([new Param(NamedType::Int)]),
+            Params::fromParam(new Param(NamedType::Int)),
+            Params::fromParam(new Param(NamedType::Int)),
         );
 
         $this->expectException(InternalError::class);

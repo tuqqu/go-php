@@ -6,7 +6,6 @@ namespace GoPhp\Tests\Unit\Env;
 
 use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\EnvValue\ImmutableValue;
-use GoPhp\Env\Error\AlreadyDefinedError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Env\ValueTable;
 use GoPhp\Error\ProgramError;

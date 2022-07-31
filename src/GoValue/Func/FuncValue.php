@@ -22,6 +22,7 @@ use GoPhp\StmtJump\StmtJump;
 use GoPhp\Stream\StreamProvider;
 
 use function GoPhp\assert_arg_type;
+use function GoPhp\assert_argc;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
 
@@ -59,6 +60,13 @@ final class FuncValue implements Func, GoValue
 
     public function __invoke(GoValue ...$argv): GoValue
     {
+        assert_argc(
+            $argv,
+            $this->signature->arity,
+            $this->signature->variadic,
+            $this->signature->params,
+        );
+
         $env = new Environment(enclosing: $this->enclosure);
 
         $i = 0;
@@ -75,10 +83,10 @@ final class FuncValue implements Func, GoValue
                 }
 
                 $env->defineVar(
-                    $param->names[0],
+                    $param->name,
                     $this->namespace,
                     $sliceBuilder->build(),
-                    $sliceType
+                    $sliceType,
                 );
 
                 break;
@@ -86,14 +94,12 @@ final class FuncValue implements Func, GoValue
 
             assert_arg_type($argv[$i], $param->type, $i);
 
-            foreach ($param->names as $name) {
-                $env->defineVar(
-                    $name,
-                    $this->namespace,
-                    $argv[$i++],
-                    $param->type,
-                );
-            }
+            $env->defineVar(
+                $param->name,
+                $this->namespace,
+                $argv[$i++],
+                $param->type,
+            );
         }
 
         /** @var StmtJump $stmtJump */

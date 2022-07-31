@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace GoPhp\Error;
 
 use GoPhp\GoType\GoType;
+use GoPhp\GoValue\BuiltinFuncValue;
+use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
 
 final class TypeError extends \RuntimeException
@@ -17,6 +19,24 @@ final class TypeError extends \RuntimeException
                 $value->toString(),
                 $value->type()->name(),
                 $type->name(),
+            )
+        );
+    }
+
+    public static function expectedSliceInArgumentUnpacking(GoValue $value, FuncValue|BuiltinFuncValue $funcValue): self
+    {
+        return new self(
+            \sprintf(
+                'cannot use %s (%s of type %s) as type %s in argument to %s',
+                $value->toString(),
+                $value->isNamed() ? 'variable' : 'value',
+                $value->type()->name(),
+                $funcValue instanceof BuiltinFuncValue
+                    ? '[]T (slice)'
+                    : $funcValue->signature->params->params[$funcValue->signature->params->len - 1]->type->name(),
+                $funcValue instanceof BuiltinFuncValue
+                    ? 'builtin function'
+                    : 'function',
             )
         );
     }

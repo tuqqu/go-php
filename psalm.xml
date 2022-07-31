@@ -14,7 +14,6 @@
     </projectFiles>
 
     <issueHandlers>
-        <InvalidFunctionCall errorLevel="suppress" />
         <UndefinedInterfaceMethod errorLevel="suppress" />
     </issueHandlers>
 </psalm>

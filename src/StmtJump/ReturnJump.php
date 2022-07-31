@@ -37,7 +37,7 @@ final class ReturnJump implements StmtJump
     {
         $tuple = new TupleValue($values);
 
-        return new self($tuple, $tuple->len);
+        return self::fromTuple($tuple);
     }
 
     /**

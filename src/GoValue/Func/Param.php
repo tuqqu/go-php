@@ -10,7 +10,7 @@ final class Param
 {
     public function __construct(
         public readonly GoType $type,
-        public readonly array $names = [],
+        public readonly ?string $name = null,
         public readonly bool $variadic = false,
     ) {}
 }

@@ -21,6 +21,16 @@ final class Params
         $this->variadic = empty($params) ? false : $params[$this->len - 1]->variadic;
     }
 
+    public static function empty(): self
+    {
+        return new self([]);
+    }
+
+    public static function fromParam(Param $param): self
+    {
+        return new self([$param]);
+    }
+
     public function __toString(): string
     {
         $types = [];

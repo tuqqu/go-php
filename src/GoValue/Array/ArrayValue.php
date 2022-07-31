@@ -164,11 +164,17 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
         return $this->type;
     }
 
-    public function copy(): static
+    public function copy(): self
     {
-        return new self(
+        $self = new self(
             $this->values->copyItems(),
             $this->type,
         );
+
+        if ($this->isNamed()) {
+            $self->makeNamed();
+        }
+
+        return $self;
     }
 }
