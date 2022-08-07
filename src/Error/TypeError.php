@@ -98,6 +98,11 @@ final class TypeError extends \RuntimeException
         );
     }
 
+    public static function cannotSplatMultipleValuedReturn(int $n): self
+    {
+        return new self(\sprintf('cannot use ... with %d-valued return value', $n));
+    }
+
     public static function onlyComparableToNil(GoValue $value): self
     {
         return new self(

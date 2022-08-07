@@ -502,12 +502,14 @@ final class Interpreter
         if (!$func instanceof Invocable) {
             throw OperationError::nonFunctionCall($func);
         }
-
         /** @var Invocable $func */
+
         $argv = [];
         $exprLen = \count($expr->args->exprs);
+        $nValuedContext = 1;
 
         if (
+            // fixme add "expectsType(): bool" to builtin functions
             $func instanceof BuiltinFuncValue
             && $exprLen > 0
             && $expr->args->exprs[0] instanceof AstType
@@ -516,10 +518,30 @@ final class Interpreter
         }
 
         for ($i = \count($argv); $i < $exprLen; ++$i) {
-            $argv[] = $this->evalExpr($expr->args->exprs[$i])->copy();
+            $arg = $this->evalExpr($expr->args->exprs[$i]);
+
+            if ($arg instanceof TupleValue) {
+                if ($exprLen !== 1) {
+                    throw TypeError::multipleValueInSingleContext($arg);
+                }
+
+                $nValuedContext = $arg->len;
+
+                foreach ($arg->values as $value) {
+                    $argv[] = $value->copy();
+                }
+
+                break;
+            }
+
+            $argv[] = $arg->copy();
         }
 
         if ($expr->ellipsis !== null) {
+            if ($nValuedContext > 1) {
+                throw TypeError::cannotSplatMultipleValuedReturn($nValuedContext);
+            }
+
             $slice = \array_pop($argv);
 
             if (!$slice instanceof SliceValue) {
