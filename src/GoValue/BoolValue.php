@@ -72,7 +72,7 @@ final class BoolValue implements NonRefValue, Sealable
     public function operate(Operator $op): self|AddressValue
     {
         return match ($op) {
-            Operator::BitAnd => new AddressValue($this),
+            Operator::BitAnd => AddressValue::fromValue($this),
             Operator::LogicNot => $this->invert(),
             default => throw OperationError::undefinedOperator($op, $this),
         };

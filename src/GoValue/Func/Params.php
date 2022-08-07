@@ -10,6 +10,7 @@ final class Params
     public readonly array $params;
     public readonly int $len;
     public readonly bool $variadic;
+    public readonly bool $named;
 
     /**
      * @param Param[] $params
@@ -18,10 +19,15 @@ final class Params
     {
         $this->params = $params;
         $this->len = \count($params);
-        $this->variadic = empty($params) ? false : $params[$this->len - 1]->variadic;
+        [$this->variadic, $this->named] = empty($params)
+            ? [false, false]
+            : [
+                $params[$this->len - 1]->variadic,
+                $params[$this->len - 1]->name !== null,
+            ];
     }
 
-    public static function empty(): self
+    public static function fromEmpty(): self
     {
         return new self([]);
     }
@@ -39,11 +45,6 @@ final class Params
         }
 
         return \implode(', ', $types);
-    }
-
-    public function void(): bool
-    {
-        return $this->len === 0;
     }
 
     /**

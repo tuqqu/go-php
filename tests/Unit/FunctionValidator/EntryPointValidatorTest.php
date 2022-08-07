@@ -26,8 +26,8 @@ final class VoidFunctionValidatorTest extends TestCase
     public function testValidate(): void
     {
         $signature = new Signature(
-            Params::empty(),
-            Params::empty(),
+            Params::fromEmpty(),
+            Params::fromEmpty(),
         );
 
         $this->validator->validate($signature);

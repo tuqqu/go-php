@@ -8,16 +8,36 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\PointerType;
 use GoPhp\Operator;
 
+use function GoPhp\assert_values_compatible;
+
 final class AddressValue implements GoValue
 {
     use NamedTrait;
 
-    public readonly PointerType $type;
+    private function __construct(
+        private GoValue $pointsTo,
+        private readonly PointerType $type,
+    ) {}
 
-    public function __construct(
-        public GoValue $pointsTo,
-    ) {
-        $this->type = new PointerType($this->pointsTo->type());
+    public static function fromValue(GoValue $value): self
+    {
+        return new self(
+            pointsTo: $value,
+            type: new PointerType($value->type()),
+        );
+    }
+
+    public static function fromType(PointerType $type): self
+    {
+        return new self(
+            pointsTo: new NilValue($type),
+            type: $type,
+        );
+    }
+
+    public function getPointsTo(): GoValue
+    {
+        return $this->pointsTo;
     }
 
     public function unwrap(): int
@@ -29,7 +49,7 @@ final class AddressValue implements GoValue
     {
         return match ($op) {
             Operator::Mul => $this->pointsTo,
-            Operator::BitAnd => new AddressValue($this),
+            Operator::BitAnd => AddressValue::fromValue($this),
             default => throw OperationError::undefinedOperator($op, $this),
         };
     }
@@ -47,12 +67,19 @@ final class AddressValue implements GoValue
         );
     }
 
-    public function mutate(Operator $op, GoValue $rhs): never
+    public function mutate(Operator $op, GoValue $rhs): void
     {
+        if ($op === Operator::Eq) {
+            assert_values_compatible($this, $rhs);
+            $this->pointsTo = $rhs->pointsTo;
+
+            return;
+        }
+
         throw OperationError::undefinedOperator($op, $this);
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return $this;
     }

@@ -13,13 +13,13 @@ use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NamedTrait;
+use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\VoidValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\Operator;
 use GoPhp\StmtJump\ReturnJump;
 use GoPhp\StmtJump\None;
 use GoPhp\StmtJump\StmtJump;
-use GoPhp\Stream\StreamProvider;
 
 use function GoPhp\assert_arg_type;
 use function GoPhp\assert_argc;
@@ -33,11 +33,10 @@ final class FuncValue implements Func, GoValue
 {
     use NamedTrait;
 
-    /** @var FunctionBody */
-    public readonly \Closure $body;
     public readonly Signature $signature;
-    public readonly Environment $enclosure;
-    public readonly StreamProvider $streams;
+    /** @var FunctionBody */
+    private readonly \Closure $body;
+    private readonly Environment $enclosure;
     private readonly ?string $namespace;
 
     /**
@@ -48,11 +47,9 @@ final class FuncValue implements Func, GoValue
         Params $params,
         Params $returns,
         Environment $enclosure,
-        StreamProvider $streams,
         ?string $namespace,
     ) {
         $this->body = $body;
-        $this->streams = $streams;
         $this->namespace = $namespace;
         $this->signature = new Signature($params, $returns);
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
@@ -69,6 +66,21 @@ final class FuncValue implements Func, GoValue
 
         $env = new Environment(enclosing: $this->enclosure);
 
+        $namedReturns = [];
+
+        if ($this->signature->returns->named) {
+            foreach ($this->signature->returns->iter() as $param) {
+                $namedReturns[] = $param->name;
+
+                $env->defineVar(
+                    $param->name,
+                    '',
+                    $param->type->defaultValue(),
+                    $param->type,
+                );
+            }
+        }
+
         $i = 0;
         //fixme move variadic logic
         foreach ($this->signature->params->iter() as $param) {
@@ -84,7 +96,7 @@ final class FuncValue implements Func, GoValue
 
                 $env->defineVar(
                     $param->name,
-                    $this->namespace,
+                    '',
                     $sliceBuilder->build(),
                     $sliceType,
                 );
@@ -96,7 +108,7 @@ final class FuncValue implements Func, GoValue
 
             $env->defineVar(
                 $param->name,
-                $this->namespace,
+                '',
                 $argv[$i++],
                 $param->type,
             );
@@ -116,11 +128,25 @@ final class FuncValue implements Func, GoValue
         }
 
         if ($this->signature->returnArity !== $stmtJump->len) {
+            // named return: single & tuple value
+            if (!empty($namedReturns)) {
+                $namedValues = [];
+
+                foreach ($namedReturns as $namedReturn) {
+                    $namedValues[] = $env->get($namedReturn, '')->unwrap();
+                }
+
+                return $this->signature->returns->len === 1
+                    ? $namedValues[0]
+                    : new TupleValue($namedValues);
+            }
+
             throw ProgramError::wrongReturnValueNumber($stmtJump->values(), $this->signature->returns);
         }
 
         // void & single & tuple value return
         $values = $stmtJump->values();
+
         foreach ($this->signature->returns->iter() as $i => $param) {
             assert_types_compatible($param->type, $values[$i]->type());
         }

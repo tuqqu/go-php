@@ -109,7 +109,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
     public function operate(Operator $op): AddressValue
     {
         if ($op === Operator::BitAnd) {
-            return new AddressValue($this);
+            return AddressValue::fromValue($this);
         }
 
         throw OperationError::undefinedOperator($op, $this);

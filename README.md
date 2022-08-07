@@ -2,7 +2,6 @@
 
 Golang interpreter written in PHP.
 
-TBD
 
 # Example
 
@@ -36,17 +35,15 @@ $interpreter->run();
 
 ## WIP
 
-This is a very much work-in-progress project.
+This is a work-in-progress project.
 
-Incomplete list of features:
+Already implemented:
 
-Implemented:
+* see [tests](tests/Functional/files/)
 
-see [tests](tests/Functional/files/)
-
-TODO:
 
 To be implemented:
+
 * complex numbers
 * channels and select statements
 * methods
@@ -55,9 +52,9 @@ To be implemented:
 * panic recovering
 * lambda functions
 * generics
+* anon function params
 
 Known bugs:
 * goto from loop body
-* underlying array capacity is not correctly set
+* weird cases for underlying array capacity 
 * untyped string
-* weird cases for type definitions

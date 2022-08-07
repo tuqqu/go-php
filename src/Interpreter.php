@@ -177,6 +177,8 @@ final class Interpreter
             $this->callFunc(
                 fn (): GoValue => ($this->entryPoint)(...$this->argv)
             );
+        } catch (InternalError $err) {
+            throw $err;
         } catch (\Throwable $throwable) {
             $this->onError($throwable->getMessage());
 
@@ -461,7 +463,6 @@ final class Interpreter
             $params,
             $returns,
             $this->env,
-            $this->streams,
             $this->currentPackage,
         ); //fixme body null
 
@@ -1258,8 +1259,6 @@ final class Interpreter
 
     private function evalSelectorExpr(SelectorExpr $expr): GoValue
     {
-        $namespace = $this->currentPackage;
-
         // package access
         if (
             $expr->expr instanceof Ident
@@ -1281,7 +1280,7 @@ final class Interpreter
             }
 
             if ($value instanceof AddressValue) {
-                $value = $value->pointsTo;
+                $value = $value->getPointsTo();
                 $check = true;
             }
         } while ($check);
@@ -1446,7 +1445,7 @@ final class Interpreter
         return [
             $this->resolveParamsFromAstParams($signature->params),
             match (true) {
-                $signature->result === null => Params::empty(),
+                $signature->result === null => Params::fromEmpty(),
                 $signature->result instanceof AstType => Params::fromParam(new Param($this->resolveType($signature->result))),
                 $signature->result instanceof AstParams => $this->resolveParamsFromAstParams($signature->result),
             },

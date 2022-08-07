@@ -112,7 +112,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable
     {
         switch ($op) {
             case Operator::BitAnd:
-                return new AddressValue($this);
+                return AddressValue::fromValue($this);
             case Operator::Plus:
                 return $this->noop();
             case Operator::Minus:
