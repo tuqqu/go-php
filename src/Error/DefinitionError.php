@@ -24,14 +24,14 @@ final class DefinitionError extends \LogicException
         return new self(\sprintf('invalid slice indices: %d < %d', $low, $high));
     }
 
-    public static function indexOfWrongType(GoValue $index, GoType|string $type, string $where): self
+    public static function indexOfWrongType(GoValue $index, string $type, string $where): self
     {
         return new self(
             \sprintf(
                 'cannot use "%s" (%s) as %s value in %s index',
                 $index->toString(),
                 $index->type()->name(),
-                \is_string($type) ? $type::NAME : $type->name(),
+                $type,
                 $where,
             )
         );

@@ -81,7 +81,6 @@ use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
-use GoPhp\Error\ValueError;
 use GoPhp\FunctionValidator\FunctionValidator;
 use GoPhp\FunctionValidator\VoidFunctionValidator;
 use GoPhp\GoType\ArrayType;
@@ -309,7 +308,7 @@ final class Interpreter
             $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
             $stmt instanceof TypeDecl => $this->evalTypeDeclStmt($stmt),
             $stmt instanceof FuncDecl => throw ProgramError::nestedFunction(),
-            default => throw InternalError::unknownStatement($stmt),
+            default => throw InternalError::unreachable($stmt),
         };
     }
 
@@ -486,10 +485,6 @@ final class Interpreter
 
     private function evalDeferStmt(DeferStmt $stmt): None
     {
-        if (!$stmt->expr instanceof CallExpr) {
-            throw new InternalError('Call expression expected in defer statement');
-        }
-
         $fn = $this->evalCallExprWithoutCall($stmt->expr);
         $this->deferStack->push($fn);
 
@@ -550,8 +545,8 @@ final class Interpreter
 
         $value = $fn();
 
-        foreach ($this->deferStack->pop() as $defFn) {
-            $this->callFunc($defFn);
+        foreach ($this->deferStack->iter() as $deferFn) {
+            $this->callFunc($deferFn);
         }
 
         $this->jumpStack->pop();
@@ -596,7 +591,7 @@ final class Interpreter
         }
 
         $index = $this->evalExpr($expr);
-        assert_index_value($index, BaseIntValue::class, 'slice'); //fixme name
+        assert_index_int($index, SliceValue::NAME);
 
         return $index->unwrap();
     }
@@ -722,8 +717,9 @@ final class Interpreter
 
             if ($value instanceof TupleValue) {
                 if (!empty($values)) {
-                    throw ValueError::multipleValueInSingleContext();
+                    throw TypeError::multipleValueInSingleContext($value);
                 }
+
                 return ReturnJump::fromTuple($value);
             }
 
@@ -803,13 +799,13 @@ final class Interpreter
                     $condition = match (true) {
                         $stmt->iteration->condition === null => null,
                         $stmt->iteration->condition instanceof ExprStmt => $stmt->iteration->condition->expr,
-                        default => throw new InternalError('Unknown for loop condition'),
+                        default => throw InternalError::unreachable($stmt->iteration->condition),
                     };
 
                     $post = $stmt->iteration->post ?? null;
                     break;
                 default:
-                    throw new InternalError('Unknown for loop structure');
+                    throw throw InternalError::unreachable($stmt->iteration);
             }
 
             while (
@@ -832,7 +828,7 @@ final class Interpreter
                         || $stmtJump instanceof GotoJump:
                         return $stmtJump;
                     default:
-                        throw new InternalError('Unknown statement value');
+                        throw InternalError::unreachable($stmtJump);
                 }
 
                 if ($post !== null) {
@@ -995,7 +991,7 @@ final class Interpreter
                     || $stmtJump instanceof GotoJump:
                     return $stmtJump;
                 default:
-                    throw new InternalError('Unknown statement value');
+                    throw InternalError::unreachable($stmtJump);
             }
         }
 
@@ -1056,7 +1052,7 @@ final class Interpreter
 
         if ($value instanceof TupleValue) {
             if ($exprLen !== 1) {
-                throw ValueError::multipleValueInSingleContext();
+                throw TypeError::multipleValueInSingleContext($value);
             }
 
             if ($value->len !== $expectedLen) {
@@ -1084,7 +1080,7 @@ final class Interpreter
             $value = $this->evalExpr($exprList->exprs[$i]);
 
             if ($value instanceof TupleValue) {
-                throw ValueError::multipleValueInSingleContext();
+                throw TypeError::multipleValueInSingleContext($value);
             }
 
             $values[] = $value;
@@ -1105,7 +1101,7 @@ final class Interpreter
             $expr instanceof SliceExpr => $this->evalSliceExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
 //            $expr instanceof AstType => $this->evalTypeConversion($expr),
-            default => dd('eval expr', $expr), // fixme debug
+            default => throw InternalError::unreachable($expr),
         };
     }
 
@@ -1141,7 +1137,7 @@ final class Interpreter
         };
     }
 
-    private function evalCompositeLit(CompositeLit $lit): GoValue //fixme arrayvalye, slice, map, struct etc...
+    private function evalCompositeLit(CompositeLit $lit): GoValue
     {
         $type = $this->resolveType($lit->type, true);
 
@@ -1172,7 +1168,7 @@ final class Interpreter
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->set(
                         $this->evalExpr($element->element),
-                        $this->evalExpr($element->key ?? throw new InternalError('Expected element key')),
+                        $this->evalExpr($element->key ?? throw InternalError::unreachable($element)),
                     );
                 }
                 $builtValue = $builder->build();
@@ -1195,7 +1191,7 @@ final class Interpreter
                 $builtValue = $this->resolveCompositeLitWithType($lit, $type->unwind(), $type->valueCallback());
                 break;
             default:
-                throw new InternalError(sprintf('Unknown composite literal "%s" with type "%s"', $lit::class, $type->name()));
+                throw InternalError::unreachable($lit);
         }
 
 
@@ -1387,10 +1383,10 @@ final class Interpreter
             $len = $this->tryEvalConstExpr($arrayType->len) ?? throw ProgramError::invalidArrayLength();
 
             if (!$len instanceof BaseIntValue) {
-                throw TypeError::valueOfWrongType($len, NamedType::Int);
+                throw TypeError::invalidArrayLen($len);
             }
         } else {
-            throw new InternalError('Unexpected array length value');
+            throw InternalError::unreachable($arrayType);
         }
 
         return new ArrayType(
@@ -1480,11 +1476,6 @@ final class Interpreter
         }
 
         return new Params($params);
-    }
-
-    private static function arrayFromIdents(IdentList $identList): array
-    {
-        return \array_map(static fn (Ident $ident): string => $ident->name, $identList->idents);
     }
 
     private function defineVar(string $name, GoValue $value, ?GoType $type = null): void

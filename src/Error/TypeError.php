@@ -8,6 +8,7 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\TupleValue;
 
 final class TypeError extends \RuntimeException
 {
@@ -53,6 +54,18 @@ final class TypeError extends \RuntimeException
         );
     }
 
+    public static function invalidArrayLen(GoValue $value): self
+    {
+        return new self(
+            \sprintf(
+                'array length %s (%s%s) must be integer',
+                $value->toString(),
+                $value->type()->name(),
+                $value->isNamed() ? '' : ' constant',
+            ),
+        );
+    }
+
     public static function incompatibleTypes(GoType $a, GoType $b): self
     {
         return new self(
@@ -75,6 +88,16 @@ final class TypeError extends \RuntimeException
         );
     }
 
+    public static function multipleValueInSingleContext(TupleValue $value): self
+    {
+        return new self(
+            \sprintf(
+                'multiple-value (value of type %s) in single-value context',
+                self::tupleTypeToString($value),
+            ),
+        );
+    }
+
     public static function onlyComparableToNil(GoValue $value): self
     {
         return new self(
@@ -82,6 +105,20 @@ final class TypeError extends \RuntimeException
                 'Invalid operation. %s can only be compared to nil',
                 $value->type()->name(),
             )
+        );
+    }
+
+    private static function tupleTypeToString(TupleValue $tuple): string
+    {
+        return \sprintf(
+            '(%s)',
+            \implode(
+                ', ',
+                \array_map(
+                    static fn (GoValue $value): string => $value->type()->name(),
+                    $tuple->values,
+                ),
+            ),
         );
     }
 }

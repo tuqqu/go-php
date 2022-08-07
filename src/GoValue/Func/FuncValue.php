@@ -112,7 +112,7 @@ final class FuncValue implements Func, GoValue
         }
 
         if (!$stmtJump instanceof ReturnJump) {
-            throw new InternalError('Unexpected return statement');
+            throw InternalError::unreachable($stmtJump);
         }
 
         if ($this->signature->returnArity !== $stmtJump->len) {

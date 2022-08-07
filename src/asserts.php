@@ -11,6 +11,7 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\NonRefValue;
 
@@ -110,16 +111,16 @@ function assert_slice_indices(int $cap, int $low, int $high, ?int $max = null): 
     }
 }
 
-function assert_index_value(GoValue $index, string $value, string $where): void
+function assert_index_int(GoValue $index, string $context): void
 {
-    if (!$index instanceof $value) {
-        throw DefinitionError::indexOfWrongType($index, $value, $where);
+    if (!$index instanceof BaseIntValue) {
+        throw DefinitionError::indexOfWrongType($index, BaseIntValue::NAME, $context);
     }
 }
 
-function assert_index_type(GoValue $index, GoType $type, string $where): void
+function assert_index_type(GoValue $index, GoType $type, string $context): void
 {
     if (!$index->type()->isCompatible($type)) {
-        throw DefinitionError::indexOfWrongType($index, $type, $where);
+        throw DefinitionError::indexOfWrongType($index, $type->name(), $context);
     }
 }

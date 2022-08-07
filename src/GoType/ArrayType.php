@@ -28,7 +28,7 @@ final class ArrayType implements GoType
     public function name(): string
     {
         if ($this->isUnfinished()) {
-            throw new InternalError('Array type must be complete prior to usage');
+            throw new InternalError('array type must be complete prior to usage');
         }
 
         return $this->name;

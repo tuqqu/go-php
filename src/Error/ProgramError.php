@@ -64,6 +64,11 @@ final class ProgramError extends \LogicException
         return new self('extra init expr');
     }
 
+    public static function funcMustBeNoArgsVoid(string $funcName): self
+    {
+        return new self(\sprintf('func %s must have no arguments and no return values', $funcName));
+    }
+
     public static function iotaMisuse(): self
     {
         return new self('cannot use iota outside constant declaration');

@@ -8,26 +8,26 @@ final class DeferStack
 {
     /** @var callable[][] */
     private array $stack = [];
-    private int $pos = 0;
+    private int $context = 0;
 
     public function newContext(): void
     {
-        $this->stack[$this->pos++] = [];
+        $this->stack[$this->context++] = [];
     }
 
     public function push(callable $fn): void
     {
-        $this->stack[$this->pos - 1][] = $fn;
+        $this->stack[$this->context - 1][] = $fn;
     }
 
     /**
      * @return iterable<callable>
      */
-    public function pop(): iterable
+    public function iter(): iterable
     {
-        $defers = $this->stack[$this->pos - 1] ?? [];
-        unset($this->stack[$this->pos - 1]);
-        $this->pos--;
+        $defers = $this->stack[$this->context - 1] ?? [];
+        unset($this->stack[$this->context - 1]);
+        $this->context--;
 
         yield from \array_reverse($defers);
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Tests\Unit\FunctionValidator;
 
-use GoPhp\Error\InternalError;
+use GoPhp\Error\ProgramError;
 use GoPhp\FunctionValidator\VoidFunctionValidator;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Func\Param;
@@ -41,7 +41,7 @@ final class VoidFunctionValidatorTest extends TestCase
             Params::fromParam(new Param(NamedType::Int)),
         );
 
-        $this->expectException(InternalError::class);
+        $this->expectException(ProgramError::class);
 
         $this->validator->validate($signature);
     }

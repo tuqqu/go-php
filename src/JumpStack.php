@@ -18,16 +18,13 @@ final class JumpStack
 
     public function peek(): JumpHandler
     {
-        return $this->stack[\array_key_last($this->stack)] ?? self::underflow();
+        return $this->stack[\array_key_last($this->stack)]
+            ?? throw InternalError::jumpStackUnderflow();
     }
 
     public function pop(): JumpHandler
     {
-        return \array_pop($this->stack) ?? self::underflow();
-    }
-
-    private static function underflow(): never
-    {
-        throw new InternalError('jump stack underflow');
+        return \array_pop($this->stack)
+            ?? throw InternalError::jumpStackUnderflow();
     }
 }

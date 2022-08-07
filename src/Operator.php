@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoParser\Ast\Operator as AstOperator;
+use GoPhp\Error\InternalError;
 
 enum Operator: string
 {
     // binary
-
     case Plus = '+';
     case Minus = '-';
     case Mul = '*';
@@ -23,7 +23,7 @@ enum Operator: string
     case LeftShift = '<<';
     case RightShift = '>>';
 
-    // logic operators
+    // logic
     case LogicAnd = '&&';
     case LogicOr = '||';
     case LogicNot = '!';
@@ -58,7 +58,7 @@ enum Operator: string
 
     public static function fromAst(AstOperator $op): self
     {
-        return self::tryFrom($op->value) ?? throw new \Exception('unknown op');
+        return self::tryFrom($op->value) ?? throw InternalError::unknownOperator($op->value);
     }
 
     public function isAssignment(): bool

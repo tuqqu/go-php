@@ -18,7 +18,7 @@ use GoPhp\GoValue\Sliceable;
 use GoPhp\Operator;
 
 use function GoPhp\assert_index_exists;
-use function GoPhp\assert_index_value;
+use function GoPhp\assert_index_int;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_types_compatible;
@@ -97,7 +97,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
 
     public function get(GoValue $at): GoValue
     {
-        assert_index_value($at, BaseIntValue::class, self::NAME);
+        assert_index_int($at, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->len);
 
         return $this->accessUnderlyingArray()[$int];
@@ -105,7 +105,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
 
     public function set(GoValue $value, GoValue $at): void
     {
-        assert_index_value($at, BaseIntValue::class, self::NAME);
+        assert_index_int($at, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->len);
         assert_types_compatible($value->type(), $this->type->elemType);
 

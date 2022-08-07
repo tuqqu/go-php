@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\FunctionValidator;
 
-use GoPhp\Error\InternalError;
+use GoPhp\Error\ProgramError;
 use GoPhp\GoValue\Func\Signature;
 
 final class VoidFunctionValidator implements FunctionValidator
@@ -31,7 +31,7 @@ final class VoidFunctionValidator implements FunctionValidator
     public function validate(Signature $signature): void
     {
         if ($signature->arity !== 0 || $signature->returnArity !== 0) {
-            throw new InternalError(\sprintf('func %s must have no arguments and no return values', $this->funcName));
+            throw ProgramError::funcMustBeNoArgsVoid($this->funcName);
         }
     }
 }

@@ -6,12 +6,11 @@ namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\NamedType;
-use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\Operator;
 
 use function GoPhp\assert_index_exists;
-use function GoPhp\assert_index_value;
+use function GoPhp\assert_index_int;
 use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_values_compatible;
 
@@ -147,7 +146,7 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue
 
     public function get(GoValue $at): UntypedIntValue
     {
-        assert_index_value($at, BaseIntValue::class, self::NAME);
+        assert_index_int($at, self::NAME);
         assert_index_exists($int = $at->unwrap(), $this->byteLen);
 
         return UntypedIntValue::fromRune($this->value[$int]);
