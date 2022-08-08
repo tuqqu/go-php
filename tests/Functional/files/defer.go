@@ -33,5 +33,5 @@ func test_defer_2() {
 }
 
 func print_deferred_msg(msg string, i int) {
-	println("deferred "+ msg, i)
+	println("deferred "+msg, i)
 }

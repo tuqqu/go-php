@@ -28,7 +28,7 @@ func test_map_1() {
 	println("unknown:", unknown)
 	println("notSet:", notSet)
 
-    unknown, notSet = m["k99"]
+	unknown, notSet = m["k99"]
 	println("unknown:", unknown)
 	println("notSet:", notSet)
 

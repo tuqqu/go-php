@@ -5,10 +5,10 @@ func main() {
 }
 
 func test_1() {
-    println("test_1")
-    go call()
+	println("test_1")
+	go call()
 }
 
 func call() int {
-    return 1
+	return 1
 }

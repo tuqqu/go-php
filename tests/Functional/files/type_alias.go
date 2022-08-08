@@ -34,7 +34,7 @@ func test_2() {
 	type StrMap = map[Str]Str
 
 	var t = make(StrMap)
-	var s = StrMap{ "a": "b" }
+	var s = StrMap{"a": "b"}
 
 	t["foo"] = "bar"
 

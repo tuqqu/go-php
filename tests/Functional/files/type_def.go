@@ -8,7 +8,7 @@ func main() {
 
 type (
 	Celcius int
-	Kelvin int
+	Kelvin  int
 )
 
 func test_1() {

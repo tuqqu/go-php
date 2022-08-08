@@ -10,7 +10,7 @@ func test_goto_1() {
 	i := 0
 start:
 	for i < 10 {
-		if i % 2 == 0 {
+		if i%2 == 0 {
 			i++
 			goto start
 		}
