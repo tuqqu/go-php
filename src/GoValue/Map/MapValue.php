@@ -19,7 +19,7 @@ use function GoPhp\assert_types_compatible;
 /**
  * @template K of GoValue
  * @template V of GoValue
- * @template-implements Map<K, V>
+ * @template-implements Map<K, V|MapLookupValue<V>>
  */
 final class MapValue implements Map, GoValue
 {
@@ -51,7 +51,7 @@ final class MapValue implements Map, GoValue
         return \sprintf('map[%s]', \implode(' ', $str));
     }
 
-    public function get(GoValue $at): GoValue
+    public function get(GoValue $at): MapLookupValue
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
 

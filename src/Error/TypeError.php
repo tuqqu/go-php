@@ -118,6 +118,11 @@ final class TypeError extends \RuntimeException
         return new self('(no value) used as value');
     }
 
+    public static function builtInMustBeCalled(string $name): self
+    {
+        return new self(\sprintf('%s (built-in) must be called', $name));
+    }
+
     private static function tupleTypeToString(TupleValue $tuple): string
     {
         return \sprintf(

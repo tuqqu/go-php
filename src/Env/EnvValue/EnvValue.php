@@ -18,7 +18,7 @@ abstract class EnvValue
 
     public function __construct(
         public readonly string $name,
-        public readonly GoType $type,
+        public readonly GoType $type, // fixme maybe make optional
         GoValue $value,
     ) {
         $value = static::convertIfNeeded($value, $type);

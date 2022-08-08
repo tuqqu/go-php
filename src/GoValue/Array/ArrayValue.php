@@ -154,7 +154,7 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
     }
 
     /**
-     * @return GoValue[]
+     * @return V[]
      */
     public function unwrap(): array
     {

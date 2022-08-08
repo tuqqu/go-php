@@ -11,8 +11,15 @@ use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
 
+/**
+ * @template V of GoValue
+ */
 final class MapLookupValue implements GoValue
 {
+    /**
+     * @param V $value
+     * @param (\Closure(): void)|null $mutationCallback
+     */
     public function __construct(
         public readonly GoValue $value,
         public readonly BoolValue $ok,
@@ -57,6 +64,9 @@ final class MapLookupValue implements GoValue
         return $this->value->copy();
     }
 
+    /**
+     * @return V
+     */
     public function unwrap(): GoValue
     {
         return $this->value;

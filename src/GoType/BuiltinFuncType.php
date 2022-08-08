@@ -4,37 +4,43 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\Error\InternalError;
 use GoPhp\GoValue\GoValue;
 
 final class BuiltinFuncType implements GoType
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function name(): never
     {
-        throw new \Exception('(built-in) must be called');
+        throw InternalError::unreachableMethodCall();
     }
 
     public function equals(GoType $other): bool
     {
-        return $other instanceof self;
+        return $other instanceof self
+            && $this->name === $other->name;
     }
 
     public function isCompatible(GoType $other): bool
     {
-        return $other instanceof self;
+        return $this->equals($other);
     }
 
     public function reify(): never
     {
-        throw new \Exception('(built-in) must be called');
+        throw InternalError::unreachableMethodCall();
     }
 
     public function defaultValue(): never
     {
-        throw new \Exception('(built-in) must be called');
+        throw InternalError::unreachableMethodCall();
     }
 
     public function convert(GoValue $value): GoValue
     {
-        throw new \Exception('(built-in) must be called');
+        throw InternalError::unreachableMethodCall();
     }
 }

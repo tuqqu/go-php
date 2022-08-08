@@ -17,6 +17,7 @@ interface Sequence
 
     /**
      * @param K $at
+     * @return V
      */
     public function get(GoValue $at): GoValue;
 

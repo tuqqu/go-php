@@ -75,23 +75,23 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineFuncs(): void
     {
-        $this->env->defineBuiltinFunc('println', '', new BuiltinFuncValue($this->println(...)));
-        $this->env->defineBuiltinFunc('print', '', new BuiltinFuncValue($this->print(...)));
-        $this->env->defineBuiltinFunc('len', '', new BuiltinFuncValue(self::len(...)));
-        $this->env->defineBuiltinFunc('cap', '', new BuiltinFuncValue(self::cap(...)));
-        $this->env->defineBuiltinFunc('append', '', new BuiltinFuncValue(self::append(...)));
-        $this->env->defineBuiltinFunc('make', '', new BuiltinFuncValue(self::make(...)));
-        $this->env->defineBuiltinFunc('delete', '', new BuiltinFuncValue(self::delete(...)));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue('println', $this->println(...)));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue('print', $this->print(...)));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue('len', self::len(...)));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue('cap', self::cap(...)));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue('append', self::append(...)));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue('make', self::make(...)));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue('delete', self::delete(...)));
     }
 
     protected function defineTypes(): void
     {
         $this->env->defineType('bool', '', new TypeValue(NamedType::Bool));
         $this->env->defineType('string', '', new TypeValue(NamedType::String));
-        $this->env->defineType('int', '', new TypeValue(NamedType::Int), );
-        $this->env->defineType('int8', '', new TypeValue(NamedType::Int8), );
-        $this->env->defineType('int16', '', new TypeValue(NamedType::Int16), );
-        $this->env->defineType('int32', '', $int32 = new TypeValue(NamedType::Int32), );
+        $this->env->defineType('int', '', new TypeValue(NamedType::Int));
+        $this->env->defineType('int8', '', new TypeValue(NamedType::Int8));
+        $this->env->defineType('int16', '', new TypeValue(NamedType::Int16));
+        $this->env->defineType('int32', '', $int32 = new TypeValue(NamedType::Int32));
         $this->env->defineType('int64', '', new TypeValue(NamedType::Int64));
         $this->env->defineType('uint', '', new TypeValue(NamedType::Uint));
         $this->env->defineType('uint8', '', $uint8 = new TypeValue(NamedType::Uint8));
@@ -99,7 +99,7 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->env->defineType('uint32', '', new TypeValue(NamedType::Uint32));
         $this->env->defineType('uint64', '', new TypeValue(NamedType::Uint64));
         $this->env->defineType('uintptr', '', new TypeValue(NamedType::Uintptr));
-        $this->env->defineType('float32', '', new TypeValue(NamedType::Float32), );
+        $this->env->defineType('float32', '', new TypeValue(NamedType::Float32));
         $this->env->defineType('float64', '', new TypeValue(NamedType::Float64));
 
         $this->env->defineTypeAlias('byte', '', $uint8);

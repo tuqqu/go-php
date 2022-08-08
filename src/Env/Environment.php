@@ -67,10 +67,10 @@ final class Environment
         $this->definedValues->add($func, $namespace);
     }
 
-    public function defineBuiltinFunc(string $name, string $namespace, BuiltinFuncValue $value): void
+    public function defineBuiltinFunc(BuiltinFuncValue $value): void
     {
-        $func = new ImmutableValue($name, new BuiltinFuncType(), $value);
-        $this->definedValues->add($func, $namespace);
+        $func = new ImmutableValue($value->name, $value->type, $value);
+        $this->definedValues->add($func, '');
     }
 
     public function defineType(string $name, string $namespace, TypeValue $value): void
