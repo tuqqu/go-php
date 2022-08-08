@@ -25,18 +25,23 @@ use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_types_compatible;
 use function GoPhp\assert_values_compatible;
 
+/**
+ * @template V of GoValue
+ * @template-implements Sequence<BaseIntValue, V>
+ */
 final class ArrayValue implements Sliceable, Sequence, GoValue
 {
     use NamedTrait;
 
     public const NAME = 'array';
 
+    /** @var UnderlyingArray<V> */
     private UnderlyingArray $values;
     private readonly ArrayType $type;
     private readonly int $len;
 
     /**
-     * @param GoValue[] $values
+     * @param V[] $values
      */
     public function __construct(array $values, ArrayType $type)
     {
@@ -96,9 +101,6 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
         return $this->len;
     }
 
-    /**
-     * @return iterable<UntypedIntValue, GoValue>
-     */
     public function iter(): iterable
     {
         foreach ($this->values as $key => $value) {

@@ -7,14 +7,19 @@ namespace GoPhp\GoValue\Map;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NonRefValue;
 
+/**
+ * @template K of NonRefValue
+ * @template V of GoValue
+ * @template-implements Map<K, V>
+ */
 final class NonRefKeyMap implements Map
 {
-    /** @var GoValue[] */
+    /** @var V[] */
     private array $values = [];
     private int $len = 0;
 
     /**
-     * @param \Closure(mixed): NonRefValue $wrapper
+     * @param \Closure(mixed): K $wrapper
      */
     public function __construct(
         private readonly \Closure $wrapper,
@@ -49,9 +54,6 @@ final class NonRefKeyMap implements Map
         unset($this->values[$at->unwrap()]);
     }
 
-    /**
-     * @return iterable<NonRefValue, GoValue>
-     */
     public function iter(): iterable
     {
         foreach ($this->values as $key => $value) {

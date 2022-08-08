@@ -14,6 +14,9 @@ use function GoPhp\assert_index_int;
 use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_values_compatible;
 
+/**
+ * @template-implements Sequence<UntypedIntValue, UntypedIntValue>
+ */
 final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue
 {
     use SealableTrait;
@@ -114,7 +117,7 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue
         $this->byteLen += \strlen($value->value);
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return clone $this;
     }

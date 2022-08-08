@@ -6,6 +6,11 @@ namespace GoPhp\GoValue\Map;
 
 use GoPhp\GoValue\GoValue;
 
+/**
+ * @template K of GoValue
+ * @template V of GoValue
+ * @template-implements Map<K, V>
+ */
 final class RefKeyMap implements Map
 {
     private \SplObjectStorage $values;
@@ -46,16 +51,9 @@ final class RefKeyMap implements Map
         $this->values->detach($at);
     }
 
-    /**
-     * @return iterable<GoValue, GoValue>
-     */
     public function iter(): iterable
     {
         for ($i = 0; $i < $this->len; ++$i) {
-            /**
-             * @var GoValue $key
-             * @var GoValue $value
-             */
             $key = $this->values->current();
             $value = $this->values->getInfo();
 

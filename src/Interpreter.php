@@ -1292,7 +1292,6 @@ final class Interpreter
         // struct access
         $value = $this->env->get($expr->expr->name, $this->currentPackage)->unwrap();
 
-        // fixme add wrapped check (to asserts)
         do {
             $check = false;
 
@@ -1371,7 +1370,7 @@ final class Interpreter
             $type instanceof AstMapType => $this->resolveMapType($type, $composite),
             $type instanceof AstPointerType => $this->resolvePointerType($type, $composite),
             $type instanceof AstStructType => $this->resolveStructType($type, $composite),
-            default => dd('unresolved type', $type), // fixme debug
+            default => throw InternalError::unreachable($type),
         };
     }
 
@@ -1444,6 +1443,7 @@ final class Interpreter
         foreach ($structType->fieldDecls as $fieldDecl) {
             if ($fieldDecl->identList === null) {
                 // fixme add anonymous fields
+                throw new InternalError('not implemented');
             }
 
             $type = $this->resolveType($fieldDecl->type, $composite);

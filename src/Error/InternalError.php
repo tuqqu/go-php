@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
+/**
+ * Errors that indicate a bug in the code.
+ * They must not occur even when running a wrongly written program.
+ */
 final class InternalError extends \LogicException
 {
     public static function unreachableMethodCall(): self

@@ -23,22 +23,28 @@ use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_types_compatible;
 
+/**
+ * @template V of GoValue
+ * @template-implements Sequence<BaseIntValue, V>
+ */
 final class SliceValue implements Sliceable, Sequence, GoValue
 {
     use NamedTrait;
 
     public const NAME = 'slice';
 
+    public readonly SliceType $type;
     private bool $nil = false;
-    private UnderlyingArray $values;
     private int $pos = 0;
 
-    public readonly SliceType $type;
     private int $len;
     private int $cap;
 
+    /** @var UnderlyingArray<V> */
+    private UnderlyingArray $values;
+
     /**
-     * @param GoValue[] $values
+     * @param V[] $values
      */
     public function __construct(
         array $values,
@@ -59,6 +65,11 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         return $slice;
     }
 
+    /**
+     * @template T of GoValue
+     * @param UnderlyingArray<T> $array
+     * @retyrn self<T>
+     */
     public static function fromUnderlyingArray(
         UnderlyingArray $array,
         SliceType $type,
@@ -66,6 +77,8 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         int $len,
         int $cap,
     ): self {
+        // fixme constructor
+        /** @var self<T> $slice */
         $slice = new self([], $type, $cap);
         $slice->values = $array;
         $slice->len = $len;
@@ -122,9 +135,6 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         return $this->cap;
     }
 
-    /**
-     * @return iterable<UntypedIntValue, GoValue>
-     */
     public function iter(): iterable
     {
         foreach ($this->accessUnderlyingArray() as $key => $value) {
@@ -132,6 +142,9 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         }
     }
 
+    /**
+     * @param V $value
+     */
     public function append(GoValue $value): void
     {
         //fixme change error text
@@ -173,7 +186,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
     {
         if ($op === Operator::Eq) {
             assert_types_compatible($this->type, $rhs->type());
-
+            /** @var self<V> $rhs */
             $this->morph($rhs);
 
             return;
@@ -183,7 +196,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
     }
 
     /**
-     * @return GoValue[]
+     * @return V[]
      */
     public function unwrap(): array
     {
@@ -195,7 +208,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
         return $this->type;
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return $this;
     }
@@ -225,17 +238,22 @@ final class SliceValue implements Sliceable, Sequence, GoValue
 
         $this->cap *= 2;
         $this->pos = 0;
+
+        /** @var V[] $copies */
         $this->values = new UnderlyingArray($copies);
     }
 
     /**
-     * @return GoValue[]
+     * @return V[]
      */
     private function accessUnderlyingArray(): array
     {
         return $this->values->slice($this->pos, $this->len - $this->pos);
     }
 
+    /**
+     * @param self<V> $other
+     */
     private function morph(self $other): void
     {
         $this->values = $other->values;

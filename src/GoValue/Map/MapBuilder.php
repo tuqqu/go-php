@@ -14,8 +14,6 @@ use function GoPhp\assert_types_compatible_with_cast;
 
 final class MapBuilder
 {
-    public const NAME = 'map';
-
     private readonly Map $internalMap;
 
     private function __construct(
@@ -33,7 +31,7 @@ final class MapBuilder
     {
         $value = $value->copy();
 
-        assert_index_type($at, $this->type->keyType, self::NAME);
+        assert_index_type($at, $this->type->keyType, MapValue::NAME);
         assert_types_compatible_with_cast($this->type->elemType, $value);
 
         $this->internalMap->set($value, $at);

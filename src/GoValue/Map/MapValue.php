@@ -16,6 +16,11 @@ use function GoPhp\assert_index_type;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
 
+/**
+ * @template K of GoValue
+ * @template V of GoValue
+ * @template-implements Map<K, V>
+ */
 final class MapValue implements Map, GoValue
 {
     use NamedTrait;
@@ -24,6 +29,9 @@ final class MapValue implements Map, GoValue
 
     //fixme add nil
 
+    /**
+     * @param Map<K, V> $innerMap
+     */
     public function __construct(
         private Map $innerMap,
         private readonly MapType $type,
@@ -48,6 +56,7 @@ final class MapValue implements Map, GoValue
         assert_index_type($at, $this->type->keyType, self::NAME);
 
         if (!$this->innerMap->has($at)) {
+            /** @var V $defaultValue */
             $defaultValue = $this->type->elemType->defaultValue();
 
             return new MapLookupValue(
@@ -123,7 +132,7 @@ final class MapValue implements Map, GoValue
     {
         if ($op === Operator::Eq) {
             assert_types_compatible($this->type, $rhs->type());
-            /** @var self $rhs */
+            /** @var self<K, V> $rhs */
             $this->innerMap = $rhs->innerMap;
             return;
         }
@@ -141,7 +150,7 @@ final class MapValue implements Map, GoValue
         return $this->type;
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return $this;
     }

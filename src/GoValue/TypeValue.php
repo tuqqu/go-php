@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
-use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
@@ -40,25 +40,25 @@ final class TypeValue implements Invocable, GoValue
 
     public function operate(Operator $op): never
     {
-        throw new \Exception();
+        throw InternalError::unreachableMethodCall();
     }
 
     public function operateOn(Operator $op, GoValue $rhs): never
     {
-        throw new \Exception();
+        throw InternalError::unreachableMethodCall();
     }
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        throw new \Exception();
+        throw InternalError::unreachableMethodCall();
     }
 
     public function equals(GoValue $rhs): never
     {
-        throw new \Exception();
+        throw InternalError::unreachableMethodCall();
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return $this;
     }
@@ -70,16 +70,16 @@ final class TypeValue implements Invocable, GoValue
 
     public function toString(): never
     {
-        throw new \Exception();
+        throw InternalError::unreachableMethodCall();
     }
 
     public function isNamed(): never
     {
-        throw new \Exception();
+        throw InternalError::unreachableMethodCall();
     }
 
     public function makeNamed(): never
     {
-        throw new \Exception();
+        throw InternalError::unreachableMethodCall();
     }
 }

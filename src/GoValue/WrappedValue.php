@@ -8,6 +8,13 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\Operator;
 
+/**
+ * Value with a wrapped type, i.e. a defined type.
+ *
+ * type myInt int
+ * var x myInt = 42
+ *     ^ x is a wrapped value
+ */
 final class WrappedValue implements GoValue
 {
     public function __construct(
@@ -72,6 +79,7 @@ final class WrappedValue implements GoValue
 
     public function isNamed(): bool
     {
+        // fixme check
         return true;
     }
 

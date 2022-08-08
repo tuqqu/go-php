@@ -154,7 +154,7 @@ final class FuncValue implements Func, GoValue
         return $stmtJump->value;
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return $this;
     }

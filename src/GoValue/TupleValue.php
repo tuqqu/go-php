@@ -10,7 +10,7 @@ use GoPhp\Operator;
 
 /**
  * Not a real Go type, but an internal representation
- * of a set of values returned from a function call.
+ * of a set of values returned from a function call with multiple return values.
  */
 final class TupleValue implements GoValue
 {

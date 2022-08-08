@@ -4,16 +4,30 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+/**
+ * Value that consists of a sequence (ordered or unordered) of other values.
+ * On a sequence an indexing operation can be performed, e.g. x[1]
+ *
+ * @template K of GoValue
+ * @template V of GoValue
+ */
 interface Sequence
 {
-    public function get(GoValue $at): GoValue;
-
-    public function set(GoValue $value, GoValue $at): void;
-
     public function len(): int;
 
     /**
-     * @return iterable<GoValue, GoValue>
+     * @param K $at
+     */
+    public function get(GoValue $at): GoValue;
+
+    /**
+     * @param V $value
+     * @param K $at
+     */
+    public function set(GoValue $value, GoValue $at): void;
+
+    /**
+     * @return iterable<K, V>
      */
     public function iter(): iterable;
 }

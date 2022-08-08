@@ -113,6 +113,11 @@ final class TypeError extends \RuntimeException
         );
     }
 
+    public static function noValueUsedAsValue(): self
+    {
+        return new self('(no value) used as value');
+    }
+
     private static function tupleTypeToString(TupleValue $tuple): string
     {
         return \sprintf(

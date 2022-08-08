@@ -7,16 +7,17 @@ namespace GoPhp\GoValue\Array;
 use GoPhp\GoValue\GoValue;
 
 /**
- * @template-implements \ArrayAccess<int, GoValue>
- * @template-implements \Iterator<int, GoValue>
+ * @template V of GoValue
+ * @template-implements \ArrayAccess<int, V>
+ * @template-implements \Iterator<int, V>
  */
 final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
 {
     /**
-     * @param GoValue[] $array
+     * @param V[] $array
      */
     public function __construct(
-        public array $array = [],
+        public array $array,
     ) {}
 
     public function copyItems(): array
@@ -39,7 +40,10 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
         return \count($this->array);
     }
 
-    public function current(): mixed
+    /**
+     * @return V
+     */
+    public function current(): GoValue
     {
         return \current($this->array);
     }
@@ -66,7 +70,10 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
         return isset($this->array[$offset]);
     }
 
-    public function offsetGet(mixed $offset): mixed
+    /**
+     * @return V
+     */
+    public function offsetGet(mixed $offset): GoValue
     {
         return $this->array[$offset];
     }
