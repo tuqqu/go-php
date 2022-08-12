@@ -68,7 +68,7 @@ final class SliceValue implements Sliceable, Sequence, GoValue
     /**
      * @template T of GoValue
      * @param UnderlyingArray<T> $array
-     * @retyrn self<T>
+     * @return self<T>
      */
     public static function fromUnderlyingArray(
         UnderlyingArray $array,

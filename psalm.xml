@@ -14,6 +14,6 @@
     </projectFiles>
 
     <issueHandlers>
-        <UndefinedInterfaceMethod errorLevel="suppress" />
+        <ImplicitToStringCast errorLevel="suppress" />
     </issueHandlers>
 </psalm>
