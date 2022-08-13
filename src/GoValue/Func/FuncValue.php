@@ -81,9 +81,7 @@ final class FuncValue implements Func, GoValue
             }
         }
 
-        $i = 0;
-        //fixme move variadic logic
-        foreach ($this->signature->params->iter() as $param) {
+        foreach ($this->signature->params->iter() as $i => $param) {
             if ($param->variadic) {
                 $sliceType = new SliceType($param->type);
                 $sliceBuilder = SliceBuilder::fromType($sliceType);
@@ -106,10 +104,15 @@ final class FuncValue implements Func, GoValue
 
             assert_arg_type($argv[$i], $param->type, $i);
 
+            // fixme variadic anon
+            if ($param->name === null) {
+                continue;
+            }
+
             $env->defineVar(
                 $param->name,
                 '',
-                $argv[$i++],
+                $argv[$i],
                 $param->type,
             );
         }
