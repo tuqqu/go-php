@@ -581,6 +581,10 @@ final class Interpreter
     {
         $sequence = $this->evalExpr($expr->expr);
 
+        if ($sequence instanceof WrappedValue) {
+            $sequence = $sequence->unwind();
+        }
+
         if (!$sequence instanceof Sequence) {
             throw OperationError::cannotIndex($sequence->type());
         }
@@ -1376,14 +1380,16 @@ final class Interpreter
 
     private function resolveTypeFromSingleName(SingleTypeName $type): GoType
     {
-        return $this->env->getType($type->name->name, $this->currentPackage)->getType();
+        return $this->env
+            ->getType($type->name->name, $this->currentPackage)
+            ->getType();
     }
 
     private function resolveTypeFromQualifiedName(QualifiedTypeName $type): GoType
     {
-        //fixme revisit
-        //return $this->resolveTypeFromSingleName(\sprintf('%s.%s', $type->packageName->name, $type->typeName->name->name));
-        throw new InternalError('unimplemented');
+        return $this->env
+            ->getType($type->typeName->name->name, $type->packageName->name)
+            ->getType();
     }
 
     private function resolveTypeFromAstSignature(AstSignature $signature): FuncType
