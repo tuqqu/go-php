@@ -129,7 +129,7 @@ final class FuncValue implements Func, GoValue
 
         if ($this->signature->returnArity !== $stmtJump->len) {
             // named return: single & tuple value
-            if (!empty($namedReturns)) {
+            if ($stmtJump->len === 0 && !empty($namedReturns)) {
                 $namedValues = [];
 
                 foreach ($namedReturns as $namedReturn) {
