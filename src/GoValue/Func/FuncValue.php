@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Func;
 
 use GoPhp\Env\Environment;
+use GoPhp\Env\EnvMap;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
@@ -74,7 +75,7 @@ final class FuncValue implements Func, GoValue
 
                 $env->defineVar(
                     $param->name,
-                    '',
+                    EnvMap::NAMESPACE_TOP,
                     $param->type->defaultValue(),
                     $param->type,
                 );
@@ -94,7 +95,7 @@ final class FuncValue implements Func, GoValue
 
                 $env->defineVar(
                     $param->name,
-                    '',
+                    EnvMap::NAMESPACE_TOP,
                     $sliceBuilder->build(),
                     $sliceType,
                 );
@@ -111,7 +112,7 @@ final class FuncValue implements Func, GoValue
 
             $env->defineVar(
                 $param->name,
-                '',
+                EnvMap::NAMESPACE_TOP,
                 $argv[$i],
                 $param->type,
             );
@@ -136,7 +137,7 @@ final class FuncValue implements Func, GoValue
                 $namedValues = [];
 
                 foreach ($namedReturns as $namedReturn) {
-                    $namedValues[] = $env->get($namedReturn, '')->unwrap();
+                    $namedValues[] = $env->get($namedReturn, EnvMap::NAMESPACE_TOP)->unwrap();
                 }
 
                 return $this->signature->returns->len === 1

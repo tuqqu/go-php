@@ -11,7 +11,6 @@ use GoPhp\Env\Error\UndefinedTypeError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Error\DefinitionError;
 use GoPhp\GoType\BasicType;
-use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Sealable;
@@ -21,12 +20,12 @@ use GoPhp\GoValue\TypeValue;
 
 final class Environment
 {
-    private readonly ValueTable $definedValues;
+    private readonly EnvMap $envMap;
     private readonly ?self $enclosing;
 
     public function __construct(?self $enclosing = null)
     {
-        $this->definedValues = new ValueTable();
+        $this->envMap = new EnvMap();
         $this->enclosing = $enclosing;
     }
 
@@ -40,7 +39,7 @@ final class Environment
         $value->makeNamed();
 
         $const = new ImmutableValue($name, $type, $value);
-        $this->definedValues->add($const, $namespace);
+        $this->envMap->add($const, $namespace);
     }
 
     public function defineVar(string $name, string $namespace, GoValue $value, GoType $type): void
@@ -48,7 +47,7 @@ final class Environment
         $value->makeNamed();
 
         $var = new MutableValue($name, $type, $value);
-        $this->definedValues->add($var, $namespace);
+        $this->envMap->add($var, $namespace);
     }
 
     public function defineImmutableVar(string $name, string $namespace, GoValue $value, GoType $type): void
@@ -56,7 +55,7 @@ final class Environment
         $value->makeNamed();
 
         $var = new ImmutableValue($name, $type, $value);
-        $this->definedValues->add($var, $namespace);
+        $this->envMap->add($var, $namespace);
     }
 
     public function defineFunc(string $name, string $namespace, FuncValue $value): void
@@ -64,19 +63,19 @@ final class Environment
         $value->makeNamed();
 
         $func = new ImmutableValue($name, $value->signature->type, $value);
-        $this->definedValues->add($func, $namespace);
+        $this->envMap->add($func, $namespace);
     }
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void
     {
         $func = new ImmutableValue($value->name, $value->type, $value);
-        $this->definedValues->add($func, '');
+        $this->envMap->add($func);
     }
 
     public function defineType(string $name, string $namespace, TypeValue $value): void
     {
         $type = new ImmutableValue($name, $value->type, $value);
-        $this->definedValues->add($type, $namespace);
+        $this->envMap->add($type, $namespace);
     }
 
     public function defineTypeAlias(string $alias, string $namespace, TypeValue $value): void
@@ -101,14 +100,14 @@ final class Environment
 
     public function tryGet(string $name, string $namespace, bool $implicit = true): ?EnvValue
     {
-        return $this->definedValues->tryGet($name, $namespace, $implicit)
+        return $this->envMap->tryGet($name, $namespace, $implicit)
             ?? $this->enclosing?->tryGet($name, $namespace, $implicit)
             ?? null;
     }
 
     public function isNamespaceDefined(string $namespace): bool
     {
-        return $this->definedValues->hasNamespace($namespace)
+        return $this->envMap->hasNamespace($namespace)
             || $this->enclosing?->isNamespaceDefined($namespace);
     }
 }

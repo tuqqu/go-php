@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Struct;
 
 use GoPhp\Env\EnvValue\MutableValue;
-use GoPhp\Env\ValueTable;
+use GoPhp\Env\EnvMap;
 use GoPhp\Error\DefinitionError;
 use GoPhp\GoType\StructType;
 use GoPhp\GoValue\GoValue;
@@ -42,7 +42,7 @@ final class StructBuilder
 
     public function build(): StructValue
     {
-        $instanceFields = new ValueTable();
+        $instanceFields = new EnvMap();
 
         foreach ($this->type->fields as $field => $type) {
             $value = $this->initFields[$field] ?? $type->defaultValue();

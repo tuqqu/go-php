@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Env\Builtin;
 
 use GoPhp\Env\Environment;
+use GoPhp\Env\EnvMap;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
@@ -63,14 +64,14 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineStdConsts(): void
     {
-        $this->env->defineConst('true', '', BoolValue::true(), UntypedType::UntypedBool);
-        $this->env->defineConst('false', '', BoolValue::false(), UntypedType::UntypedBool);
-        $this->env->defineConst('iota', '', $this->iota, UntypedType::UntypedInt);
+        $this->env->defineConst('true', EnvMap::NAMESPACE_TOP, BoolValue::true(), UntypedType::UntypedBool);
+        $this->env->defineConst('false', EnvMap::NAMESPACE_TOP, BoolValue::false(), UntypedType::UntypedBool);
+        $this->env->defineConst('iota', EnvMap::NAMESPACE_TOP, $this->iota, UntypedType::UntypedInt);
     }
 
     protected function defineStdVars(): void
     {
-        $this->env->defineImmutableVar('nil', '', new NilValue($type = new UntypedNilType()), $type);
+        $this->env->defineImmutableVar('nil', EnvMap::NAMESPACE_TOP, new NilValue($type = new UntypedNilType()), $type);
     }
 
     protected function defineFuncs(): void
@@ -86,24 +87,24 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineTypes(): void
     {
-        $this->env->defineType('bool', '', new TypeValue(NamedType::Bool));
-        $this->env->defineType('string', '', new TypeValue(NamedType::String));
-        $this->env->defineType('int', '', new TypeValue(NamedType::Int));
-        $this->env->defineType('int8', '', new TypeValue(NamedType::Int8));
-        $this->env->defineType('int16', '', new TypeValue(NamedType::Int16));
-        $this->env->defineType('int32', '', $int32 = new TypeValue(NamedType::Int32));
-        $this->env->defineType('int64', '', new TypeValue(NamedType::Int64));
-        $this->env->defineType('uint', '', new TypeValue(NamedType::Uint));
-        $this->env->defineType('uint8', '', $uint8 = new TypeValue(NamedType::Uint8));
-        $this->env->defineType('uint16', '', new TypeValue(NamedType::Uint16));
-        $this->env->defineType('uint32', '', new TypeValue(NamedType::Uint32));
-        $this->env->defineType('uint64', '', new TypeValue(NamedType::Uint64));
-        $this->env->defineType('uintptr', '', new TypeValue(NamedType::Uintptr));
-        $this->env->defineType('float32', '', new TypeValue(NamedType::Float32));
-        $this->env->defineType('float64', '', new TypeValue(NamedType::Float64));
+        $this->env->defineType('bool', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Bool));
+        $this->env->defineType('string', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::String));
+        $this->env->defineType('int', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Int));
+        $this->env->defineType('int8', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Int8));
+        $this->env->defineType('int16', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Int16));
+        $this->env->defineType('int32', EnvMap::NAMESPACE_TOP, $int32 = new TypeValue(NamedType::Int32));
+        $this->env->defineType('int64', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Int64));
+        $this->env->defineType('uint', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Uint));
+        $this->env->defineType('uint8', EnvMap::NAMESPACE_TOP, $uint8 = new TypeValue(NamedType::Uint8));
+        $this->env->defineType('uint16', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Uint16));
+        $this->env->defineType('uint32', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Uint32));
+        $this->env->defineType('uint64', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Uint64));
+        $this->env->defineType('uintptr', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Uintptr));
+        $this->env->defineType('float32', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Float32));
+        $this->env->defineType('float64', EnvMap::NAMESPACE_TOP, new TypeValue(NamedType::Float64));
 
-        $this->env->defineTypeAlias('byte', '', $uint8);
-        $this->env->defineTypeAlias('rune', '', $int32);
+        $this->env->defineTypeAlias('byte', EnvMap::NAMESPACE_TOP, $uint8);
+        $this->env->defineTypeAlias('rune', EnvMap::NAMESPACE_TOP, $int32);
     }
 
     /**

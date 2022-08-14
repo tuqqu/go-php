@@ -76,6 +76,7 @@ use GoParser\Parser;
 use GoPhp\Env\Builtin\BuiltinProvider;
 use GoPhp\Env\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
+use GoPhp\Env\EnvMap;
 use GoPhp\Error\DefinitionError;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
@@ -1514,10 +1515,6 @@ final class Interpreter
 
     private function checkNonDeclarableNames(string $name): void
     {
-        if ($this->currentPackage !== '') {
-            return;
-        }
-
         /** @var array<FunctionValidator> $matchers */
         $matchers = [
             $this->entryPointValidator,
@@ -1525,17 +1522,15 @@ final class Interpreter
         ];
 
         foreach ($matchers as $matcher) {
-            $nonDeclarableName = $matcher->funcName();
-
-            if ($nonDeclarableName === $name) {
-                throw ProgramError::nameMustBeFunc($nonDeclarableName);
+            if ($matcher->forFunc($name, $this->currentPackage)) {
+                throw ProgramError::nameMustBeFunc($name);
             }
         }
     }
 
     private function resolveDefinitionScope(): string
     {
-        return $this->packageScope ? $this->currentPackage : '';
+        return $this->packageScope ? $this->currentPackage : EnvMap::NAMESPACE_TOP;
     }
 
     private function onError(string $error): void

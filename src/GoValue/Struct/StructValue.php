@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Struct;
 
-use GoPhp\Env\ValueTable;
+use GoPhp\Env\EnvMap;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\StructType;
 use GoPhp\GoValue\AddressValue;
@@ -24,7 +24,7 @@ final class StructValue implements GoValue
     //fixme add nil
 
     public function __construct(
-        private readonly ValueTable $fields,
+        private readonly EnvMap $fields,
         private readonly StructType $type,
     ) {}
 
