@@ -7,15 +7,14 @@ namespace GoPhp\GoType\Converter;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\WrappedValue;
+
+use function GoPhp\normalize_value;
 
 final class DefaultConverter
 {
     public static function convert(GoValue $value, GoType $type): GoValue
     {
-        if ($value instanceof WrappedValue) {
-            $value = $value->unwind();
-        }
+        $value = normalize_value($value);
 
         return $type->equals($value->type()) ?
             $value :

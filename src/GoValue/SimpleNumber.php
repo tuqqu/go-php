@@ -25,6 +25,7 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
+use function GoPhp\normalize_value;
 
 /**
  * @template N of self
@@ -92,6 +93,8 @@ abstract class SimpleNumber implements NonRefValue, Sealable
     {
         assert_values_compatible($this, $rhs);
 
+        $rhs = normalize_value($rhs);
+
         return match ($op) {
             Operator::Plus => $this->add($rhs),
             Operator::Minus => $this->sub($rhs),
@@ -130,6 +133,8 @@ abstract class SimpleNumber implements NonRefValue, Sealable
         $this->onMutate();
 
         assert_values_compatible($this, $rhs);
+
+        $rhs = normalize_value($rhs);
 
         match ($op) {
             Operator::Eq => $this->assign($rhs),

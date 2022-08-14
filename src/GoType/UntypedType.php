@@ -7,6 +7,8 @@ namespace GoPhp\GoType;
 use GoPhp\Error\InternalError;
 use GoPhp\GoValue\GoValue;
 
+use function GoPhp\normalize_type;
+
 enum UntypedType implements BasicType
 {
     case UntypedInt;
@@ -41,6 +43,8 @@ enum UntypedType implements BasicType
 
     public function isCompatible(GoType $other): bool
     {
+        $other = normalize_type($other);
+
         if (!$other instanceof BasicType) {
             return false;
         }

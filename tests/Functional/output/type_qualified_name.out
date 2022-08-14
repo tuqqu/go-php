@@ -7,3 +7,8 @@ false
 test_2
 99
 Hello
+test_3
+accepted: 1
+after call: 1
+accepted: 1
+returned: 2

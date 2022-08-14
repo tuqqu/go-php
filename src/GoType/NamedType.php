@@ -25,6 +25,8 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\StringValue;
 
+use function GoPhp\normalize_type;
+
 enum NamedType: string implements BasicType
 {
     public const Rune = self::Int32;
@@ -99,6 +101,8 @@ enum NamedType: string implements BasicType
 
     public function isCompatible(GoType $other): bool
     {
+        $other = normalize_type($other);
+
         if (!$other instanceof BasicType) {
             return false;
         }

@@ -276,11 +276,14 @@ final class Interpreter
         $ast = $parser->parse();
 
         if ($parser->hasErrors()) {
-            foreach ($parser->getErrors() as $error) {
-                $this->onError((string) $error);
+            $errs = $parser->getErrors();
+            $lastIndex = \array_key_last($errs);
+
+            for ($i = 0; $i < $lastIndex; $i++) {
+                $this->onError((string) $errs[$i]);
             }
 
-            exit(1); //fixme
+            throw $errs[$lastIndex];
         }
 
         return $ast;
@@ -466,7 +469,6 @@ final class Interpreter
             $this->currentPackage,
         ); //fixme body null
 
-
         if ($this->entryPointValidator->forFunc($decl->name->name, $this->currentPackage)) {
             $this->entryPointValidator->validate($funcValue->signature);
             $this->entryPoint = $funcValue;
@@ -580,10 +582,7 @@ final class Interpreter
     private function evalIndexExpr(IndexExpr $expr): GoValue
     {
         $sequence = $this->evalExpr($expr->expr);
-
-        if ($sequence instanceof WrappedValue) {
-            $sequence = $sequence->unwind();
-        }
+        $sequence = normalize_value($sequence);
 
         if (!$sequence instanceof Sequence) {
             throw OperationError::cannotIndex($sequence->type());
@@ -719,7 +718,7 @@ final class Interpreter
     }
 
     /**
-     * @var callable(): None $code
+     * @param callable(): None $code
      */
     private function evalWithEnvWrap(?Environment $env, callable $code): StmtJump
     {
@@ -1298,11 +1297,7 @@ final class Interpreter
 
         do {
             $check = false;
-
-            if ($value instanceof WrappedValue) {
-                $value = $value->unwind();
-                $check = true;
-            }
+            $value = normalize_value($value);
 
             if ($value instanceof AddressValue) {
                 $value = $value->getPointsTo();

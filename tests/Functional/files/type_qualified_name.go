@@ -5,7 +5,7 @@ import "test_package_5_types"
 func main() {
 	test_1()
 	test_2()
-// 	test_3()
+	test_3()
 }
 
 func test_1() {
@@ -15,7 +15,7 @@ func test_1() {
 
 	println(i)
 
-    type aliasInt = test_package_5_types.TestInt
+	type aliasInt = test_package_5_types.TestInt
 
 	var j aliasInt = aliasInt(2) * i
 
@@ -24,35 +24,42 @@ func test_1() {
 	var b test_package_5_types.TestBoolMap = test_package_5_types.TestBoolMap{true: true, false: false}
 
 	println(b[true])
-    println(b[false])
+	println(b[false])
 
-    var point test_package_5_types.Point = test_package_5_types.Point{x: aliasInt(1), y: aliasInt(2)}
+	var point test_package_5_types.Point = test_package_5_types.Point{x: aliasInt(1), y: aliasInt(2)}
 
-    println(point.x, point.y)
+	println(point.x, point.y)
 }
 
 func test_2() {
-    println("test_2")
+	println("test_2")
 
-    var i test_package_5_types.TestIntAliasOfCustom = 99
+	var i test_package_5_types.TestIntAliasOfCustom = 99
 
-    println(i)
+	println(i)
 
-    var s test_package_5_types.TestStringAlias = "Hello"
+	var s test_package_5_types.TestStringAlias = "Hello"
 
-    println(s)
+	println(s)
 }
 
-// func test_3() {
-//     println("test_3")
-//
-//     var x test_package_5_types.TestInt = 1
-//
-//     acceptCustomInt(x)
-// }
-//
-// func acceptCustomInt(i test_package_5_types.TestInt) test_package_5_types.TestInt {
-//     println("accepted:", i)
-//
-//     return i
-// }
+func test_3() {
+	println("test_3")
+
+	var x test_package_5_types.TestInt = 1
+
+	acceptCustomInt(x)
+
+	println("after call:", x)
+
+	x = acceptCustomInt(x)
+
+	println("returned:", x)
+}
+
+func acceptCustomInt(i test_package_5_types.TestInt) test_package_5_types.TestInt {
+	println("accepted:", i)
+	i++
+
+	return i
+}

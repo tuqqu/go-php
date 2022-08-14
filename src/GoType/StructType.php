@@ -8,6 +8,8 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NilValue;
 
+use function GoPhp\normalize_type;
+
 final class StructType implements RefType
 {
     /**
@@ -32,9 +34,7 @@ final class StructType implements RefType
 
     public function equals(GoType $other): bool
     {
-        if ($other instanceof WrappedType) {
-            $other = $other->unwind();
-        }
+        $other = normalize_type($other);
 
         if (!$other instanceof self) {
             return false;

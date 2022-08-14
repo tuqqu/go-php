@@ -7,8 +7,11 @@ namespace GoPhp\Env\EnvValue;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\UntypedType;
+use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
+
+use GoPhp\GoValue\TypeValue;
 
 use function GoPhp\assert_types_compatible;
 
@@ -40,12 +43,17 @@ abstract class EnvValue
 
     protected static function convertIfNeeded(GoValue $value, GoType $type): GoValue
     {
-        if (
-            $value instanceof SimpleNumber
-            && $type instanceof NamedType
-            && $value->type() instanceof UntypedType
-        ) {
-            $value = $value->becomeTyped($type);
+        switch (true) {
+            case $value instanceof SimpleNumber
+                && $type instanceof NamedType
+                && $value->type() instanceof UntypedType:
+                $value = $value->becomeTyped($type);
+                break;
+            case $type instanceof WrappedType
+                && !$value instanceof TypeValue:
+                $value = $type->convert($value);
+                break;
+            default:
         }
 
         return $value;

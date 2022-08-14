@@ -64,7 +64,10 @@ final class WrappedValue implements GoValue
 
     public function copy(): self
     {
-        return $this;
+        return new self(
+            $this->underlyingValue->copy(),
+            $this->wrappedType,
+        );
     }
 
     public function type(): GoType
