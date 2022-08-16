@@ -15,8 +15,10 @@ use GoPhp\Operator;
  * var x myInt = 42
  *     ^ x is a wrapped value
  */
-final class WrappedValue implements GoValue
+final class WrappedValue implements AddressableValue
 {
+    use AddressableTrait;
+
     public function __construct(
         public readonly GoValue $underlyingValue,
         public readonly WrappedType $wrappedType,
@@ -79,14 +81,6 @@ final class WrappedValue implements GoValue
     {
         return $this->underlyingValue->toString();
     }
-
-    public function isNamed(): bool
-    {
-        // fixme check
-        return true;
-    }
-
-    public function makeNamed(): void {}
 
     private function enwrapNew(GoValue $value): self
     {

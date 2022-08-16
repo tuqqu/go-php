@@ -10,10 +10,10 @@ use GoPhp\Error\OperationError;
 
 use function GoPhp\assert_values_compatible;
 
-final class BoolValue implements NonRefValue, Sealable
+final class BoolValue implements NonRefValue, Sealable, AddressableValue
 {
     use SealableTrait;
-    use NamedTrait;
+    use AddressableTrait;
 
     public function __construct(
         private bool $value,

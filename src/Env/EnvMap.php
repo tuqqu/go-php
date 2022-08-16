@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
-use GoPhp\Env\EnvValue\EnvValue;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Error\ProgramError;
 

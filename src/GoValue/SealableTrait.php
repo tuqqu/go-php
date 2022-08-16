@@ -15,10 +15,15 @@ trait SealableTrait
         $this->sealed = true;
     }
 
+    public function isSealed(): bool
+    {
+        return $this->sealed;
+    }
+
     final protected function onMutate(): void
     {
         if ($this->sealed) {
-            throw OperationError::cannotAssignToConst($this);
+            throw OperationError::cannotAssign($this);
         }
     }
 }

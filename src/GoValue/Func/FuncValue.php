@@ -11,9 +11,10 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NamedTrait;
+use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\VoidValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
@@ -30,15 +31,16 @@ use function GoPhp\assert_types_compatible;
 /**
  * @psalm-type FunctionBody = \Closure(Environment, string): StmtJump
  */
-final class FuncValue implements Func, GoValue
+final class FuncValue implements Func, AddressableValue
 {
-    use NamedTrait;
+    use AddressableTrait;
 
     public readonly Signature $signature;
+
     /** @var FunctionBody */
     private readonly \Closure $body;
     private readonly Environment $enclosure;
-    private readonly ?string $namespace;
+    private readonly string $namespace;
 
     /**
      * @param FunctionBody $body
@@ -48,7 +50,7 @@ final class FuncValue implements Func, GoValue
         Params $params,
         Params $returns,
         Environment $enclosure,
-        ?string $namespace,
+        string $namespace,
     ) {
         $this->body = $body;
         $this->namespace = $namespace;

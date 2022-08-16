@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Struct;
 
-use GoPhp\Env\EnvValue\MutableValue;
+use GoPhp\Env\EnvValue;
 use GoPhp\Env\EnvMap;
 use GoPhp\Error\DefinitionError;
 use GoPhp\GoType\StructType;
@@ -46,9 +46,8 @@ final class StructBuilder
 
         foreach ($this->type->fields as $field => $type) {
             $value = $this->initFields[$field] ?? $type->defaultValue();
-            $value->makeNamed();
 
-            $envValue = new MutableValue($field, $type, $value);
+            $envValue = new EnvValue($field, $type, $value);
 
             $instanceFields->add($envValue);
         }

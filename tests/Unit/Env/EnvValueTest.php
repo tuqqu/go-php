@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\Tests\Unit\Env\EnvValue;
+namespace GoPhp\Tests\Unit\EnvValue;
 
-use GoPhp\Env\EnvValue\ImmutableValue;
-use GoPhp\Env\EnvValue\MutableValue;
+use GoPhp\Env\EnvValue;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\Uint32Value;
@@ -18,7 +17,7 @@ final class EnvValueTest extends TestCase
     public function testCreation(): void
     {
         $valueA = new IntValue(1);
-        $envValue = new ImmutableValue('a', $valueA->type(), $valueA);
+        $envValue = new EnvValue('a', $valueA->type(), $valueA);
 
         self::assertSame($valueA, $envValue->unwrap());
         self::assertSame('a', $envValue->name);
@@ -29,7 +28,7 @@ final class EnvValueTest extends TestCase
     {
         // untyped value, untyped type
         $valueA = new UntypedIntValue(1);
-        $envValue = new ImmutableValue('a', NamedType::Uint, $valueA);
+        $envValue = new EnvValue('a', NamedType::Uint, $valueA);
 
         self::assertInstanceOf(UintValue::class, $envValue->unwrap());
         self::assertSame($valueA->unwrap(), $envValue->unwrap()->unwrap());
@@ -38,7 +37,7 @@ final class EnvValueTest extends TestCase
 
         // untyped value, named type
         $valueB = new UntypedIntValue(1);
-        $envValue = new MutableValue('a', NamedType::Uint32, $valueB);
+        $envValue = new EnvValue('a', NamedType::Uint32, $valueB);
 
         self::assertInstanceOf(Uint32Value::class, $envValue->unwrap());
         self::assertSame($valueB->unwrap(), $envValue->unwrap()->unwrap());

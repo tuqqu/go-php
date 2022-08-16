@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace GoPhp\Tests\Unit\Env;
 
-use GoPhp\Env\EnvValue\EnvValue;
+use GoPhp\Env\EnvMap;
+use GoPhp\Env\EnvValue;
 use GoPhp\Env\EnvValue\ImmutableValue;
 use GoPhp\Env\Error\UndefinedValueError;
-use GoPhp\Env\EnvMap;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\NamedType;
 use PHPUnit\Framework\TestCase;
@@ -71,7 +71,7 @@ final class EnvMapTest extends TestCase
 
     private static function createEnvValue(string $name): EnvValue
     {
-        return new ImmutableValue(
+        return new EnvValue(
             $name,
             NamedType::Int,
             NamedType::Int->defaultValue(),

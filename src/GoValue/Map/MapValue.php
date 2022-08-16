@@ -6,10 +6,11 @@ namespace GoPhp\GoValue\Map;
 
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\MapType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NamedTrait;
+use GoPhp\GoValue\AddressableTrait;
 use GoPhp\Operator;
 
 use function GoPhp\assert_index_type;
@@ -21,9 +22,9 @@ use function GoPhp\assert_types_compatible;
  * @template V of GoValue
  * @template-implements Map<K, V|MapLookupValue<V>>
  */
-final class MapValue implements Map, GoValue
+final class MapValue implements Map, AddressableValue
 {
-    use NamedTrait;
+    use AddressableTrait;
 
     public const NAME = 'map';
 

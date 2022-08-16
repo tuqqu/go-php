@@ -6,13 +6,14 @@ namespace GoPhp\GoValue\Slice;
 
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\Array\UnderlyingArray;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
-use GoPhp\GoValue\NamedTrait;
+use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Sliceable;
 use GoPhp\Operator;
@@ -27,9 +28,9 @@ use function GoPhp\assert_types_compatible;
  * @template V of GoValue
  * @template-implements Sequence<BaseIntValue, V>
  */
-final class SliceValue implements Sliceable, Sequence, GoValue
+final class SliceValue implements Sliceable, Sequence, AddressableValue
 {
-    use NamedTrait;
+    use AddressableTrait;
 
     public const NAME = 'slice';
 

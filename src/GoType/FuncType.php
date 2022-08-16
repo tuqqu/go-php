@@ -13,10 +13,8 @@ final class FuncType implements RefType
 {
     public readonly string $name;
 
-    public function __construct(
-        Params $params,
-        Params $returns,
-    ) {
+    public function __construct(Params $params, Params $returns)
+    {
         $this->name = \sprintf('func(%s)(%s)', $params, $returns);
     }
 
@@ -36,12 +34,12 @@ final class FuncType implements RefType
         return $other instanceof UntypedNilType || $this->equals($other);
     }
 
-    public function reify(): static
+    public function reify(): self
     {
         return $this;
     }
 
-    public function defaultValue(): GoValue
+    public function defaultValue(): NilValue
     {
         return new NilValue($this);
     }

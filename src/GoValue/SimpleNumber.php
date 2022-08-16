@@ -30,10 +30,10 @@ use function GoPhp\normalize_value;
 /**
  * @template N of self
  */
-abstract class SimpleNumber implements NonRefValue, Sealable
+abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 {
     use SealableTrait;
-    use NamedTrait;
+    use AddressableTrait;
 
     final public static function create(mixed $value): static
     {
@@ -75,8 +75,12 @@ abstract class SimpleNumber implements NonRefValue, Sealable
     {
         $value = $this->doBecomeTyped($type);
 
-        if ($this->sealed) {
+        if ($this->isSealed()) {
             $value->seal();
+        }
+
+        if ($this->isAddressable()) {
+            $value->makeAddressable();
         }
 
         return $value;

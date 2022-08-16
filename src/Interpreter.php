@@ -117,7 +117,6 @@ use GoPhp\GoValue\Struct\StructBuilder;
 use GoPhp\GoValue\Struct\StructValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\TypeValue;
-use GoPhp\GoValue\WrappedValue;
 use GoPhp\StmtJump\BreakJump;
 use GoPhp\StmtJump\ContinueJump;
 use GoPhp\StmtJump\FallthroughJump;
@@ -182,7 +181,7 @@ final class Interpreter
             throw $err;
         } catch (\Throwable $throwable) {
             $this->onError($throwable->getMessage());
-
+            throw $throwable;
             return ExecCode::Failure;
         }
 

@@ -20,8 +20,7 @@ final class BuiltinFuncType implements GoType
 
     public function equals(GoType $other): bool
     {
-        return $other instanceof self
-            && $this->name === $other->name;
+        return $other === $this && $this->name === $other->name;
     }
 
     public function isCompatible(GoType $other): bool

@@ -62,4 +62,9 @@ final class VoidValue implements GoValue
     {
         throw InternalError::unreachableMethodCall();
     }
+
+    public function withName(string $name): void
+    {
+        throw InternalError::unreachableMethodCall();
+    }
 }

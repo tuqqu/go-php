@@ -7,17 +7,18 @@ namespace GoPhp\GoValue\Struct;
 use GoPhp\Env\EnvMap;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\StructType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NamedTrait;
+use GoPhp\GoValue\AddressableTrait;
 use GoPhp\Operator;
 
 use function GoPhp\assert_nil_comparison;
 
-final class StructValue implements GoValue
+final class StructValue implements AddressableValue
 {
-    use NamedTrait;
+    use AddressableTrait;
 
     public const NAME = 'struct';
 

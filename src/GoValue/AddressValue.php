@@ -10,9 +10,9 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
 
-final class AddressValue implements GoValue
+final class AddressValue implements AddressableValue
 {
-    use NamedTrait;
+    use AddressableTrait;
 
     private function __construct(
         private GoValue $pointsTo,

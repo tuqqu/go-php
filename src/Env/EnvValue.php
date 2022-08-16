@@ -2,29 +2,34 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\Env\EnvValue;
+namespace GoPhp\Env;
 
-use GoPhp\GoType\NamedType;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoType\WrappedType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
-
 use GoPhp\GoValue\TypeValue;
 
 use function GoPhp\assert_types_compatible;
 
-abstract class EnvValue
+final class EnvValue
 {
-    protected GoValue $value;
+    private GoValue $value;
 
     public function __construct(
         public readonly string $name,
         public readonly GoType $type, // fixme maybe make optional
         GoValue $value,
     ) {
-        $value = static::convertIfNeeded($value, $type);
+        $value = self::convertIfNeeded($value, $type);
+
+        // fixme for vars
+//        if ($type instanceof UntypedNilType) {
+//            throw new \Exception('use of untyped nil in variable declaration');
+//        }
 
         assert_types_compatible($type, $value->type());
 
@@ -33,6 +38,10 @@ abstract class EnvValue
 
     public function unwrap(): GoValue
     {
+        if ($this->value instanceof AddressableValue) {
+            $this->value->addressedWithName($this->name);
+        }
+
         return $this->value;
     }
 
@@ -41,7 +50,7 @@ abstract class EnvValue
         return $this->type;
     }
 
-    protected static function convertIfNeeded(GoValue $value, GoType $type): GoValue
+    private static function convertIfNeeded(GoValue $value, GoType $type): GoValue
     {
         switch (true) {
             case $value instanceof SimpleNumber

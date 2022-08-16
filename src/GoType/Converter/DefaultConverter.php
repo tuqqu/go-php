@@ -6,13 +6,14 @@ namespace GoPhp\GoType\Converter;
 
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
 
 use function GoPhp\normalize_value;
 
 final class DefaultConverter
 {
-    public static function convert(GoValue $value, GoType $type): GoValue
+    public static function convert(GoValue $value, GoType $type): AddressableValue
     {
         $value = normalize_value($value);
 

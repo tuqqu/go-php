@@ -8,12 +8,13 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
-use GoPhp\GoValue\NamedTrait;
+use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\Sliceable;
@@ -29,9 +30,9 @@ use function GoPhp\assert_values_compatible;
  * @template V of GoValue
  * @template-implements Sequence<BaseIntValue, V>
  */
-final class ArrayValue implements Sliceable, Sequence, GoValue
+final class ArrayValue implements Sliceable, Sequence, AddressableValue
 {
-    use NamedTrait;
+    use AddressableTrait;
 
     public const NAME = 'array';
 
@@ -173,8 +174,9 @@ final class ArrayValue implements Sliceable, Sequence, GoValue
             $this->type,
         );
 
-        if ($this->isNamed()) {
-            $self->makeNamed();
+        //fixme check this
+        if ($this->isAddressable()) {
+            $self->makeAddressable();
         }
 
         return $self;

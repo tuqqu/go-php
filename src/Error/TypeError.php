@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Error;
 
 use GoPhp\GoType\GoType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
@@ -26,11 +27,13 @@ final class TypeError extends \RuntimeException
 
     public static function expectedSliceInArgumentUnpacking(GoValue $value, FuncValue|BuiltinFuncValue $funcValue): self
     {
+        // fixme
+        /** @var AddressableValue $value */
         return new self(
             \sprintf(
                 'cannot use %s (%s of type %s) as type %s in argument to %s',
                 $value->toString(),
-                $value->isNamed() ? 'variable' : 'value',
+                $value->isAddressable() ? 'variable' : 'value',
                 $value->type()->name(),
                 $funcValue instanceof BuiltinFuncValue
                     ? '[]T (slice)'
@@ -56,12 +59,14 @@ final class TypeError extends \RuntimeException
 
     public static function invalidArrayLen(GoValue $value): self
     {
+        // fixme
+        /** @var AddressableValue $value */
         return new self(
             \sprintf(
                 'array length %s (%s%s) must be integer',
                 $value->toString(),
                 $value->type()->name(),
-                $value->isNamed() ? '' : ' constant',
+                $value->isAddressable() ? '' : ' constant',
             ),
         );
     }

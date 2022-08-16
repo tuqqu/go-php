@@ -41,7 +41,7 @@ final class MapType implements RefType
         return $this;
     }
 
-    public function defaultValue(): GoValue
+    public function defaultValue(): NilValue
     {
         return new NilValue($this);
     }

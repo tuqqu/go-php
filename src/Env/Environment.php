@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
-use GoPhp\Env\EnvValue\EnvValue;
-use GoPhp\Env\EnvValue\ImmutableValue;
-use GoPhp\Env\EnvValue\MutableValue;
 use GoPhp\Env\Error\UndefinedTypeError;
 use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Error\DefinitionError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BuiltinFuncValue;
-use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\Func\FuncValue;
-use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\TypeValue;
 
 final class Environment
@@ -29,52 +26,41 @@ final class Environment
         $this->enclosing = $enclosing;
     }
 
-    public function defineConst(string $name, string $namespace, GoValue $value, BasicType $type): void
+    public function defineConst(string $name, string $namespace, AddressableValue $value, BasicType $type): void
     {
         if (!$value instanceof Sealable) {
             throw DefinitionError::valueIsNotConstant($value);
         }
 
         $value->seal();
-        $value->makeNamed();
 
-        $const = new ImmutableValue($name, $type, $value);
-        $this->envMap->add($const, $namespace);
+        $this->defineAddressableValue($name, $namespace, $value, $type);
     }
 
-    public function defineVar(string $name, string $namespace, GoValue $value, GoType $type): void
+    public function defineVar(string $name, string $namespace, AddressableValue $value, GoType $type): void
     {
-        $value->makeNamed();
-
-        $var = new MutableValue($name, $type, $value);
-        $this->envMap->add($var, $namespace);
+        $this->defineAddressableValue($name, $namespace, $value, $type);
     }
 
-    public function defineImmutableVar(string $name, string $namespace, GoValue $value, GoType $type): void
+    public function defineImmutableVar(string $name, string $namespace, AddressableValue $value, GoType $type): void
     {
-        $value->makeNamed();
-
-        $var = new ImmutableValue($name, $type, $value);
-        $this->envMap->add($var, $namespace);
+        $this->defineAddressableValue($name, $namespace, $value, $type);
     }
 
     public function defineFunc(string $name, string $namespace, FuncValue $value): void
     {
-        $value->makeNamed();
-
-        $func = new ImmutableValue($name, $value->signature->type, $value);
-        $this->envMap->add($func, $namespace);
+        $this->defineAddressableValue($name, $namespace, $value, $value->signature->type);
     }
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void
     {
-        $func = new ImmutableValue($value->name, $value->type, $value);
+        $func = new EnvValue($value->name, $value->type, $value);
         $this->envMap->add($func);
     }
 
     public function defineType(string $name, string $namespace, TypeValue $value): void
     {
-        $type = new ImmutableValue($name, $value->type, $value);
+        $type = new EnvValue($name, $value->type, $value);
         $this->envMap->add($type, $namespace);
     }
 
@@ -98,16 +84,25 @@ final class Environment
             : throw new UndefinedTypeError($name);
     }
 
-    public function tryGet(string $name, string $namespace, bool $implicit = true): ?EnvValue
+    public function isNamespaceDefined(string $namespace): bool
+    {
+        return $this->envMap->hasNamespace($namespace)
+            || $this->enclosing?->isNamespaceDefined($namespace);
+    }
+
+    private function tryGet(string $name, string $namespace, bool $implicit = true): ?EnvValue
     {
         return $this->envMap->tryGet($name, $namespace, $implicit)
             ?? $this->enclosing?->tryGet($name, $namespace, $implicit)
             ?? null;
     }
 
-    public function isNamespaceDefined(string $namespace): bool
-    {
-        return $this->envMap->hasNamespace($namespace)
-            || $this->enclosing?->isNamespaceDefined($namespace);
+    private function defineAddressableValue(string $name, string $namespace, AddressableValue $value, GoType $type): void {
+        $value->makeAddressable();
+
+        $this->envMap->add(
+            new EnvValue($name, $type, $value),
+            $namespace,
+        );
     }
 }

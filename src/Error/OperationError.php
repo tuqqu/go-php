@@ -6,13 +6,20 @@ namespace GoPhp\Error;
 
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
+use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\Func\Func;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Sealable;
 use GoPhp\Operator;
 
 final class OperationError extends \RuntimeException
 {
     public static function undefinedOperator(Operator $op, GoValue $value): self
     {
+        if ($op === Operator::Eq) {
+            return self::cannotAssign($value);
+        }
+
         $type = $value->type();
         $description = $type->name();
 
@@ -94,8 +101,8 @@ final class OperationError extends \RuntimeException
     {
         return new self(
             \sprintf(
-                'Cannot call non-function value of type "%s"',
-                $value->type()->name(),
+                'invalid operation: cannot call non-function %s',
+                self::valueToString($value),
             )
         );
     }
@@ -141,11 +148,25 @@ final class OperationError extends \RuntimeException
 
     private static function valueToString(GoValue $value): string
     {
+        // fixme
+        /** @var AddressableValue $value */
+        if (!$value->isAddressable()) {
+            return \sprintf(
+                '%s (%s constant)',
+                $value->toString(),
+                $value->type()->name(),
+            );
+        }
+
+        $isConst = $value instanceof Sealable && $value->isSealed() ? 'constant ' : '';
+        $valueString = $value instanceof Func ? 'value' : $value->toString();
+
         return \sprintf(
-            '%s (%s%s)',
-            $value->toString(),
+            '%s (%s%s of type %s)',
+            $value->getName(),
+            $isConst,
+            $valueString,
             $value->type()->name(),
-            $value->isNamed() ? '' : ' constant',
         );
     }
 }

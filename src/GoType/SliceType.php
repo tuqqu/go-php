@@ -38,7 +38,7 @@ final class SliceType implements RefType
         return $other instanceof UntypedNilType || $this->equals($other);
     }
 
-    public function reify(): static
+    public function reify(): self
     {
         return $this;
     }

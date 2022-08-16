@@ -11,6 +11,7 @@ const RULES = [
     'ternary_operator_spaces' => false,      // enums
     'constant_case' => false,                // enums
     'no_break_comment' => false,
+    'no_unused_imports' => true,
     'array_syntax' => ['syntax' => 'short'],
 ];
 

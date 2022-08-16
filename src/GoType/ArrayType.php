@@ -51,7 +51,7 @@ final class ArrayType implements GoType
         return $this;
     }
 
-    public function defaultValue(): GoValue
+    public function defaultValue(): ArrayValue
     {
         $values = [];
         for ($i = 0; $i < $this->len; ++$i) {

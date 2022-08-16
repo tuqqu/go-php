@@ -7,7 +7,6 @@ namespace GoPhp\GoType;
 use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NilValue;
 
 final class PointerType implements RefType
 {

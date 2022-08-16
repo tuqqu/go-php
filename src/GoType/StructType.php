@@ -62,7 +62,7 @@ final class StructType implements RefType
         return $this;
     }
 
-    public function defaultValue(): GoValue
+    public function defaultValue(): NilValue
     {
         return new NilValue($this);
     }

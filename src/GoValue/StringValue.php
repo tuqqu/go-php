@@ -17,10 +17,10 @@ use function GoPhp\assert_values_compatible;
 /**
  * @template-implements Sequence<UntypedIntValue, UntypedIntValue>
  */
-final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue
+final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, AddressableValue
 {
     use SealableTrait;
-    use NamedTrait;
+    use AddressableTrait;
 
     public const NAME = 'string';
 
@@ -38,7 +38,7 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue
         return new self($value);
     }
 
-    public function reify(): NonRefValue
+    public function reify(): self
     {
         return $this;
     }

@@ -7,14 +7,13 @@ namespace GoPhp\GoValue;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\RefType;
 use GoPhp\GoType\UntypedNilType;
-use GoPhp\GoType\WrappedType;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
 
-final class NilValue implements GoValue
+final class NilValue implements AddressableValue
 {
-    use NamedTrait;
+    use AddressableTrait;
 
     public function __construct(
         public readonly RefType $type,
@@ -55,7 +54,7 @@ final class NilValue implements GoValue
         throw new \Exception();
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return $this;
     }
