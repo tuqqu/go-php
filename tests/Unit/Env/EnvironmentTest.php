@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Tests\Unit\Env;
 
 use GoPhp\Env\Environment;
-use GoPhp\Env\Error\UndefinedValueError;
+use GoPhp\Error\ProgramError;
 use GoPhp\GoValue\Int\IntValue;
 use PHPUnit\Framework\TestCase;
 
@@ -24,7 +24,7 @@ final class EnvironmentTest extends TestCase
         self::assertSame($valueA, $env->get('a', 'main')->unwrap());
         self::assertSame($valueB, $env->get('b', 'main')->unwrap());
 
-        $this->expectException(UndefinedValueError::class);
+        $this->expectException(ProgramError::class);
         $env->get('c', 'main');
     }
 

@@ -32,14 +32,14 @@ enum NamedType: string implements BasicType
     public const Rune = self::Int32;
     public const Byte = self::Uint8;
 
-    // signed ints
+    // signed integer types
     case Int = 'int';
     case Int8 = 'int8';
     case Int16 = 'int16';
     case Int32 = 'int32'; // Rune
     case Int64 = 'int64';
 
-    // unsigned ints
+    // unsigned integer types
     case Uint = 'uint';
     case Uint8 = 'uint8'; // Byte
     case Uint16 = 'uint16';
@@ -47,11 +47,11 @@ enum NamedType: string implements BasicType
     case Uint64 = 'uint64';
     case Uintptr = 'uintptr';
 
-    // floats
+    // floating point types
     case Float32 = 'float32';
     case Float64 = 'float64';
 
-    // complex nums
+    // complex number types
     case Complex64 = 'complex64';
     case Complex128 = 'complex128';
 

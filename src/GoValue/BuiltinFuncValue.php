@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\InternalError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
+/**
+ * @template-implements Invocable<AddressableValue>
+ */
 final class BuiltinFuncValue implements Invocable, GoValue
 {
     public readonly BuiltinFuncType $type;
@@ -25,6 +27,11 @@ final class BuiltinFuncValue implements Invocable, GoValue
         return ($this->function)(...$argv);
     }
 
+    public function type(): BuiltinFuncType
+    {
+        return $this->type;
+    }
+
     public function toString(): string
     {
         throw TypeError::builtInMustBeCalled($this->name);
@@ -33,11 +40,6 @@ final class BuiltinFuncValue implements Invocable, GoValue
     public function unwrap(): callable
     {
         throw TypeError::builtInMustBeCalled($this->name);
-    }
-
-    public function type(): BuiltinFuncType
-    {
-        return $this->type;
     }
 
     public function operate(Operator $op): never
@@ -50,7 +52,7 @@ final class BuiltinFuncValue implements Invocable, GoValue
         throw TypeError::builtInMustBeCalled($this->name);
     }
 
-    public function equals(GoValue $rhs): BoolValue
+    public function equals(GoValue $rhs): never
     {
         throw TypeError::builtInMustBeCalled($this->name);
     }
@@ -60,18 +62,8 @@ final class BuiltinFuncValue implements Invocable, GoValue
         throw TypeError::builtInMustBeCalled($this->name);
     }
 
-    public function copy(): static
+    public function copy(): never
     {
         throw TypeError::builtInMustBeCalled($this->name);
-    }
-
-    public function isNamed(): bool
-    {
-        throw InternalError::unreachableMethodCall();
-    }
-
-    public function makeNamed(): void
-    {
-        throw InternalError::unreachableMethodCall();
     }
 }

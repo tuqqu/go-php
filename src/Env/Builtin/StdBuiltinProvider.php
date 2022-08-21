@@ -28,7 +28,7 @@ use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\GoValue\VoidValue;
-use GoPhp\Stream\StreamProvider;
+use GoPhp\Stream\OutputStream;
 
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
@@ -38,13 +38,13 @@ class StdBuiltinProvider implements BuiltinProvider
 {
     private readonly BaseIntValue&Iota $iota;
     private readonly Environment $env;
-    private readonly StreamProvider $streams;
+    private readonly OutputStream $stderr;
 
-    public function __construct(StreamProvider $streams)
+    public function __construct(OutputStream $stderr)
     {
         $this->env = new Environment();
         $this->iota = static::createIota();
-        $this->streams = $streams;
+        $this->stderr = $stderr;
     }
 
     public function iota(): Iota
@@ -54,22 +54,22 @@ class StdBuiltinProvider implements BuiltinProvider
 
     public function env(): Environment
     {
-        $this->defineStdConsts();
-        $this->defineStdVars();
+        $this->defineConsts();
+        $this->defineVars();
         $this->defineFuncs();
         $this->defineTypes();
 
         return $this->env;
     }
 
-    protected function defineStdConsts(): void
+    protected function defineConsts(): void
     {
         $this->env->defineConst('true', EnvMap::NAMESPACE_TOP, BoolValue::true(), UntypedType::UntypedBool);
         $this->env->defineConst('false', EnvMap::NAMESPACE_TOP, BoolValue::false(), UntypedType::UntypedBool);
         $this->env->defineConst('iota', EnvMap::NAMESPACE_TOP, $this->iota, UntypedType::UntypedInt);
     }
 
-    protected function defineStdVars(): void
+    protected function defineVars(): void
     {
         $this->env->defineImmutableVar('nil', EnvMap::NAMESPACE_TOP, new NilValue($type = new UntypedNilType()), $type);
     }
@@ -118,7 +118,7 @@ class StdBuiltinProvider implements BuiltinProvider
             $output[] = $value->toString();
         }
 
-        $this->streams->stderr()->writeln(\implode(' ', $output));
+        $this->stderr->writeln(\implode(' ', $output));
 
         return new VoidValue();
     }
@@ -134,7 +134,7 @@ class StdBuiltinProvider implements BuiltinProvider
             $output[] = $value->toString();
         }
 
-        $this->streams->stderr()->write(\implode('', $output));
+        $this->stderr->write(\implode('', $output));
 
         return new VoidValue();
     }

@@ -25,7 +25,7 @@ final class FuncType implements RefType
 
     public function equals(GoType $other): bool
     {
-        // fixme probably need to save params and validate thru them
+        // fixme probably need to save params and validate through them
         return $other instanceof self && $this->name === $other->name;
     }
 

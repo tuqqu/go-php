@@ -153,7 +153,7 @@ final class Interpreter
     ) {
         //fixme default provider
         if ($builtin === null) {
-            $builtin = new StdBuiltinProvider($this->streams);
+            $builtin = new StdBuiltinProvider($this->streams->stderr());
         }
 
         $this->iota = $builtin->iota();
@@ -181,7 +181,7 @@ final class Interpreter
             throw $err;
         } catch (\Throwable $throwable) {
             $this->onError($throwable->getMessage());
-            throw $throwable;
+            throw $throwable; // fixme
             return ExecCode::Failure;
         }
 

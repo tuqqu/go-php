@@ -6,8 +6,6 @@ namespace GoPhp\Tests\Unit\Env;
 
 use GoPhp\Env\EnvMap;
 use GoPhp\Env\EnvValue;
-use GoPhp\Env\EnvValue\ImmutableValue;
-use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\NamedType;
 use PHPUnit\Framework\TestCase;
@@ -39,16 +37,16 @@ final class EnvMapTest extends TestCase
         self::assertSame($this->valueB, $this->map->get('b', 'B', true));
         self::assertSame($this->valueGlobal, $this->map->get('g', '', true));
 
-        $this->expectException(UndefinedValueError::class);
+        $this->expectException(ProgramError::class);
         $this->map->get('b', 'A', true);
 
-        $this->expectException(UndefinedValueError::class);
+        $this->expectException(ProgramError::class);
         $this->map->get('b', '', true);
 
-        $this->expectException(UndefinedValueError::class);
+        $this->expectException(ProgramError::class);
         $this->map->get('c', 'A', true);
 
-        $this->expectException(UndefinedValueError::class);
+        $this->expectException(ProgramError::class);
         $this->map->get('c', '', true);
     }
 

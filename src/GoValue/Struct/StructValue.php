@@ -84,7 +84,7 @@ final class StructValue implements AddressableValue
         return $this->type;
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return $this;
     }

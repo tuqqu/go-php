@@ -54,6 +54,11 @@ final class ProgramError extends \LogicException
         return new self(\sprintf('%s redeclared in this block', $name));
     }
 
+    public static function undefinedName(string $name): self
+    {
+        return new self(\sprintf('undefined: %s', $name));
+    }
+
     public static function nameMustBeFunc(string $name): self
     {
         return new self(\sprintf('cannot declare %s - must be func', $name));

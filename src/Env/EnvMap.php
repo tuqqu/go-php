@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
-use GoPhp\Env\Error\UndefinedValueError;
 use GoPhp\Error\ProgramError;
 
 final class EnvMap
@@ -29,7 +28,7 @@ final class EnvMap
     public function get(string $name, string $namespace = self::NAMESPACE_TOP, bool $implicit = false): EnvValue
     {
         return $this->tryGet($name, $namespace, $implicit)
-            ?? throw new UndefinedValueError($name);
+            ?? throw ProgramError::undefinedName($name);
     }
 
     public function add(EnvValue $envValue, string $namespace = self::NAMESPACE_TOP): void
