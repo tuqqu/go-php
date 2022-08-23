@@ -14,6 +14,7 @@ enum UntypedType implements BasicType
     case UntypedInt;
     case UntypedRune; // bare rune 'c' literals
     case UntypedFloat;
+    case UntypedRoundFloat;
     case UntypedBool;
 
     public function name(): string
@@ -21,7 +22,8 @@ enum UntypedType implements BasicType
         return match ($this) {
             self::UntypedInt,
             self::UntypedRune => 'untyped int',
-            self::UntypedFloat => 'untyped float',
+            self::UntypedFloat,
+            self::UntypedRoundFloat => 'untyped float',
             self::UntypedBool => 'untyped bool',
         };
     }
@@ -36,7 +38,8 @@ enum UntypedType implements BasicType
         return match ($this) {
             self::UntypedInt => NamedType::Int,
             self::UntypedRune => NamedType::Rune,
-            self::UntypedFloat => NamedType::Float32,
+            self::UntypedFloat,
+            self::UntypedRoundFloat => NamedType::Float32,
             self::UntypedBool => NamedType::Bool,
         };
     }
@@ -61,7 +64,7 @@ enum UntypedType implements BasicType
                 NamedType::Uint16,
                 NamedType::Uint32,
                 NamedType::Uint64,
-                NamedType::Uintptr, => true,
+                NamedType::Uintptr => true,
                 default => $this->equals($other),
             },
             self::UntypedFloat => match ($other) {
@@ -69,10 +72,33 @@ enum UntypedType implements BasicType
                 NamedType::Float64 => true,
                 default => $this->equals($other),
             },
+            self::UntypedRoundFloat => match ($other) {
+                NamedType::Float32,
+                NamedType::Float64 => true,
+                default => $this->isCompatible(self::UntypedInt),
+            },
             self::UntypedBool => match ($other) {
                 NamedType::Bool => true,
                 default => $this->equals($other),
             },
+        };
+    }
+
+    public function isFloat(): bool
+    {
+        return match ($this) {
+            self::UntypedFloat,
+            self::UntypedRoundFloat => true,
+            default => false,
+        };
+    }
+
+    public function isInt(): bool
+    {
+        return match ($this) {
+            self::UntypedInt,
+            self::UntypedRune => true,
+            default => false,
         };
     }
 

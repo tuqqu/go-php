@@ -141,6 +141,16 @@ final class OperationError extends \RuntimeException
         );
     }
 
+    public static function indexNegative(GoValue|int $value): self
+    {
+        return new self(
+            \sprintf(
+                'invalid argument: index %s must not be negative',
+                \is_int($value) ? $value : self::valueToString($value),
+            ),
+        );
+    }
+
     public static function cannotFullSliceString(): self
     {
         return new self('invalid operation: 3-index slice of string');

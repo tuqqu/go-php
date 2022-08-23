@@ -48,8 +48,10 @@ final class UntypedIntValue extends BaseIntValue
     {
         $digits = \substr($number, $start);
 
-        return empty($digits) ?
-            throw new ProgramError(\sprintf('%s literal has no digits', $type)) :
-            $digits;
+        if (empty($digits)) {
+            throw new ProgramError(\sprintf('%s literal has no digits', $type));
+        }
+
+        return $digits;
     }
 }

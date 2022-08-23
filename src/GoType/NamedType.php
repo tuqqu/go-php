@@ -119,12 +119,14 @@ enum NamedType: string implements BasicType
             self::Uint64,
             self::Uintptr => match ($other) {
                 UntypedType::UntypedInt,
-                UntypedType::UntypedRune => true,
+                UntypedType::UntypedRune,
+                UntypedType::UntypedRoundFloat => true,
                 default => $this->equals($other),
             },
             self::Float64,
             self::Float32 => match ($other) {
-                UntypedType::UntypedFloat => true,
+                UntypedType::UntypedFloat,
+                UntypedType::UntypedRoundFloat => true,
                 default => $this->equals($other),
             },
             self::Bool => match ($other) {
@@ -152,6 +154,32 @@ enum NamedType: string implements BasicType
             self::Float32 => NumberConverter::convert($value, $this),
             self::String => StringConverter::convert($value),
             default => DefaultConverter::convert($value, $this),
+        };
+    }
+
+    public function isFloat(): bool
+    {
+        return match ($this) {
+            self::Float32,
+            self::Float64 => true,
+            default => false,
+        };
+    }
+
+    public function isInt(): bool
+    {
+        return match ($this) {
+            self::Int,
+            self::Int8,
+            self::Int32,
+            self::Int64,
+            self::Uint,
+            self::Uint8,
+            self::Uint16,
+            self::Uint32,
+            self::Uint64,
+            self::Uintptr => true,
+            default => false,
         };
     }
 }

@@ -6,4 +6,7 @@ namespace GoPhp\GoType;
 
 interface BasicType extends GoType
 {
+    public function isFloat(): bool;
+
+    public function isInt(): bool;
 }

@@ -8,6 +8,17 @@ use GoPhp\GoType\UntypedType;
 
 final class UntypedFloatValue extends BaseFloatValue
 {
+    private UntypedType $type;
+
+    public function __construct(float $value)
+    {
+        parent::__construct($value);
+
+        $this->type = ($value - (int) $value) === 0.0
+            ? UntypedType::UntypedRoundFloat
+            : UntypedType::UntypedFloat;
+    }
+
     public static function fromString(string $digits): self
     {
         return new self((float) $digits);
@@ -15,6 +26,6 @@ final class UntypedFloatValue extends BaseFloatValue
 
     public function type(): UntypedType
     {
-        return UntypedType::UntypedFloat;
+        return $this->type;
     }
 }

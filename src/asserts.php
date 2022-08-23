@@ -9,6 +9,8 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\UntypedType;
+use GoPhp\GoValue\Float\BaseFloatValue;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
@@ -71,6 +73,15 @@ function assert_arg_value(GoValue $arg, string $value, string $name, int $pos): 
     }
 }
 
+function assert_arg_int(GoValue $arg, int $pos) {
+    if (
+        !$arg instanceof BaseIntValue
+        && ($arg instanceof BaseFloatValue && $arg->type() !== UntypedType::UntypedRoundFloat)
+    ) {
+        throw OperationError::wrongArgumentType($arg->type(), 'int', $pos);
+    }
+}
+
 function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
 {
     if (!$type->isCompatible($arg->type())) {
@@ -87,10 +98,17 @@ function assert_index_exists(int $index, int $max): void
     }
 }
 
-function assert_index_positive(int $index): void
+function assert_index_positive(GoValue|int $index): void
 {
-    if ($index < 0) {
-        throw DefinitionError::indexNegative($index);
+    // fixme
+    if ($index instanceof GoValue) {
+        if ($index->unwrap() < 0) {
+            throw OperationError::indexNegative($index);
+        }
+    } else {
+        if ($index < 0) {
+            throw OperationError::indexNegative($index);
+        }
     }
 }
 

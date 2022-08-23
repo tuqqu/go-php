@@ -24,7 +24,6 @@ final class EnvMap
             ?? null;
     }
 
-    // fixme remove get
     public function get(string $name, string $namespace = self::NAMESPACE_TOP, bool $implicit = false): EnvValue
     {
         return $this->tryGet($name, $namespace, $implicit)
