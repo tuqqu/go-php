@@ -504,6 +504,7 @@ final class Interpreter
         if (!$func instanceof Invocable) {
             throw OperationError::nonFunctionCall($func);
         }
+
         /** @var Invocable $func */
 
         $argv = [];

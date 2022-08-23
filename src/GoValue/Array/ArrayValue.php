@@ -115,7 +115,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
             return AddressValue::fromValue($this);
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw OperationError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
@@ -177,6 +177,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         //fixme check this
         if ($this->isAddressable()) {
             $self->makeAddressable();
+            $self->addressedWithName($this->getName());
         }
 
         return $self;

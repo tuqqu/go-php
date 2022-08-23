@@ -26,7 +26,7 @@ final class NilValue implements AddressableValue
 
     public function operate(Operator $op): never
     {
-        throw new \Exception();
+        throw OperationError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue

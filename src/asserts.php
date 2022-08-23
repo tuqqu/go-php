@@ -54,7 +54,7 @@ function assert_argc(
     ?Params $params = null
 ): void {
     $actualArgc = \count($argv);
-    //fixme
+    //fixme empty with variadic e.g. make()
     $mismatch = ($variadic && $actualArgc < $expectedArgc - 1)
         || (!$variadic && $actualArgc < $expectedArgc)
         || (!$variadic && $actualArgc > $expectedArgc);

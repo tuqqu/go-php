@@ -11,15 +11,14 @@ use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\TupleValue;
 
-final class TypeError extends \RuntimeException
+final class TypeError extends OperationError
 {
     public static function implicitConversionError(GoValue $value, GoType $type): self
     {
         return new self(
             \sprintf(
-                'cannot use %s (%s) as %s value',
-                $value->toString(),
-                $value->type()->name(),
+                'cannot use %s as %s value',
+                self::valueToString($value),
                 $type->name(),
             )
         );
@@ -27,21 +26,17 @@ final class TypeError extends \RuntimeException
 
     public static function expectedSliceInArgumentUnpacking(GoValue $value, FuncValue|BuiltinFuncValue $funcValue): self
     {
-        // fixme
-        /** @var AddressableValue $value */
         return new self(
             \sprintf(
-                'cannot use %s (%s of type %s) as type %s in argument to %s',
-                $value->toString(),
-                $value->isAddressable() ? 'variable' : 'value',
-                $value->type()->name(),
+                'cannot use %s as type %s in argument to %s',
+                self::valueToString($value),
                 $funcValue instanceof BuiltinFuncValue
                     ? '[]T (slice)'
                     : $funcValue->signature->params->params[$funcValue->signature->params->len - 1]->type->name(),
                 $funcValue instanceof BuiltinFuncValue
-                    ? 'builtin function'
-                    : 'function',
-            )
+                    ? $funcValue->name
+                    : $funcValue->getName(),
+            ),
         );
     }
 
@@ -49,9 +44,8 @@ final class TypeError extends \RuntimeException
     {
         return new self(
             \sprintf(
-                'cannot convert %s (%s) to %s',
-                $value->toString(),
-                $value->type()->name(),
+                'cannot convert %s to %s',
+                self::valueToString($value),
                 $type->name(),
             ),
         );
@@ -63,10 +57,8 @@ final class TypeError extends \RuntimeException
         /** @var AddressableValue $value */
         return new self(
             \sprintf(
-                'array length %s (%s%s) must be integer',
-                $value->toString(),
-                $value->type()->name(),
-                $value->isAddressable() ? '' : ' constant',
+                'array length %s must be integer',
+                self::valueToString($value),
             ),
         );
     }

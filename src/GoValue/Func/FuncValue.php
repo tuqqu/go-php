@@ -182,7 +182,7 @@ final class FuncValue implements Func, AddressableValue
 
     public function operate(Operator $op): never
     {
-        throw OperationError::undefinedOperator($op, $this);
+        throw OperationError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue

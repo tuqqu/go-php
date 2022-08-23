@@ -110,7 +110,7 @@ final class MapValue implements Map, AddressableValue
             return AddressValue::fromValue($this);
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw OperationError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue

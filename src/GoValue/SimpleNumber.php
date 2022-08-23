@@ -128,7 +128,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 //                // fixme move to ints
 //                return $this->bitwiseComplement();
             default:
-                throw OperationError::undefinedOperator($op, $this);
+                throw OperationError::undefinedOperator($op, $this, true);
         }
     }
 

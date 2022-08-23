@@ -4,34 +4,31 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
-use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Func\Func;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Sealable;
+use GoPhp\GoValue\Sequence;
 use GoPhp\Operator;
 
-final class OperationError extends \RuntimeException
+class OperationError extends \RuntimeException
 {
-    public static function undefinedOperator(Operator $op, GoValue $value): self
+    public static function undefinedOperator(Operator $op, AddressableValue $value, bool $unary = false): self
     {
         if ($op === Operator::Eq) {
             return self::cannotAssign($value);
         }
 
-        $type = $value->type();
-        $description = $type->name();
-
-        if ($type instanceof BasicType) {
-            $description .= ' ' . $value->toString();
+        if ($unary && $op === Operator::Mul) {
+            return self::cannotIndirect($value);
         }
 
         return new self(
             \sprintf(
                 'invalid operation: operator %s not defined on %s',
                 $op->value,
-                $description,
+                self::valueToString($value),
             )
         );
     }
@@ -60,21 +57,20 @@ final class OperationError extends \RuntimeException
         return new self(\sprintf('cannot range over %s', self::valueToString($value)));
     }
 
-    public static function cannotAssignToConst(GoValue $value): self
-    {
-        return new self(\sprintf('cannot assign to %s constant %s', $value->type()->name(), $value->toString()));
-    }
-
     public static function lenAndCapSwapped(): self
     {
         return new self('invalid argument: length and capacity swapped');
     }
 
-    // fixme check if this is correct
-//    public static function cannotIndirect(GoType $type): self
-//    {
-//        return new self(\sprintf('invalid operation: cannot indirect value of type %s', $type->name()));
-//    }
+    private static function cannotIndirect(AddressableValue $value): self
+    {
+        return new self(
+            \sprintf(
+                'invalid operation: cannot indirect %s',
+                self::valueToString($value),
+            ),
+        );
+    }
 
     public static function cannotTakeAddressOfMapValue(GoType $type): self
     {
@@ -156,11 +152,21 @@ final class OperationError extends \RuntimeException
         return new self('invalid operation: 3-index slice of string');
     }
 
-    private static function valueToString(GoValue $value): string
+    final protected static function valueToString(GoValue $value): string
     {
-        // fixme
-        /** @var AddressableValue $value */
+        if (!$value instanceof AddressableValue) {
+            return 'value';
+        }
+
         if (!$value->isAddressable()) {
+            if ($value instanceof Sequence) {
+                return \sprintf(
+                    '%s (value of type %s)',
+                    $value->toString(),
+                    $value->type()->name(),
+                );
+            }
+
             return \sprintf(
                 '%s (%s constant)',
                 $value->toString(),
@@ -168,14 +174,21 @@ final class OperationError extends \RuntimeException
             );
         }
 
-        $isConst = $value instanceof Sealable && $value->isSealed() ? 'constant ' : '';
+        $isConst = $value instanceof Sealable && $value->isSealed();
         $valueString = $value instanceof Func ? 'value' : $value->toString();
 
+        if ($isConst) {
+            return \sprintf(
+                '%s (%s constant %s)',
+                $value->getName(),
+                $value->type()->name(),
+                $valueString,
+            );
+        }
+
         return \sprintf(
-            '%s (%s%s of type %s)',
+            '%s (variable of type %s)',
             $value->getName(),
-            $isConst,
-            $valueString,
             $value->type()->name(),
         );
     }

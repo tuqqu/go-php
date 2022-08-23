@@ -74,7 +74,7 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
         return match ($op) {
             Operator::BitAnd => AddressValue::fromValue($this),
             Operator::LogicNot => $this->invert(),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw OperationError::undefinedOperator($op, $this, true),
         };
     }
 
