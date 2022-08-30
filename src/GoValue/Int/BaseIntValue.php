@@ -7,7 +7,11 @@ namespace GoPhp\GoValue\Int;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
+use GoPhp\GoValue\AddressValue;
+use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\SimpleNumber;
+use GoPhp\Operator;
 
 /**
  * @template-extends SimpleNumber<self>
@@ -27,16 +31,89 @@ abstract class BaseIntValue extends SimpleNumber
         $this->value = $value;
     }
 
-    public function unwrap(): int
+    final public function unwrap(): int
     {
         return $this->value;
     }
 
-    // arith
+    protected function completeOperate(Operator $op): self|AddressValue
+    {
+        return match ($op) {
+            Operator::BitXor => $this->bitwiseNot(),
+            default => parent::completeOperate($op),
+        };
+    }
+
+    protected function completeOperateOn(Operator $op, GoValue $rhs): NonRefValue
+    {
+        /** @var self $rhs */
+        return match ($op) {
+            Operator::BitAndNot => $this->bitwiseAndNot($rhs),
+            Operator::BitAnd => $this->bitwiseAnd($rhs),
+            Operator::BitOr => $this->bitwiseOr($rhs),
+            Operator::BitXor => $this->bitwiseXor($rhs),
+            Operator::ShiftLeft => $this->bitwiseShiftLeft($rhs),
+            Operator::ShiftRight => $this->bitwiseShiftRight($rhs),
+            default => parent::completeOperateOn($op, $rhs),
+        };
+    }
+
+    protected function completeMutate(Operator $op, GoValue $rhs): void
+    {
+        /** @var self $rhs */
+        match ($op) {
+            Operator::BitAndNotEq => $this->mutBitwiseAndNot($rhs),
+            Operator::BitAndEq => $this->mutBitwiseAnd($rhs),
+            Operator::BitOrEq => $this->mutBitwiseOr($rhs),
+            Operator::BitXorEq => $this->mutBitwiseXor($rhs),
+            Operator::ShiftLeftEq => $this->mutShiftLeft($rhs),
+            Operator::ShiftRightEq => $this->mutShiftRight($rhs),
+            default => parent::completeMutate($op, $rhs),
+        };
+    }
+
+    // negation
 
     final protected function negate(): static
     {
         return self::newWithWrap(-$this->value);
+    }
+
+    // bitwise
+
+    final protected function bitwiseNot(): static
+    {
+        return self::newWithWrap(~$this->value);
+    }
+
+    final protected function bitwiseAndNot(self $value): static
+    {
+        return self::newWithWrap($this->value & ~$value->value);
+    }
+
+    final protected function bitwiseAnd(self $value): static
+    {
+        return self::newWithWrap($this->value & $value->value);
+    }
+
+    final protected function bitwiseOr(self $value): static
+    {
+        return self::newWithWrap($this->value | $value->value);
+    }
+
+    final protected function bitwiseXor(self $value): static
+    {
+        return self::newWithWrap($this->value ^ $value->value);
+    }
+
+    final protected function bitwiseShiftLeft(self $value): static
+    {
+        return self::newWithWrap($this->value << $value->value);
+    }
+
+    final protected function bitwiseShiftRight(self $value): static
+    {
+        return self::newWithWrap($this->value >> $value->value);
     }
 
     // binary
@@ -94,6 +171,36 @@ abstract class BaseIntValue extends SimpleNumber
     final protected function assign(parent $value): void
     {
         $this->value = $value->value;
+    }
+
+    final protected function mutBitwiseAndNot(self $value): void
+    {
+        $this->value = self::wrap($this->value & ~$value->value);
+    }
+
+    final protected function mutBitwiseAnd(self $value): void
+    {
+        $this->value = self::wrap($this->value & $value->value);
+    }
+
+    final protected function mutBitwiseOr(self $value): void
+    {
+        $this->value = self::wrap($this->value | $value->value);
+    }
+
+    final protected function mutBitwiseXor(self $value): void
+    {
+        $this->value = self::wrap($this->value ^ $value->value);
+    }
+
+    final protected function mutShiftLeft(self $value): void
+    {
+        $this->value = self::wrap($this->value <<= $value->value);
+    }
+
+    final protected function mutShiftRight(self $value): void
+    {
+        $this->value = self::wrap($this->value >>= $value->value);
     }
 
     final protected static function newWithWrap(int|float $value): static

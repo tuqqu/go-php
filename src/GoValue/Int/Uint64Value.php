@@ -8,8 +8,8 @@ use GoPhp\GoType\NamedType;
 
 final class Uint64Value extends BaseIntValue
 {
-//    public const MIN = 0;
-//    public const MAX = 18446744073709551615; //fixme float
+    public const MIN = 0;
+    public const MAX = 1.844_674_407_4e19;
 
     public function type(): NamedType
     {

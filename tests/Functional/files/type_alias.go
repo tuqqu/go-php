@@ -10,19 +10,19 @@ func main() {
 }
 
 type (
-	Celcius = int
+	Celsius = int
 	Kelvin  = int
 )
 
 func test_1() {
 	println("test_1")
-	var c Celcius = 100
-	var k Kelvin = celciusToKelvin(c)
+	var c Celsius = 100
+	var k Kelvin = celsiusToKelvin(c)
 
 	println("k =", k)
 }
 
-func celciusToKelvin(c Celcius) Kelvin {
+func celsiusToKelvin(c Celsius) Kelvin {
 
 	return c + 273
 }

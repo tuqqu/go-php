@@ -20,8 +20,8 @@ enum Operator: string
     case BitOr = '|';
     case BitXor = '^';
     case BitAndNot = '&^';
-    case LeftShift = '<<';
-    case RightShift = '>>';
+    case ShiftLeft = '<<';
+    case ShiftRight = '>>';
 
     // logic
     case LogicAnd = '&&';
@@ -50,8 +50,8 @@ enum Operator: string
     case BitOrEq = '|=';
     case BitXorEq = '^=';
     case BitAndNotEq = '&^=';
-    case LeftShiftEq = '<<=';
-    case RightShiftEq = '>>=';
+    case ShiftLeftEq = '<<=';
+    case ShiftRightEq = '>>=';
 
     case Inc = '++';
     case Dec = '--';
@@ -81,8 +81,8 @@ enum Operator: string
             self::BitOrEq,
             self::BitXorEq,
             self::BitAndNotEq,
-            self::LeftShiftEq,
-            self::RightShiftEq,
+            self::ShiftLeftEq,
+            self::ShiftRightEq,
             self::Inc,
             self::Dec => true,
             default => false,

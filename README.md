@@ -52,7 +52,6 @@ To be implemented:
 * panic recovering
 * lambda functions
 * generics
-* anon function params
 
 Known bugs:
 * goto from loop body

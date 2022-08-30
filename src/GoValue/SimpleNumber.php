@@ -93,7 +93,17 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 
     abstract protected function doBecomeTyped(NamedType $type): self;
 
-    public function operateOn(Operator $op, GoValue $rhs): NonRefValue
+    final public function operate(Operator $op): self|AddressValue
+    {
+        return match ($op) {
+            Operator::BitAnd => AddressValue::fromValue($this),
+            Operator::Plus => $this->noop(),
+            Operator::Minus => $this->negate(),
+            default => static::completeOperate($op),
+        };
+    }
+
+    final public function operateOn(Operator $op, GoValue $rhs): NonRefValue
     {
         assert_values_compatible($this, $rhs);
 
@@ -111,28 +121,11 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
             Operator::GreaterEq => $this->greaterEq($rhs),
             Operator::Less => $this->less($rhs),
             Operator::LessEq => $this->lessEq($rhs),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => static::completeOperateOn($op, $rhs),
         };
     }
 
-    public function operate(Operator $op): self|AddressValue
-    {
-        switch ($op) {
-            case Operator::BitAnd:
-                return AddressValue::fromValue($this);
-            case Operator::Plus:
-                return $this->noop();
-            case Operator::Minus:
-                return $this->negate();
-//            case Operator::BitXor:
-//                // fixme move to ints
-//                return $this->bitwiseComplement();
-            default:
-                throw OperationError::undefinedOperator($op, $this, true);
-        }
-    }
-
-    public function mutate(Operator $op, GoValue $rhs): void
+    final public function mutate(Operator $op, GoValue $rhs): void
     {
         $this->onMutate();
 
@@ -149,7 +142,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
             Operator::MulEq => $this->mutMul($rhs),
             Operator::DivEq => $this->mutDiv($rhs),
             Operator::ModEq => $this->mutMod($rhs),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => static::completeMutate($op, $rhs),
         };
     }
 
@@ -244,4 +237,19 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
      * @param N $value
      */
     abstract protected function assign(self $value): void;
+
+    protected function completeOperate(Operator $op): self|AddressValue
+    {
+        throw OperationError::undefinedOperator($op, $this, true);
+    }
+
+    protected function completeOperateOn(Operator $op, GoValue $rhs): NonRefValue
+    {
+        throw OperationError::undefinedOperator($op, $this);
+    }
+
+    protected function completeMutate(Operator $op, GoValue $rhs): void
+    {
+        throw OperationError::undefinedOperator($op, $this);
+    }
 }

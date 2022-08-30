@@ -10,7 +10,7 @@
     ],
     "require": {
         "php": "^8.1",
-        "tuqqu/go-parser": "^0.3"
+        "tuqqu/go-parser": "^0.4"
     },
     "require-dev": {
         "symfony/var-dumper": "^6.0",
