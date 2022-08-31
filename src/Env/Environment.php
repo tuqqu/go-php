@@ -53,13 +53,13 @@ final class Environment
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void
     {
-        $func = new EnvValue($value->name, $value->type, $value);
+        $func = new EnvValue($value->name, $value);
         $this->envMap->add($func);
     }
 
     public function defineType(string $name, string $namespace, TypeValue $value): void
     {
-        $type = new EnvValue($name, $value->type, $value);
+        $type = new EnvValue($name, $value);
         $this->envMap->add($type, $namespace);
     }
 
@@ -100,7 +100,7 @@ final class Environment
         $value->makeAddressable();
 
         $this->envMap->add(
-            new EnvValue($name, $type, $value),
+            new EnvValue($name, $value, $type),
             $namespace,
         );
     }

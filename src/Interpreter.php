@@ -1378,14 +1378,16 @@ final class Interpreter
     {
         return $this->env
             ->getType($type->name->name, $this->currentPackage)
-            ->getType();
+            ->unwrap()
+            ->unwrap();
     }
 
     private function resolveTypeFromQualifiedName(QualifiedTypeName $type): GoType
     {
         return $this->env
             ->getType($type->typeName->name->name, $type->packageName->name)
-            ->getType();
+            ->unwrap()
+            ->unwrap();
     }
 
     private function resolveTypeFromAstSignature(AstSignature $signature): FuncType

@@ -47,7 +47,7 @@ final class StructBuilder
         foreach ($this->type->fields as $field => $type) {
             $value = $this->initFields[$field] ?? $type->defaultValue();
 
-            $envValue = new EnvValue($field, $type, $value);
+            $envValue = new EnvValue($field, $value, $type);
 
             $instanceFields->add($envValue);
         }

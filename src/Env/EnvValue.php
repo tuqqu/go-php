@@ -17,21 +17,23 @@ use function GoPhp\assert_types_compatible;
 
 final class EnvValue
 {
-    private GoValue $value;
+    public readonly string $name;
+    private readonly GoValue $value;
 
-    public function __construct(
-        public readonly string $name,
-        public readonly GoType $type, // fixme maybe make optional
-        GoValue $value,
-    ) {
-        $value = self::convertIfNeeded($value, $type);
+    public function __construct(string $name, GoValue $value, ?GoType $type = null)
+    {
+        $this->name = $name;
 
-        // fixme for vars
+        if ($type !== null) {
+            $value = self::convertIfNeeded($value, $type);
+
+            // fixme for vars
 //        if ($type instanceof UntypedNilType) {
 //            throw new \Exception('use of untyped nil in variable declaration');
 //        }
 
-        assert_types_compatible($type, $value->type());
+            assert_types_compatible($type, $value->type());
+        }
 
         $this->value = $value;
     }
@@ -43,11 +45,6 @@ final class EnvValue
         }
 
         return $this->value;
-    }
-
-    public function getType(): GoType
-    {
-        return $this->type;
     }
 
     private static function convertIfNeeded(GoValue $value, GoType $type): GoValue

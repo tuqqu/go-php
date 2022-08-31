@@ -69,10 +69,6 @@ final class EnvMapTest extends TestCase
 
     private static function createEnvValue(string $name): EnvValue
     {
-        return new EnvValue(
-            $name,
-            NamedType::Int,
-            NamedType::Int->defaultValue(),
-        );
+        return new EnvValue($name, NamedType::Int->defaultValue());
     }
 }
