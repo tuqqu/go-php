@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
+use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\Operator;
@@ -38,7 +39,7 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, A
         return new self($value);
     }
 
-    public function reify(): self
+    public function reify(?GoType $with = null): self
     {
         return $this;
     }

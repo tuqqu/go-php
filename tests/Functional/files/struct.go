@@ -5,6 +5,7 @@ func main() {
 	test_2()
 	test_3()
 	test_4()
+	test_5()
 }
 
 func test_1() {
@@ -61,4 +62,27 @@ func newPerson(name string) *person {
 	p.age = 42
 
 	return &p
+}
+
+func test_5() {
+	println("test_4")
+	type pair struct {
+		personA *person
+		personB *person
+	}
+
+	var a *person = newPerson("John")
+	var b *person = newPerson("Jane")
+
+	var p pair = pair{
+		personA: a,
+		personB: b,
+	}
+
+	println(p.personA.name)
+	println(p.personB.name)
+
+	p.personA.age++
+
+	println(p.personA.age)
 }

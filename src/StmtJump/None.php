@@ -6,7 +6,7 @@ namespace GoPhp\StmtJump;
 
 class None implements StmtJump
 {
-    private static self $instance;
+    private static ?self $instance = null;
 
     private function __construct() {}
 

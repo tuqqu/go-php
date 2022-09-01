@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 use GoPhp\GoType\NamedType;
 use GoPhp\Error\OperationError;
@@ -39,7 +40,7 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
         return !$this->value;
     }
 
-    public function reify(): NonRefValue
+    public function reify(?GoType $with = null): NonRefValue
     {
         return $this;
     }

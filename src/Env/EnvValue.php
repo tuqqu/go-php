@@ -49,17 +49,19 @@ final class EnvValue
 
     private static function convertIfNeeded(GoValue $value, GoType $type): GoValue
     {
-        switch (true) {
-            case $value instanceof SimpleNumber
-                && $type instanceof NamedType
-                && $value->type() instanceof UntypedType:
-                $value = $value->becomeTyped($type);
-                break;
-            case $type instanceof WrappedType
-                && !$value instanceof TypeValue:
-                $value = $type->convert($value);
-                break;
-            default:
+        if (
+            $value instanceof SimpleNumber
+            && $type instanceof NamedType
+            && $value->type() instanceof UntypedType
+        ) {
+            return $value->becomeTyped($type);
+        }
+
+        if (
+            $type instanceof WrappedType
+            && !$value instanceof TypeValue
+        ) {
+            return $type->convert($value);
         }
 
         return $value;

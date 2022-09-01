@@ -71,6 +71,8 @@ final class AddressValue implements AddressableValue
     {
         if ($op === Operator::Eq) {
             assert_values_compatible($this, $rhs);
+
+            /** @var self $rhs */
             $this->pointsTo = $rhs->pointsTo;
 
             return;

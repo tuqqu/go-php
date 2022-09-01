@@ -223,7 +223,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
         if ($type->type instanceof SliceType) {
             if ($argc > 3) {
-                throw OperationError::wrongArgumentNumber('2 or 3', $argc, 'make');
+                throw OperationError::wrongArgumentNumber('2 or 3', $argc);
             }
 
             $builder = SliceBuilder::fromType($type->type);
@@ -257,7 +257,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
         if ($type->type instanceof MapType) {
             if ($argc > 2) {
-                throw OperationError::wrongArgumentNumber(2, $argc, 'make');
+                throw OperationError::wrongArgumentNumber(2, $argc);
             }
 
             if (isset($values[1])) {

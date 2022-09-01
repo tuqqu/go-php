@@ -15,6 +15,7 @@ use GoPhp\Operator;
 
 /**
  * @template-extends SimpleNumber<self>
+ * @psalm-suppress ImplementedParamTypeMismatch
  */
 abstract class BaseIntValue extends SimpleNumber
 {

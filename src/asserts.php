@@ -17,6 +17,11 @@ use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\NonRefValue;
 
+/**
+ * @template V of GoValue
+ * @param V $a
+ * @psalm-assert V $b
+ */
 function assert_values_compatible(GoValue $a, GoValue $b): void
 {
     assert_types_compatible($a->type(), $b->type());
@@ -31,6 +36,11 @@ function assert_nil_comparison(GoValue $a, GoValue $b): void
     assert_values_compatible($a, $b);
 }
 
+/**
+ * @template T of GoType
+ * @param T $a
+ * @psalm-assert T $b
+ */
 function assert_types_compatible(GoType $a, GoType $b): void
 {
     if (!$a->isCompatible($b)) {
@@ -38,6 +48,11 @@ function assert_types_compatible(GoType $a, GoType $b): void
     }
 }
 
+/**
+ * @template T of GoType
+ * @param T $a
+ * @psalm-assert T $b
+ */
 function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
 {
     assert_types_compatible($a, $b->type());

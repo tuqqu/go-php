@@ -45,7 +45,7 @@ final class DefinitionError extends \LogicException
         ));
     }
 
-    public static function undefinedFieldAccess(string $valueName, string $field, GoType $type): self
+    public static function undefinedFieldAccess(?string $valueName, string $field, GoType $type): self
     {
         return new self(\sprintf(
             '%s.%s undefined (type %s has no field or method %s)',

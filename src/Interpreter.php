@@ -24,6 +24,7 @@ use GoParser\Ast\Expr\PointerType as AstPointerType;
 use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SelectorExpr;
+use GoParser\Ast\Expr\SimpleSliceExpr;
 use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\SliceExpr;
 use GoParser\Ast\Expr\SliceType as AstSliceType;
@@ -64,8 +65,8 @@ use GoParser\Ast\Stmt\LabeledStmt;
 use GoParser\Ast\Stmt\ReturnStmt;
 use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
-use GoParser\Ast\Stmt\SwitchStmt;
 use GoParser\Ast\Stmt\TypeDecl;
+use GoParser\Ast\Stmt\TypeSwitchStmt;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\StmtList;
 use GoParser\Ast\TypeDef;
@@ -93,6 +94,7 @@ use GoPhp\GoType\PointerType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoType\StructType;
 use GoPhp\GoType\WrappedType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
@@ -594,7 +596,7 @@ final class Interpreter
         return $sequence->get($index);
     }
 
-    private function evalSliceExpr(SliceExpr $expr): StringValue|SliceValue
+    private function evalSliceExpr(SimpleSliceExpr|FullSliceExpr $expr): StringValue|SliceValue
     {
         $sequence = $this->evalExpr($expr->expr);
 
@@ -719,7 +721,7 @@ final class Interpreter
     }
 
     /**
-     * @param callable(): None $code
+     * @param callable(): StmtJump $code
      */
     private function evalWithEnvWrap(?Environment $env, callable $code): StmtJump
     {
@@ -934,7 +936,7 @@ final class Interpreter
         return $stmtJump;
     }
 
-    private function evalSwitchWithFallthrough(SwitchStmt $stmt, int $fromCase): StmtJump
+    private function evalSwitchWithFallthrough(ExprSwitchStmt|TypeSwitchStmt $stmt, int $fromCase): StmtJump
     {
         $stmtJump = None::get();
 
@@ -967,6 +969,10 @@ final class Interpreter
             throw OperationError::invalidRangeValue($range);
         }
 
+        /**
+         * @var bool $define
+         * @var Ident[] $iterVars
+         */
         [$define, $iterVars] = match (true) {
             $iteration->list instanceof ExprList => [false, $iteration->list->exprs],
             $iteration->list instanceof IdentList => [true, $iteration->list->idents],
@@ -1294,7 +1300,7 @@ final class Interpreter
         }
 
         // struct access
-        $value = $this->env->get($expr->expr->name, $this->currentPackage)->unwrap();
+        $value = $this->evalExpr($expr->expr);
 
         do {
             $check = false;
@@ -1307,8 +1313,12 @@ final class Interpreter
         } while ($check);
 
         if (!$value instanceof StructValue) {
+            if (!$value instanceof AddressableValue) {
+                throw InternalError::unreachable($value);
+            }
+
             throw DefinitionError::undefinedFieldAccess(
-                $expr->expr->name,
+                $value->getName(),
                 $expr->selector->name,
                 $value->type()
             );

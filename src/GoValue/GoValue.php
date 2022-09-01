@@ -15,6 +15,12 @@ interface GoValue
 
     public function mutate(Operator $op, self $rhs): void;
 
+    /**
+     * Equality checks must be called only on values which are compatible.
+     *
+     * @template V of self
+     * @param V $rhs
+     */
     public function equals(self $rhs): BoolValue;
 
     public function unwrap(): mixed;

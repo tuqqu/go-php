@@ -131,8 +131,8 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
 
     public function equals(GoValue $rhs): BoolValue
     {
+        /** @var self $rhs */
         foreach ($this->values as $k => $v) {
-            /** @var GoValue $v */
             if (!$v->equals($rhs->values[$k])->unwrap()) {
                 return BoolValue::false();
             }
@@ -144,7 +144,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {
-            assert_types_compatible($this->type, $rhs->type());
+            assert_values_compatible($this, $rhs);
 
             $this->values = $rhs->copy()->values;
 
@@ -167,6 +167,9 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         return $this->type;
     }
 
+    /**
+     * @return self<V>
+     */
     public function copy(): self
     {
         $self = new self(

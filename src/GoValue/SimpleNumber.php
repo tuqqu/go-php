@@ -35,6 +35,11 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
     use SealableTrait;
     use AddressableTrait;
 
+    public function __construct($value)
+    {
+        // intentionally left empty
+    }
+
     final public static function create(mixed $value): static
     {
         return new static($value);

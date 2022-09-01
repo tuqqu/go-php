@@ -8,6 +8,9 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\VoidValue;
 
+/**
+ * @template V of GoValue
+ */
 final class ReturnJump implements StmtJump
 {
     private function __construct(
@@ -15,16 +18,25 @@ final class ReturnJump implements StmtJump
         public readonly int $len,
     ) {}
 
+    /**
+     * @return self<VoidValue>
+     */
     public static function fromVoid(): self
     {
         return new self(new VoidValue(), 0);
     }
 
+    /**
+     * @return self<TupleValue>
+     */
     public static function fromTuple(TupleValue $tuple): self
     {
         return new self($tuple, $tuple->len);
     }
 
+    /**
+     * @return self<GoValue>
+     */
     public static function fromSingle(GoValue $value): self
     {
         return new self($value, 1);
@@ -32,6 +44,7 @@ final class ReturnJump implements StmtJump
 
     /**
      * @param GoValue[] $values
+     * @return self<TupleValue>
      */
     public static function fromMultiple(array $values): self
     {
@@ -42,6 +55,7 @@ final class ReturnJump implements StmtJump
 
     /**
      * @return GoValue[]
+     * @psalm-suppress NoInterfaceProperties
      */
     public function values(): array
     {

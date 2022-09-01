@@ -12,6 +12,7 @@ use GoPhp\GoValue\SimpleNumber;
 
 /**
  * @template-extends SimpleNumber<self>
+ * @psalm-suppress ImplementedParamTypeMismatch
  */
 abstract class BaseFloatValue extends SimpleNumber
 {
