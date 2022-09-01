@@ -81,6 +81,11 @@ function assert_argc(
     }
 }
 
+/**
+ * @template C
+ * @psalm-param class-string<C> $value
+ * @psalm-assert C $arg
+ */
 function assert_arg_value(GoValue $arg, string $value, string $name, int $pos): void
 {
     if (!$arg instanceof $value) {
@@ -88,6 +93,9 @@ function assert_arg_value(GoValue $arg, string $value, string $name, int $pos): 
     }
 }
 
+/**
+ * @psalm-assert BaseIntValue $arg
+ */
 function assert_arg_int(GoValue $arg, int $pos) {
     if (
         !$arg instanceof BaseIntValue
@@ -104,6 +112,9 @@ function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
     }
 }
 
+/**
+ * @psalm-assert positive-int $index
+ */
 function assert_index_exists(int $index, int $max): void
 {
     assert_index_positive($index);
@@ -113,6 +124,9 @@ function assert_index_exists(int $index, int $max): void
     }
 }
 
+/**
+ * @psalm-assert positive-int|GoValue $index
+ */
 function assert_index_positive(GoValue|int $index): void
 {
     // fixme
@@ -144,6 +158,9 @@ function assert_slice_indices(int $cap, int $low, int $high, ?int $max = null): 
     }
 }
 
+/**
+ * @psalm-assert BaseIntValue $index
+ */
 function assert_index_int(GoValue $index, string $context): void
 {
     if (!$index instanceof BaseIntValue) {

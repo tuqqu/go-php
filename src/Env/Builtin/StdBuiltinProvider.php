@@ -142,8 +142,6 @@ class StdBuiltinProvider implements BuiltinProvider
 
     /**
      * @see https://pkg.go.dev/builtin#len
-     *
-     * @param array{0: Sequence&GoValue} $values
      */
     protected static function len(GoValue ...$values): IntValue
     {
@@ -175,8 +173,6 @@ class StdBuiltinProvider implements BuiltinProvider
 
     /**
      * @see https://pkg.go.dev/builtin#delete
-     *
-     * @param array{0: MapValue, 1: GoValue} $values
      */
     protected function delete(GoValue ...$values): VoidValue
     {
@@ -190,8 +186,6 @@ class StdBuiltinProvider implements BuiltinProvider
 
     /**
      * @see https://pkg.go.dev/builtin#append
-     *
-     * @param array{0: SliceValue, 1: GoValue} $values
      */
     protected static function append(GoValue ...$values): SliceValue
     {
@@ -232,7 +226,7 @@ class StdBuiltinProvider implements BuiltinProvider
                 assert_arg_int($values[1], 2);
                 assert_index_positive($values[1]);
 
-                $len = (int) $values[1]->unwrap();
+                $len = $values[1]->unwrap();
 
                 for ($i = 0; $i < $len; ++$i) {
                     $builder->pushBlindly($type->type->elemType->defaultValue());
@@ -243,7 +237,7 @@ class StdBuiltinProvider implements BuiltinProvider
                 assert_arg_int($values[2], 3);
                 assert_index_positive($values[2]);
 
-                $cap = (int) $values[2]->unwrap();
+                $cap = $values[2]->unwrap();
 
                 if ($cap < ($len ?? 0)) {
                     throw OperationError::lenAndCapSwapped();
