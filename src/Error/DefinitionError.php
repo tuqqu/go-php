@@ -40,8 +40,8 @@ final class DefinitionError extends \LogicException
     public static function invalidFieldName(?string $field = null): self
     {
         return new self(\sprintf(
-            'invalid field name %s in struct literal',
-            $field === null ?: \sprintf('\'%s\'', $field),
+            'invalid field name%s in struct literal',
+            $field === null ? '' : \sprintf(' \'%s\'', $field),
         ));
     }
 

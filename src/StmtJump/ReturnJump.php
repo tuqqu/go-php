@@ -13,6 +13,9 @@ use GoPhp\GoValue\VoidValue;
  */
 final class ReturnJump implements StmtJump
 {
+    /**
+     * @param V $value
+     */
     private function __construct(
         public readonly GoValue $value,
         public readonly int $len,

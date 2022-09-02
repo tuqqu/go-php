@@ -95,6 +95,10 @@ final class FuncValue implements Func, AddressableValue
                     $sliceBuilder->pushBlindly($argv[$i]);
                 }
 
+                if ($param->name === null) {
+                    continue;
+                }
+
                 $env->defineVar(
                     $param->name,
                     EnvMap::NAMESPACE_TOP,
@@ -107,7 +111,6 @@ final class FuncValue implements Func, AddressableValue
 
             assert_arg_type($argv[$i], $param->type, $i);
 
-            // fixme variadic anon
             if ($param->name === null) {
                 continue;
             }

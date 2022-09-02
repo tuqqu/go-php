@@ -3,4 +3,8 @@ anonArg called
 test_2
 manyAnonArgs called
 test_3
+anonArgWithReturns called
 1 string
+test_4
+anonVariadicArgs called
+anonVariadicArgs called

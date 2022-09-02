@@ -112,9 +112,6 @@ function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
     }
 }
 
-/**
- * @psalm-assert positive-int $index
- */
 function assert_index_exists(int $index, int $max): void
 {
     assert_index_positive($index);
@@ -125,19 +122,12 @@ function assert_index_exists(int $index, int $max): void
 }
 
 /**
- * @psalm-assert positive-int|GoValue $index
+ * @psalm-assert positive-int $index
  */
-function assert_index_positive(GoValue|int $index): void
+function assert_index_positive(int $index): void
 {
-    // fixme
-    if ($index instanceof GoValue) {
-        if ($index->unwrap() < 0) {
-            throw OperationError::indexNegative($index);
-        }
-    } else {
-        if ($index < 0) {
-            throw OperationError::indexNegative($index);
-        }
+    if ($index < 0) {
+        throw OperationError::indexNegative($index);
     }
 }
 

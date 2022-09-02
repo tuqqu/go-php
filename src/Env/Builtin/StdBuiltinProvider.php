@@ -224,9 +224,10 @@ class StdBuiltinProvider implements BuiltinProvider
 
             if (isset($values[1])) {
                 assert_arg_int($values[1], 2);
-                assert_index_positive($values[1]);
 
                 $len = $values[1]->unwrap();
+
+                assert_index_positive($len);
 
                 for ($i = 0; $i < $len; ++$i) {
                     $builder->pushBlindly($type->type->elemType->defaultValue());
@@ -235,9 +236,10 @@ class StdBuiltinProvider implements BuiltinProvider
 
             if (isset($values[2])) {
                 assert_arg_int($values[2], 3);
-                assert_index_positive($values[2]);
 
                 $cap = $values[2]->unwrap();
+
+                assert_index_positive($cap);
 
                 if ($cap < ($len ?? 0)) {
                     throw OperationError::lenAndCapSwapped();
@@ -257,7 +259,7 @@ class StdBuiltinProvider implements BuiltinProvider
             if (isset($values[1])) {
                 // we do not use this value, just validating it
                 assert_arg_value($values[1], BaseIntValue::class, 'int', 3);
-                assert_index_positive($values[1]);
+                assert_index_positive($values[1]->unwrap());
             }
 
             return MapBuilder::fromType($type->type)->build();
