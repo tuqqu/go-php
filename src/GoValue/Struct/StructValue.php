@@ -7,14 +7,16 @@ namespace GoPhp\GoValue\Struct;
 use GoPhp\Env\EnvMap;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\StructType;
+use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\AddressValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\AddressableTrait;
 use GoPhp\Operator;
 
 use function GoPhp\assert_nil_comparison;
+use function GoPhp\assert_values_compatible;
+use function GoPhp\normalize_value;
 
 final class StructValue implements AddressableValue
 {
@@ -25,7 +27,7 @@ final class StructValue implements AddressableValue
     //fixme add nil
 
     public function __construct(
-        private readonly EnvMap $fields,
+        private EnvMap $fields,
         private readonly StructType $type,
     ) {}
 
@@ -66,10 +68,16 @@ final class StructValue implements AddressableValue
 
     public function mutate(Operator $op, GoValue $rhs): void
     {
-//        if ($op === Operator::Eq) {
-//            assert_types_compatible($this->type, $rhs->type());
-        // fixme
-//        }
+        if ($op === Operator::Eq) {
+            assert_values_compatible($this, $rhs);
+
+            /** @var self $rhs */
+            $rhs = normalize_value($rhs);
+
+            $this->fields = $rhs->fields->copy();
+
+            return;
+        }
 
         throw OperationError::undefinedOperator($op, $this);
     }
@@ -86,7 +94,7 @@ final class StructValue implements AddressableValue
 
     public function copy(): self
     {
-        return $this;
+        return new self($this->fields->copy(), $this->type);
     }
 
     public function clone(): self

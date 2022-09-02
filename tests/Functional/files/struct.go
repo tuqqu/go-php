@@ -6,6 +6,7 @@ func main() {
 	test_3()
 	test_4()
 	test_5()
+	test_6()
 }
 
 func test_1() {
@@ -65,7 +66,7 @@ func newPerson(name string) *person {
 }
 
 func test_5() {
-	println("test_4")
+	println("test_5")
 	type pair struct {
 		personA *person
 		personB *person
@@ -85,4 +86,26 @@ func test_5() {
 	p.personA.age++
 
 	println(p.personA.age)
+}
+
+func test_6() {
+	println("test_6")
+
+	type cat struct {
+	    age uint
+	}
+
+	var c1 cat = cat {age: 9}
+	var c2 cat = cat {age: 1}
+	var c3 cat = c1
+	var c4 cat = c2
+
+	c1.age++
+	c2.age = 15
+	c3.age += 9
+
+	println(c1.age)
+	println(c2.age)
+	println(c3.age)
+	println(c4.age)
 }

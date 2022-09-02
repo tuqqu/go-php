@@ -396,7 +396,11 @@ final class Interpreter
             }
 
             foreach ($spec->identList->idents as $i => $ident) {
-                $this->defineVar($ident->name, $values[$i], $type);
+                $this->defineVar(
+                    $ident->name,
+                    $values[$i]->copy(),
+                    $type,
+                );
             }
         }
 

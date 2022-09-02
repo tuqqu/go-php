@@ -47,6 +47,11 @@ final class EnvValue
         return $this->value;
     }
 
+    public function copy(): self
+    {
+        return new self($this->name, $this->value->copy());
+    }
+
     private static function convertIfNeeded(GoValue $value, GoType $type): GoValue
     {
         if (

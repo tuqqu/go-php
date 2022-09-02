@@ -9,9 +9,6 @@ use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\WrappedValue;
 
-/**
- * @internal
- */
 function normalize_value(GoValue $value): GoValue
 {
     if ($value instanceof WrappedValue) {

@@ -56,4 +56,15 @@ final class EnvMap
     {
         yield from $this->values[$namespace] ?? [];
     }
+
+    public function copy(): self
+    {
+        $copy = new self();
+
+        foreach ($this->iter() as $field) {
+            $copy->add($field->copy());
+        }
+
+        return $copy;
+    }
 }
