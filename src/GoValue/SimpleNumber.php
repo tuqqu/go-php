@@ -98,10 +98,10 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 
     abstract protected function doBecomeTyped(NamedType $type): self;
 
-    final public function operate(Operator $op): self|AddressValue
+    final public function operate(Operator $op): self|PointerValue
     {
         return match ($op) {
-            Operator::BitAnd => AddressValue::fromValue($this),
+            Operator::BitAnd => PointerValue::fromValue($this),
             Operator::Plus => $this->noop(),
             Operator::Minus => $this->negate(),
             default => static::completeOperate($op),
@@ -243,7 +243,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
      */
     abstract protected function assign(self $value): void;
 
-    protected function completeOperate(Operator $op): self|AddressValue
+    protected function completeOperate(Operator $op): self|PointerValue
     {
         throw OperationError::undefinedOperator($op, $this, true);
     }

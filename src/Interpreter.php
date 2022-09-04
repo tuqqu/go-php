@@ -95,7 +95,7 @@ use GoPhp\GoType\SliceType;
 use GoPhp\GoType\StructType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\AddressValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
@@ -1309,7 +1309,7 @@ final class Interpreter
             $check = false;
             $value = normalize_value($value);
 
-            if ($value instanceof AddressValue) {
+            if ($value instanceof PointerValue) {
                 $value = $value->getPointsTo();
                 $check = true;
             }

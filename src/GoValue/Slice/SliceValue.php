@@ -7,7 +7,7 @@ namespace GoPhp\GoValue\Slice;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\AddressValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Array\UnderlyingArray;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
@@ -158,10 +158,10 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
         $this->values[$this->len++] = $value;
     }
 
-    public function operate(Operator $op): AddressValue
+    public function operate(Operator $op): PointerValue
     {
         if ($op === Operator::BitAnd) {
-            return AddressValue::fromValue($this);
+            return PointerValue::fromValue($this);
         }
 
         throw OperationError::undefinedOperator($op, $this, true);

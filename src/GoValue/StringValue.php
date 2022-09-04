@@ -68,10 +68,10 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, A
         return new self(\substr($this->value, $low, $high - $low));
     }
 
-    public function operate(Operator $op): AddressValue
+    public function operate(Operator $op): PointerValue
     {
         if ($op === Operator::BitAnd) {
-            return AddressValue::fromValue($this);
+            return PointerValue::fromValue($this);
         }
 
         throw OperationError::undefinedOperator($op, $this, true);

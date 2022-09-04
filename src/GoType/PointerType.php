@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\GoType\Converter\DefaultConverter;
-use GoPhp\GoValue\AddressValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\GoValue;
 
 final class PointerType implements RefType
@@ -35,9 +35,9 @@ final class PointerType implements RefType
         return $this;
     }
 
-    public function defaultValue(): AddressValue
+    public function defaultValue(): PointerValue
     {
-        return AddressValue::fromType($this);
+        return PointerValue::fromType($this);
     }
 
     public function convert(GoValue $value): GoValue

@@ -43,7 +43,7 @@ final class WrappedValue implements AddressableValue
     public function operate(Operator $op): GoValue
     {
         if ($op === Operator::BitAnd) {
-            return AddressValue::fromValue($this);
+            return PointerValue::fromValue($this);
         }
 
         return $this->enwrapNew($this->underlyingValue->operate($op));

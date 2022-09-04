@@ -70,10 +70,10 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
         return new self(!$this->value);
     }
 
-    public function operate(Operator $op): self|AddressValue
+    public function operate(Operator $op): self|PointerValue
     {
         return match ($op) {
-            Operator::BitAnd => AddressValue::fromValue($this),
+            Operator::BitAnd => PointerValue::fromValue($this),
             Operator::LogicNot => $this->invert(),
             default => throw OperationError::undefinedOperator($op, $this, true),
         };

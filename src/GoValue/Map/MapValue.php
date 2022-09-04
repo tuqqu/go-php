@@ -7,7 +7,7 @@ namespace GoPhp\GoValue\Map;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\AddressValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\AddressableTrait;
@@ -104,10 +104,10 @@ final class MapValue implements Map, AddressableValue
         yield from $this->innerMap->iter();
     }
 
-    public function operate(Operator $op): AddressValue
+    public function operate(Operator $op): PointerValue
     {
         if ($op === Operator::BitAnd) {
-            return AddressValue::fromValue($this);
+            return PointerValue::fromValue($this);
         }
 
         throw OperationError::undefinedOperator($op, $this, true);

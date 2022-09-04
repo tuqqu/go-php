@@ -9,7 +9,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\StructType;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\AddressValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
@@ -41,10 +41,10 @@ final class StructValue implements AddressableValue
         return \sprintf('{%s}', \implode(' ', $str));
     }
 
-    public function operate(Operator $op): AddressValue
+    public function operate(Operator $op): PointerValue
     {
         if ($op === Operator::BitAnd) {
-            return AddressValue::fromValue($this);
+            return PointerValue::fromValue($this);
         }
 
         throw OperationError::undefinedOperator($op, $this, true);

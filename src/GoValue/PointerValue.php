@@ -10,7 +10,7 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
 
-final class AddressValue implements AddressableValue
+final class PointerValue implements AddressableValue
 {
     use AddressableTrait;
 
@@ -49,7 +49,7 @@ final class AddressValue implements AddressableValue
     {
         return match ($op) {
             Operator::Mul => $this->pointsTo,
-            Operator::BitAnd => AddressValue::fromValue($this),
+            Operator::BitAnd => PointerValue::fromValue($this),
             default => throw OperationError::undefinedOperator($op, $this),
         };
     }

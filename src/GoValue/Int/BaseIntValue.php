@@ -7,7 +7,7 @@ namespace GoPhp\GoValue\Int;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
-use GoPhp\GoValue\AddressValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\SimpleNumber;
@@ -37,7 +37,7 @@ abstract class BaseIntValue extends SimpleNumber
         return $this->value;
     }
 
-    protected function completeOperate(Operator $op): self|AddressValue
+    protected function completeOperate(Operator $op): self|PointerValue
     {
         return match ($op) {
             Operator::BitXor => $this->bitwiseNot(),

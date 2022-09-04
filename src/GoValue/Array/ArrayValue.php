@@ -9,7 +9,7 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\AddressValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
@@ -109,10 +109,10 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         }
     }
 
-    public function operate(Operator $op): AddressValue
+    public function operate(Operator $op): PointerValue
     {
         if ($op === Operator::BitAnd) {
-            return AddressValue::fromValue($this);
+            return PointerValue::fromValue($this);
         }
 
         throw OperationError::undefinedOperator($op, $this, true);
