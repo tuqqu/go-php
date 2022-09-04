@@ -177,10 +177,8 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
             $this->type,
         );
 
-        //fixme check this
         if ($this->isAddressable()) {
             $self->makeAddressable();
-            $self->addressedWithName($this->getName());
         }
 
         return $self;

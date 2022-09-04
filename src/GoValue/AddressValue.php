@@ -56,7 +56,13 @@ final class AddressValue implements AddressableValue
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        throw OperationError::undefinedOperator($op, $this);
+        assert_values_compatible($this, $rhs);
+
+        return match ($op) {
+            Operator::EqEq => $this->equals($rhs),
+            Operator::NotEq => $this->equals($rhs)->invert(),
+            default => throw OperationError::undefinedOperator($op, $this),
+        };
     }
 
     public function equals(GoValue $rhs): BoolValue

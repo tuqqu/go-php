@@ -167,7 +167,7 @@ final class Interpreter
         $this->setAst($ast);
     }
 
-    public function run(): ExecCode
+    public function run(): ExitCode
     {
         try {
             $this->evalDeclsInOrder();
@@ -183,11 +183,11 @@ final class Interpreter
             throw $err;
         } catch (\Throwable $throwable) {
             $this->onError($throwable->getMessage());
-            throw $throwable; // fixme
-            return ExecCode::Failure;
+
+            return ExitCode::Failure;
         }
 
-        return ExecCode::Success;
+        return ExitCode::Success;
     }
 
     private function evalDeclsInOrder(): void
@@ -512,7 +512,6 @@ final class Interpreter
         }
 
         /** @var Invocable $func */
-
         $argv = [];
         $exprLen = \count($expr->args->exprs);
         $nValuedContext = 1;
