@@ -26,6 +26,8 @@ use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_types_compatible;
 use function GoPhp\assert_values_compatible;
 
+use const GoPhp\NIL;
+
 /**
  * @template V of GoValue
  * @template-implements Sequence<BaseIntValue, V>
@@ -71,7 +73,7 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
 
     public static function nil(SliceType $type): self
     {
-        return new self(null, $type);
+        return new self(NIL, $type);
     }
 
     /**
@@ -156,7 +158,7 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
         //fixme change error text
         assert_types_compatible($value->type(), $this->type->elemType);
 
-        if ($this->values === null) {
+        if ($this->values === NIL) {
             $this->values = UnderlyingArray::fromEmpty();
         }
 
@@ -189,14 +191,14 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return BoolValue::false();
+        return BoolValue::false(); // fixme remove equals
     }
 
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {
             if ($rhs instanceof NilValue) {
-                $this->values = null;
+                $this->values = NIL;
                 $this->len = 0;
                 $this->cap = 0;
                 $this->pos = 0;

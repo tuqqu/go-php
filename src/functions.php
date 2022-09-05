@@ -9,6 +9,18 @@ use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\WrappedValue;
 
+/**
+ * Alias for NULL-nil value in reference types.
+ *
+ * @internal
+ */
+const NIL = null;
+
+/**
+ * Value normalization for wrapped values.
+ *
+ * @internal
+ */
 function normalize_value(GoValue $value): GoValue
 {
     if ($value instanceof WrappedValue) {
@@ -18,6 +30,11 @@ function normalize_value(GoValue $value): GoValue
     return $value;
 }
 
+/**
+ * Type normalization for wrapped types.
+ *
+ * @internal
+ */
 function normalize_type(GoType $type): GoType
 {
     if ($type instanceof WrappedType) {

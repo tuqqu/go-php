@@ -18,6 +18,9 @@ use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\NonRefValue;
 
 /**
+ * Asserts that the two values can be used in one operation.
+ *
+ * @internal
  * @template V of GoValue
  * @param V $a
  * @psalm-assert V $b
@@ -29,6 +32,7 @@ function assert_values_compatible(GoValue $a, GoValue $b): void
 
 // fixme remove name
 /**
+ * @internal
  * @psalm-assert !NilValue $b
  */
 function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
@@ -41,6 +45,7 @@ function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
 }
 
 /**
+ * @internal
  * @template T of GoType
  * @param T $a
  * @psalm-assert T $b
@@ -53,6 +58,7 @@ function assert_types_compatible(GoType $a, GoType $b): void
 }
 
 /**
+ * @internal
  * @psalm-assert NonRefValue $b
  */
 function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void

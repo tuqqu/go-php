@@ -9,8 +9,6 @@ use GoPhp\GoType\RefType;
 use GoPhp\GoType\UntypedNilType;
 use GoPhp\Operator;
 
-use function GoPhp\assert_values_compatible;
-
 final class NilValue implements AddressableValue
 {
     use AddressableTrait;
@@ -29,19 +27,13 @@ final class NilValue implements AddressableValue
         throw OperationError::undefinedOperator($op, $this, true);
     }
 
-    public function operateOn(Operator $op, GoValue $rhs): BoolValue
+    public function operateOn(Operator $op, GoValue $rhs): GoValue
     {
-        if ($rhs->type() instanceof UntypedNilType) {
+        if ($rhs instanceof self) {
             throw new \Exception('operator == not defined on untyped nil');
         }
 
-        assert_values_compatible($this, $rhs);
-
-        return match ($op) {
-            Operator::EqEq => $this->equals($rhs),
-            Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::undefinedOperator($op, $this),
-        };
+        return $rhs->operateOn($op, $this);
     }
 
     public function equals(GoValue $rhs): BoolValue

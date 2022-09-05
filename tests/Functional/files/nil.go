@@ -2,6 +2,7 @@ package main
 
 func main() {
 	test_slice()
+	test_pointer()
 }
 
 func test_slice() {
@@ -65,4 +66,35 @@ func test_slice() {
 
     z = nil
     println(&z == p1)
+}
+
+func test_pointer() {
+    println("test_pointer")
+
+    var p1 *int
+    var p2 *int = nil
+    var p3 *int
+    p3 = nil
+
+    println(nil == p1)
+    println(p1 == nil)
+    println(p1 == p1)
+    println(p1 == p2)
+    println(p1 == p3)
+    println(p3 == nil)
+
+    var x int = 1
+    p1 = &x
+    println(nil == p1)
+    println(p1 == nil)
+    println(p1 == p1)
+    println(p1 == p2)
+
+    p2 = &x
+    println(p1 == p2)
+
+    p3 = p2
+    println(p1 == p3)
+    println(p1 == p2)
+    println(p3 == nil)
 }

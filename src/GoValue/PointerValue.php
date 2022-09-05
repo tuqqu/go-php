@@ -5,38 +5,39 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
+use GoPhp\Error\PanicError;
 use GoPhp\GoType\PointerType;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
+
+use const GoPhp\NIL;
 
 final class PointerValue implements AddressableValue
 {
     use AddressableTrait;
 
     private function __construct(
-        private GoValue $pointsTo,
+        private ?GoValue $pointsTo,
         private readonly PointerType $type,
     ) {}
 
     public static function fromValue(GoValue $value): self
     {
-        return new self(
-            pointsTo: $value,
-            type: new PointerType($value->type()),
-        );
+        return new self($value, new PointerType($value->type()));
     }
 
-    public static function fromType(PointerType $type): self
+    public static function nil(PointerType $type): self
     {
-        return new self(
-            pointsTo: new NilValue($type),
-            type: $type,
-        );
+        return new self(NIL, $type);
     }
 
     public function getPointsTo(): GoValue
     {
+        if ($this->pointsTo === NIL) {
+            throw PanicError::nilDereference();
+        }
+
         return $this->pointsTo;
     }
 
@@ -48,7 +49,7 @@ final class PointerValue implements AddressableValue
     public function operate(Operator $op): GoValue
     {
         return match ($op) {
-            Operator::Mul => $this->pointsTo,
+            Operator::Mul => $this->getPointsTo(),
             Operator::BitAnd => PointerValue::fromValue($this),
             default => throw OperationError::undefinedOperator($op, $this),
         };
@@ -67,10 +68,11 @@ final class PointerValue implements AddressableValue
 
     public function equals(GoValue $rhs): BoolValue
     {
-        return new BoolValue(
-            $rhs instanceof self
-            && $rhs->pointsTo === $this->pointsTo
-        );
+        if ($rhs instanceof NilValue) {
+            return new BoolValue($this->pointsTo === NIL);
+        }
+
+        return new BoolValue($rhs instanceof self && $rhs->pointsTo === $this->pointsTo);
     }
 
     public function mutate(Operator $op, GoValue $rhs): void
@@ -78,7 +80,12 @@ final class PointerValue implements AddressableValue
         if ($op === Operator::Eq) {
             assert_values_compatible($this, $rhs);
 
-            /** @var self $rhs */
+            if ($rhs instanceof NilValue) {
+                $this->pointsTo = NIL;
+
+                return;
+            }
+
             $this->pointsTo = $rhs->pointsTo;
 
             return;
@@ -104,6 +111,10 @@ final class PointerValue implements AddressableValue
 
     private function getAddress(): int
     {
+        if ($this->pointsTo === NIL) {
+            return 0;
+        }
+
         return \spl_object_id($this->pointsTo);
     }
 }

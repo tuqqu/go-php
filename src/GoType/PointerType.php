@@ -21,7 +21,8 @@ final class PointerType implements RefType
 
     public function equals(GoType $other): bool
     {
-        return $other instanceof self
+        return $other instanceof UntypedNilType
+            || $other instanceof self
             && $this->pointsTo->equals($other->pointsTo);
     }
 
@@ -30,14 +31,14 @@ final class PointerType implements RefType
         return $this->equals($other);
     }
 
-    public function reify(): static
+    public function reify(): self
     {
         return $this;
     }
 
     public function defaultValue(): PointerValue
     {
-        return PointerValue::fromType($this);
+        return PointerValue::nil($this);
     }
 
     public function convert(GoValue $value): GoValue
