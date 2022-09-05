@@ -16,7 +16,7 @@ final class NilValue implements AddressableValue
     use AddressableTrait;
 
     public function __construct(
-        public readonly RefType $type,
+        public readonly RefType $type = new UntypedNilType(), //fixme remove after nil type cleanup
     ) {}
 
     public function unwrap(): RefType
@@ -51,6 +51,10 @@ final class NilValue implements AddressableValue
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
+        if ($this->type instanceof UntypedNilType) {
+            throw OperationError::cannotAssign($this);
+        }
+
         throw new \Exception();
     }
 

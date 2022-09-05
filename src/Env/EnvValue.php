@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
+use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
+use GoPhp\GoType\UntypedNilType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\AddressableValue;
@@ -27,10 +29,9 @@ final class EnvValue
         if ($type !== null) {
             $value = self::convertIfNeeded($value, $type);
 
-            // fixme for vars
-//        if ($type instanceof UntypedNilType) {
-//            throw new \Exception('use of untyped nil in variable declaration');
-//        }
+            if ($type instanceof UntypedNilType) {
+                throw TypeError::untypedNilInVarDecl();
+            }
 
             assert_types_compatible($type, $value->type());
         }

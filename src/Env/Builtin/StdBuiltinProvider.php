@@ -11,7 +11,6 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\SliceType;
-use GoPhp\GoType\UntypedNilType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\BoolValue;
@@ -72,7 +71,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineVars(): void
     {
-        $this->env->defineImmutableVar('nil', EnvMap::NAMESPACE_TOP, new NilValue($type = new UntypedNilType()), $type);
+        $this->env->defineVar('nil', EnvMap::NAMESPACE_TOP, new NilValue(), null);
     }
 
     protected function defineFuncs(): void

@@ -27,10 +27,10 @@ func test_3() {
 }
 
 func test_4() {
-    println("test_4")
+	println("test_4")
 
-    anonVariadicArgs([1]int{1}, [1]string{"h"}, [1]string{"i"})
-    anonVariadicArgs([1]int{1}, [1]string{"hi"})
+	anonVariadicArgs([1]int{1}, [1]string{"h"}, [1]string{"i"})
+	anonVariadicArgs([1]int{1}, [1]string{"hi"})
 }
 
 func anonArg(int) {
@@ -42,10 +42,10 @@ func manyAnonArgs(bool, string, func(int), [1]int) {
 }
 
 func anonArgWithReturns([]uint) (int, string) {
-    println("anonArgWithReturns called")
+	println("anonArgWithReturns called")
 	return 1, "string"
 }
 
 func anonVariadicArgs([1]int, ...[1]string) {
-    println("anonVariadicArgs called")
+	println("anonVariadicArgs called")
 }

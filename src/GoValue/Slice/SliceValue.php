@@ -7,6 +7,7 @@ namespace GoPhp\GoValue\Slice;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Array\UnderlyingArray;
 use GoPhp\GoValue\BoolValue;
@@ -23,6 +24,7 @@ use function GoPhp\assert_index_int;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_slice_indices;
 use function GoPhp\assert_types_compatible;
+use function GoPhp\assert_values_compatible;
 
 /**
  * @template V of GoValue
@@ -35,35 +37,41 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
     public const NAME = 'slice';
 
     public readonly SliceType $type;
-    private bool $nil = false;
     private int $pos = 0;
 
     private int $len;
     private int $cap;
 
-    /** @var UnderlyingArray<V> */
-    private UnderlyingArray $values;
+    /** @var UnderlyingArray<V>|null */
+    private ?UnderlyingArray $values;
 
     /**
-     * @param V[] $values
+     * @param UnderlyingArray<V>|null $array
      */
-    public function __construct(
-        array $values,
+    private function __construct(
+        ?UnderlyingArray $array,
         SliceType $type,
         ?int $cap = null,
     ) {
-        $this->values = new UnderlyingArray($values);
-        $this->len = $this->values->count();
+        $this->values = $array;
+        $this->len = $this->values?->count() ?? 0;
         $this->cap = $cap ?? $this->len;
         $this->type = $type;
     }
 
+    /**
+     * @template T of GoValue
+     * @param T[] $values
+     * @return self<T>
+     */
+    public static function fromValues(array $values, SliceType $type, ?int $cap = null): self
+    {
+        return new self(new UnderlyingArray($values), $type, $cap);
+    }
+
     public static function nil(SliceType $type): self
     {
-        $slice = new self([], $type);
-        $slice->nil = true;
-
-        return $slice;
+        return new self(null, $type);
     }
 
     /**
@@ -72,16 +80,13 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
      * @return self<T>
      */
     public static function fromUnderlyingArray(
-        UnderlyingArray $array,
+        ?UnderlyingArray $array,
         SliceType $type,
         int $pos,
         int $len,
         int $cap,
     ): self {
-        // fixme constructor
-        /** @var self<T> $slice */
-        $slice = new self([], $type, $cap);
-        $slice->values = $array;
+        $slice = new self($array, $type, $cap);
         $slice->len = $len;
         $slice->pos = $pos;
 
@@ -151,6 +156,10 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
         //fixme change error text
         assert_types_compatible($value->type(), $this->type->elemType);
 
+        if ($this->values === null) {
+            $this->values = UnderlyingArray::fromEmpty();
+        }
+
         if ($this->exceedsCapacity()) {
             $this->grow();
         }
@@ -169,11 +178,11 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        assert_nil_comparison($this, $rhs);
+        assert_nil_comparison($this, $rhs, self::NAME);
 
         return match ($op) {
-            Operator::EqEq => BoolValue::false(),
-            Operator::NotEq => BoolValue::true(),
+            Operator::EqEq => new BoolValue($this->values === null),
+            Operator::NotEq => new BoolValue($this->values !== null),
             default => throw OperationError::undefinedOperator($op, $this),
         };
     }
@@ -186,8 +195,17 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {
-            assert_types_compatible($this->type, $rhs->type());
-            /** @var self<V> $rhs */
+            if ($rhs instanceof NilValue) {
+                $this->values = null;
+                $this->len = 0;
+                $this->cap = 0;
+                $this->pos = 0;
+
+                return;
+            }
+
+            assert_values_compatible($this, $rhs);
+
             $this->morph($rhs);
 
             return;
@@ -201,7 +219,7 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
      */
     public function unwrap(): array
     {
-        return $this->values->array;
+        return $this->values?->array ?? [];
     }
 
     public function type(): SliceType
@@ -237,8 +255,12 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
             $copies[] = $value->copy();
         }
 
-        $this->cap *= 2;
         $this->pos = 0;
+        if ($this->cap === 0) {
+            $this->cap = 1;
+        } else {
+            $this->cap <<= 1;
+        }
 
         /** @var V[] $copies */
         $this->values = new UnderlyingArray($copies);
@@ -249,7 +271,7 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
      */
     private function accessUnderlyingArray(): array
     {
-        return $this->values->slice($this->pos, $this->len - $this->pos);
+        return $this->values?->slice($this->pos, $this->len - $this->pos) ?? [];
     }
 
     /**
@@ -258,7 +280,6 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
     private function morph(self $other): void
     {
         $this->values = $other->values;
-        $this->nil = $other->nil;
         $this->pos = $other->pos;
         $this->len = $other->len;
         $this->cap = $other->cap;

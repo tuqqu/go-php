@@ -27,13 +27,17 @@ function assert_values_compatible(GoValue $a, GoValue $b): void
     assert_types_compatible($a->type(), $b->type());
 }
 
-function assert_nil_comparison(GoValue $a, GoValue $b): void
+// fixme remove name
+/**
+ * @psalm-assert !NilValue $b
+ */
+function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
 {
-    if (!$b instanceof NilValue) {
-        throw TypeError::onlyComparableToNil($a);
-    }
-
     assert_values_compatible($a, $b);
+
+    if (!$b instanceof NilValue) {
+        throw TypeError::onlyComparableToNil($name);
+    }
 }
 
 /**
@@ -44,14 +48,12 @@ function assert_nil_comparison(GoValue $a, GoValue $b): void
 function assert_types_compatible(GoType $a, GoType $b): void
 {
     if (!$a->isCompatible($b)) {
-        throw TypeError::incompatibleTypes($a, $b);
+        throw TypeError::mismatchedTypes($a, $b);
     }
 }
 
 /**
- * @template T of GoType
- * @param T $a
- * @psalm-assert T $b
+ * @psalm-assert NonRefValue $b
  */
 function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
 {

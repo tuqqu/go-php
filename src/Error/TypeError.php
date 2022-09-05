@@ -63,15 +63,20 @@ final class TypeError extends OperationError
         );
     }
 
-    public static function incompatibleTypes(GoType $a, GoType $b): self
+    public static function mismatchedTypes(GoType $a, GoType $b): self
     {
         return new self(
             \sprintf(
-                'Type "%s" cannot be compatible with type "%s"',
+                'invalid operation: mismatched types %s and %s',
                 $a->name(),
                 $b->name(),
             )
         );
+    }
+
+    public static function untypedNilInVarDecl(): self
+    {
+        return new self('use of untyped nil in variable declaration');
     }
 
     public static function valueOfWrongType(GoValue $value, GoType|string $expected): self
@@ -100,14 +105,9 @@ final class TypeError extends OperationError
         return new self(\sprintf('cannot use ... with %d-valued return value', $n));
     }
 
-    public static function onlyComparableToNil(GoValue $value): self
+    public static function onlyComparableToNil(string $name): self
     {
-        return new self(
-            \sprintf(
-                'Invalid operation. %s can only be compared to nil',
-                $value->type()->name(),
-            )
-        );
+        return new self(\sprintf('invalid operation: %s can only be compared to nil', $name));
     }
 
     public static function noValueUsedAsValue(): self

@@ -20,6 +20,11 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
         public array $array,
     ) {}
 
+    public static function fromEmpty(): self
+    {
+        return new self([]);
+    }
+
     public function copyItems(): array
     {
         $copiedItems = [];

@@ -45,7 +45,7 @@ final class SliceBuilder
 
     public function build(): SliceValue
     {
-        return new SliceValue(
+        return SliceValue::fromValues(
             $this->values,
             $this->type,
             $this->cap,

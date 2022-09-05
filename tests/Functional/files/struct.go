@@ -93,11 +93,11 @@ func test_6() {
 	println("test_6")
 
 	type cat struct {
-	    age uint
+		age uint
 	}
 
-	var c1 cat = cat {age: 9}
-	var c2 cat = cat {age: 1}
+	var c1 cat = cat{age: 9}
+	var c2 cat = cat{age: 1}
 	var c3 cat = c1
 	var c4 cat = c2
 
@@ -112,20 +112,20 @@ func test_6() {
 }
 
 func test_7() {
-    println("test_7")
+	println("test_7")
 
-    type cat struct {
-	    age uint
+	type cat struct {
+		age uint
 	}
 
-	var c1 cat = cat {age: 9}
-	var c2 cat = cat {age: 1}
+	var c1 cat = cat{age: 9}
+	var c2 cat = cat{age: 1}
 
 	var p1 *cat = &c1
 
-    c1 = c2
+	c1 = c2
 
-    var p2 *cat = &c1
+	var p2 *cat = &c1
 
 	println(p1 == p2)
 	println(p1 == &c2)

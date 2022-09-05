@@ -36,12 +36,7 @@ final class Environment
         $this->defineAddressableValue($name, $namespace, $value, $type);
     }
 
-    public function defineVar(string $name, string $namespace, AddressableValue $value, GoType $type): void
-    {
-        $this->defineAddressableValue($name, $namespace, $value, $type);
-    }
-
-    public function defineImmutableVar(string $name, string $namespace, AddressableValue $value, GoType $type): void
+    public function defineVar(string $name, string $namespace, AddressableValue $value, ?GoType $type): void
     {
         $this->defineAddressableValue($name, $namespace, $value, $type);
     }
@@ -96,7 +91,7 @@ final class Environment
             ?? null;
     }
 
-    private function defineAddressableValue(string $name, string $namespace, AddressableValue $value, GoType $type): void {
+    private function defineAddressableValue(string $name, string $namespace, AddressableValue $value, ?GoType $type): void {
         $value->makeAddressable();
 
         $this->envMap->add(
