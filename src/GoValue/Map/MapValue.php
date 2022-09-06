@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Map;
 
 use GoPhp\Error\OperationError;
+use GoPhp\Error\PanicError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\NilValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
@@ -16,6 +18,8 @@ use GoPhp\Operator;
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
+
+use const GoPhp\NIL;
 
 /**
  * @template K of GoValue
@@ -28,15 +32,18 @@ final class MapValue implements Map, AddressableValue
 
     public const NAME = 'map';
 
-    //fixme add nil
-
     /**
-     * @param Map<K, V> $innerMap
+     * @param Map<K, V>|null $innerMap
      */
     public function __construct(
-        private Map $innerMap,
+        private ?Map $innerMap,
         private readonly MapType $type,
     ) {}
+
+    public static function nil(MapType $type): self
+    {
+        return new self(NIL, $type);
+    }
 
     public function toString(): string
     {
@@ -56,7 +63,7 @@ final class MapValue implements Map, AddressableValue
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
 
-        if (!$this->innerMap->has($at)) {
+        if (!$this->innerMap?->has($at)) {
             /** @var V $defaultValue */
             $defaultValue = $this->type->elemType->defaultValue();
 
@@ -77,6 +84,10 @@ final class MapValue implements Map, AddressableValue
 
     public function set(GoValue $value, GoValue $at): void
     {
+        if ($this->innerMap === NIL) {
+            throw PanicError::nilMapAssignment();
+        }
+
         $this->innerMap->set($value, $at);
     }
 
@@ -84,24 +95,24 @@ final class MapValue implements Map, AddressableValue
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
 
-        $this->innerMap->delete($at);
+        $this->innerMap?->delete($at);
     }
 
     public function has(GoValue $at): bool
     {
         assert_index_type($at, $this->type->keyType, self::NAME);
 
-        return $this->innerMap->has($at);
+        return $this->innerMap?->has($at) ?? false;
     }
 
     public function len(): int
     {
-        return $this->innerMap->len();
+        return $this->innerMap?->len() ?? 0;
     }
 
     public function iter(): iterable
     {
-        yield from $this->innerMap->iter();
+        yield from $this->innerMap?->iter() ?? [];
     }
 
     public function operate(Operator $op): PointerValue
@@ -115,11 +126,11 @@ final class MapValue implements Map, AddressableValue
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        assert_nil_comparison($this, $rhs);
+        assert_nil_comparison($this, $rhs, self::NAME);
 
         return match ($op) {
-            Operator::EqEq => BoolValue::false(),
-            Operator::NotEq => BoolValue::true(),
+            Operator::EqEq => new BoolValue($this->innerMap === null),
+            Operator::NotEq => new BoolValue($this->innerMap !== null),
             default => throw OperationError::undefinedOperator($op, $this),
         };
     }
@@ -132,9 +143,17 @@ final class MapValue implements Map, AddressableValue
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {
+            if ($rhs instanceof NilValue) {
+                $this->innerMap = NIL;
+
+                return;
+            }
+
             assert_types_compatible($this->type, $rhs->type());
+
             /** @var self<K, V> $rhs */
             $this->innerMap = $rhs->innerMap;
+
             return;
         }
 

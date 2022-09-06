@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\InternalError;
-use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
 /**
@@ -25,22 +24,22 @@ final class TupleValue implements GoValue
         $this->len = \count($this->values);
     }
 
-    public function toString(): string
+    public function toString(): never
     {
         throw InternalError::unreachableMethodCall();
     }
 
-    public function operate(Operator $op): self
+    public function operate(Operator $op): never
     {
         throw InternalError::unreachableMethodCall();
     }
 
-    public function operateOn(Operator $op, GoValue $rhs): self
+    public function operateOn(Operator $op, GoValue $rhs): never
     {
         throw InternalError::unreachableMethodCall();
     }
 
-    public function equals(GoValue $rhs): BoolValue
+    public function equals(GoValue $rhs): never
     {
         throw InternalError::unreachableMethodCall();
     }
@@ -50,7 +49,7 @@ final class TupleValue implements GoValue
         throw InternalError::unreachableMethodCall();
     }
 
-    public function copy(): static
+    public function copy(): never
     {
         throw InternalError::unreachableMethodCall();
     }
@@ -63,17 +62,7 @@ final class TupleValue implements GoValue
         return $this->values;
     }
 
-    public function type(): GoType
-    {
-        throw InternalError::unreachableMethodCall();
-    }
-
-    public function isNamed(): bool
-    {
-        throw InternalError::unreachableMethodCall();
-    }
-
-    public function makeNamed(): void
+    public function type(): never
     {
         throw InternalError::unreachableMethodCall();
     }

@@ -6,7 +6,7 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\Map\MapValue;
 
 final class MapType implements RefType
 {
@@ -36,14 +36,14 @@ final class MapType implements RefType
         return $other instanceof UntypedNilType || $this->equals($other);
     }
 
-    public function reify(): static
+    public function reify(): self
     {
         return $this;
     }
 
-    public function defaultValue(): NilValue
+    public function defaultValue(): MapValue
     {
-        return new NilValue($this);
+        return MapValue::nil($this);
     }
 
     public function convert(GoValue $value): GoValue

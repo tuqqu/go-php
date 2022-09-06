@@ -10,4 +10,9 @@ class PanicError extends \RuntimeException
     {
         return new self('panic: invalid memory address or nil pointer dereference');
     }
+
+    public static function nilMapAssignment(): self
+    {
+        return new self('panic: assignment to entry in nil map');
+    }
 }
