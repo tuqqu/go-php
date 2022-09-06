@@ -8,7 +8,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\PanicError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
@@ -143,7 +143,7 @@ final class MapValue implements Map, AddressableValue
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {
-            if ($rhs instanceof NilValue) {
+            if ($rhs instanceof UntypedNilValue) {
                 $this->innerMap = NIL;
 
                 return;

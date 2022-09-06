@@ -7,7 +7,7 @@ namespace GoPhp\GoType;
 use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\UntypedNilValue;
 
 final class FuncType implements RefType
 {
@@ -39,9 +39,9 @@ final class FuncType implements RefType
         return $this;
     }
 
-    public function defaultValue(): NilValue
+    public function defaultValue(): UntypedNilValue
     {
-        return new NilValue($this);
+        return new UntypedNilValue(); //fixme
     }
 
     public function convert(GoValue $value): GoValue

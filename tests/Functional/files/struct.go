@@ -8,6 +8,7 @@ func main() {
 	test_5()
 	test_6()
 	test_7()
+	test_8()
 }
 
 func test_1() {
@@ -129,4 +130,18 @@ func test_7() {
 
 	println(p1 == p2)
 	println(p1 == &c2)
+}
+
+func test_8() {
+	println("test_8")
+
+	type pair struct {
+		personA person
+		personB *person
+	}
+
+    var p pair
+
+    println(p.personA.age == 0)
+    println(p.personB == nil)
 }

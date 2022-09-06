@@ -21,7 +21,7 @@ use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapValue;
-use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
@@ -71,7 +71,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineVars(): void
     {
-        $this->env->defineVar('nil', EnvMap::NAMESPACE_TOP, new NilValue(), null);
+        $this->env->defineVar('nil', EnvMap::NAMESPACE_TOP, new UntypedNilValue(), null);
     }
 
     protected function defineFuncs(): void

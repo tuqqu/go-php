@@ -6,11 +6,12 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\Struct\StructBuilder;
+use GoPhp\GoValue\Struct\StructValue;
 
 use function GoPhp\normalize_type;
 
-final class StructType implements RefType
+final class StructType implements GoType
 {
     /**
      * @param array<string, GoType> $fields
@@ -62,9 +63,9 @@ final class StructType implements RefType
         return $this;
     }
 
-    public function defaultValue(): NilValue
+    public function defaultValue(): StructValue
     {
-        return new NilValue($this);
+        return StructBuilder::fromType($this)->build();
     }
 
     public function convert(GoValue $value): GoValue

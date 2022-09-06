@@ -9,12 +9,11 @@ use GoPhp\Error\OperationError;
 use GoPhp\GoType\StructType;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\Operator;
 
-use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\normalize_value;
 
@@ -23,8 +22,6 @@ final class StructValue implements AddressableValue
     use AddressableTrait;
 
     public const NAME = 'struct';
-
-    //fixme add nil
 
     public function __construct(
         private EnvMap $fields,
@@ -52,13 +49,7 @@ final class StructValue implements AddressableValue
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        assert_nil_comparison($this, $rhs);
-
-        return match ($op) {
-            Operator::EqEq => BoolValue::false(),
-            Operator::NotEq => BoolValue::true(),
-            default => throw OperationError::undefinedOperator($op, $this),
-        };
+        throw OperationError::undefinedOperator($op, $this);
     }
 
     public function equals(GoValue $rhs): BoolValue

@@ -14,7 +14,7 @@ use GoPhp\GoValue\Float\BaseFloatValue;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
-use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\NonRefValue;
 
 /**
@@ -39,7 +39,7 @@ function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
 {
     assert_values_compatible($a, $b);
 
-    if (!$b instanceof NilValue) {
+    if (!$b instanceof UntypedNilValue) {
         throw TypeError::onlyComparableToNil($name);
     }
 }

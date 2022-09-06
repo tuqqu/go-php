@@ -10,6 +10,7 @@ use GoPhp\GoValue\Func\Func;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Operator;
 
 class OperationError extends \RuntimeException
@@ -156,6 +157,10 @@ class OperationError extends \RuntimeException
     {
         if (!$value instanceof AddressableValue) {
             return 'value';
+        }
+
+        if ($value instanceof UntypedNilValue) {
+            return $value->type()->name();
         }
 
         if (!$value->isAddressable()) {

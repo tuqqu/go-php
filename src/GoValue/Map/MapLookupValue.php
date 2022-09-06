@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
-use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BoolValue;
@@ -75,15 +74,5 @@ final class MapLookupValue implements GoValue
     public function type(): GoType
     {
         return $this->value->type();
-    }
-
-    public function makeNamed(): never
-    {
-        throw InternalError::unreachableMethodCall();
-    }
-
-    public function isNamed(): bool
-    {
-        throw InternalError::unreachableMethodCall();
     }
 }

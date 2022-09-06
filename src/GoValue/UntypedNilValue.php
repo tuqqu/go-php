@@ -4,22 +4,26 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
-use GoPhp\GoType\RefType;
+use GoPhp\Error\TypeError;
 use GoPhp\GoType\UntypedNilType;
 use GoPhp\Operator;
 
-final class NilValue implements AddressableValue
+final class UntypedNilValue implements AddressableValue
 {
     use AddressableTrait;
 
-    public function __construct(
-        public readonly RefType $type = new UntypedNilType(), //fixme remove after nil type cleanup
-    ) {}
+    public readonly UntypedNilType $type;
 
-    public function unwrap(): RefType
+    public function __construct()
     {
-        return $this->type;
+        $this->type = new UntypedNilType();
+    }
+
+    public function unwrap(): never
+    {
+        throw InternalError::unreachableMethodCall();
     }
 
     public function operate(Operator $op): never
@@ -30,7 +34,7 @@ final class NilValue implements AddressableValue
     public function operateOn(Operator $op, GoValue $rhs): GoValue
     {
         if ($rhs instanceof self) {
-            throw new \Exception('operator == not defined on untyped nil');
+            throw OperationError::undefinedOperator($op, $this);
         }
 
         return $rhs->operateOn($op, $this);
@@ -43,11 +47,11 @@ final class NilValue implements AddressableValue
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        if ($this->type instanceof UntypedNilType) {
+        if ($op === Operator::Eq) {
             throw OperationError::cannotAssign($this);
         }
 
-        throw new \Exception();
+        throw TypeError::mismatchedTypes($this->type, $rhs->type());
     }
 
     public function copy(): self
@@ -55,7 +59,7 @@ final class NilValue implements AddressableValue
         return $this;
     }
 
-    public function type(): RefType
+    public function type(): UntypedNilType
     {
        return $this->type;
     }

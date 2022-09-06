@@ -7,7 +7,7 @@ namespace GoPhp\GoValue\Slice;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Array\UnderlyingArray;
 use GoPhp\GoValue\BoolValue;
@@ -197,7 +197,7 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {
-            if ($rhs instanceof NilValue) {
+            if ($rhs instanceof UntypedNilValue) {
                 $this->values = NIL;
                 $this->len = 0;
                 $this->cap = 0;

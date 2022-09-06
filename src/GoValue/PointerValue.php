@@ -68,7 +68,7 @@ final class PointerValue implements AddressableValue
 
     public function equals(GoValue $rhs): BoolValue
     {
-        if ($rhs instanceof NilValue) {
+        if ($rhs instanceof UntypedNilValue) {
             return new BoolValue($this->pointsTo === NIL);
         }
 
@@ -80,7 +80,7 @@ final class PointerValue implements AddressableValue
         if ($op === Operator::Eq) {
             assert_values_compatible($this, $rhs);
 
-            if ($rhs instanceof NilValue) {
+            if ($rhs instanceof UntypedNilValue) {
                 $this->pointsTo = NIL;
 
                 return;

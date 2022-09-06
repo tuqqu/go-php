@@ -96,7 +96,7 @@ use GoPhp\GoType\SliceType;
 use GoPhp\GoType\StructType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\NilValue;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
@@ -1522,7 +1522,7 @@ final class Interpreter
     {
         $this->checkNonDeclarableNames($name);
 
-        if ($value instanceof NilValue && $type instanceof RefType) {
+        if ($value instanceof UntypedNilValue && $type instanceof RefType) {
             $value = $type->defaultValue();
         } else {
             $value = $value->copy();
