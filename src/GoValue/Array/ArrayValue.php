@@ -133,7 +133,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
     {
         /** @var self $rhs */
         foreach ($this->values as $k => $v) {
-            if (!$v->equals($rhs->values[$k])->unwrap()) {
+            if (!$v->operateOn(Operator::EqEq, $rhs->values[$k])->unwrap()) {
                 return BoolValue::false();
             }
         }

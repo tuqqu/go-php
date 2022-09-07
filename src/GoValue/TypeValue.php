@@ -55,11 +55,6 @@ final class TypeValue implements Invocable, GoValue
         throw InternalError::unreachableMethodCall();
     }
 
-    public function equals(GoValue $rhs): never
-    {
-        throw InternalError::unreachableMethodCall();
-    }
-
     public function copy(): self
     {
         return $this;

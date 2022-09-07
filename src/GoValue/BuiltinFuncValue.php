@@ -52,11 +52,6 @@ final class BuiltinFuncValue implements Invocable, GoValue
         throw TypeError::builtInMustBeCalled($this->name);
     }
 
-    public function equals(GoValue $rhs): never
-    {
-        throw TypeError::builtInMustBeCalled($this->name);
-    }
-
     public function mutate(Operator $op, GoValue $rhs): never
     {
         throw TypeError::builtInMustBeCalled($this->name);

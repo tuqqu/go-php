@@ -39,11 +39,6 @@ final class TupleValue implements GoValue
         throw InternalError::unreachableMethodCall();
     }
 
-    public function equals(GoValue $rhs): never
-    {
-        throw InternalError::unreachableMethodCall();
-    }
-
     public function mutate(Operator $op, GoValue $rhs): never
     {
         throw InternalError::unreachableMethodCall();

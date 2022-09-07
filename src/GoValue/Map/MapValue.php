@@ -135,11 +135,6 @@ final class MapValue implements Map, AddressableValue
         };
     }
 
-    public function equals(GoValue $rhs): BoolValue
-    {
-        return BoolValue::false();
-    }
-
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {

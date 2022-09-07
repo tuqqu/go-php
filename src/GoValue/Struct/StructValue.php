@@ -52,11 +52,6 @@ final class StructValue implements AddressableValue
         throw OperationError::undefinedOperator($op, $this);
     }
 
-    public function equals(GoValue $rhs): BoolValue
-    {
-        return BoolValue::false();
-    }
-
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {

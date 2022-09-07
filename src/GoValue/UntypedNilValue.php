@@ -40,11 +40,6 @@ final class UntypedNilValue implements AddressableValue
         return $rhs->operateOn($op, $this);
     }
 
-    public function equals(GoValue $rhs): BoolValue
-    {
-        return new BoolValue($rhs instanceof self);
-    }
-
     public function mutate(Operator $op, GoValue $rhs): never
     {
         if ($op === Operator::Eq) {

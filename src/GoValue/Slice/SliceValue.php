@@ -189,11 +189,6 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
         };
     }
 
-    public function equals(GoValue $rhs): BoolValue
-    {
-        return BoolValue::false(); // fixme remove equals
-    }
-
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {

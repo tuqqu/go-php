@@ -37,11 +37,6 @@ final class VoidValue implements GoValue
         throw TypeError::noValueUsedAsValue();
     }
 
-    public function equals(GoValue $rhs): never
-    {
-        throw TypeError::noValueUsedAsValue();
-    }
-
     public function toString(): never
     {
         throw TypeError::noValueUsedAsValue();

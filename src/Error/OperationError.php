@@ -114,7 +114,6 @@ class OperationError extends \RuntimeException
         );
     }
 
-    //fixme move from here
     public static function wrongArgumentNumber(int|string $expected, int $actual): self
     {
         if ($expected > $actual) {

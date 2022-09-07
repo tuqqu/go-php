@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\Error;
 
 use GoPhp\GoType\GoType;
-use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
@@ -53,8 +52,6 @@ final class TypeError extends OperationError
 
     public static function invalidArrayLen(GoValue $value): self
     {
-        // fixme
-        /** @var AddressableValue $value */
         return new self(
             \sprintf(
                 'array length %s must be integer',

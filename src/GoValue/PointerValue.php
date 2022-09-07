@@ -66,15 +66,6 @@ final class PointerValue implements AddressableValue
         };
     }
 
-    public function equals(GoValue $rhs): BoolValue
-    {
-        if ($rhs instanceof UntypedNilValue) {
-            return new BoolValue($this->pointsTo === NIL);
-        }
-
-        return new BoolValue($rhs instanceof self && $rhs->pointsTo === $this->pointsTo);
-    }
-
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {
@@ -116,5 +107,14 @@ final class PointerValue implements AddressableValue
         }
 
         return \spl_object_id($this->pointsTo);
+    }
+
+    private function equals(self|UntypedNilValue $rhs): BoolValue
+    {
+        if ($rhs instanceof UntypedNilValue) {
+            return new BoolValue($this->pointsTo === NIL);
+        }
+
+        return new BoolValue($rhs->pointsTo === $this->pointsTo);
     }
 }

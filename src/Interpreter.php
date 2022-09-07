@@ -443,8 +443,6 @@ final class Interpreter
 
         $typeValue = new TypeValue(new WrappedType($name, $type));
 
-        // fixme add generics support
-
         $this->checkNonDeclarableNames($name);
 
         $this->env->defineType(

@@ -59,11 +59,6 @@ final class WrappedValue implements AddressableValue
         $this->underlyingValue->mutate($op, $rhs);
     }
 
-    public function equals(GoValue $rhs): BoolValue
-    {
-        return $this->underlyingValue->equals($rhs);
-    }
-
     public function copy(): self
     {
         return new self(

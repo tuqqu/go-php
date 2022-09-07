@@ -107,17 +107,17 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
         throw OperationError::undefinedOperator($op, $this);
     }
 
-    public function equals(GoValue $rhs): self
-    {
-        return new self($this->value === $rhs->value);
-    }
-
     public function copy(): self
     {
         $cloned = clone $this;
         $cloned->sealed = false;
 
         return $cloned;
+    }
+
+    private function equals(self $rhs): self
+    {
+        return new self($this->value === $rhs->value);
     }
 
     private function logicOr(self $other): self

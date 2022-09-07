@@ -123,9 +123,9 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, A
         return clone $this;
     }
 
-    public function equals(GoValue $rhs): BoolValue
+    private function equals(self $rhs): BoolValue
     {
-        return new BoolValue($this->value === $rhs->unwrap());
+        return new BoolValue($this->value === $rhs->value);
     }
 
 //    public function greater(self $other): BoolValue

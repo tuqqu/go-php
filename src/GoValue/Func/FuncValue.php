@@ -203,9 +203,4 @@ final class FuncValue implements Func, AddressableValue
     {
         throw OperationError::undefinedOperator($op, $this);
     }
-
-    public function equals(GoValue $rhs): BoolValue
-    {
-        return BoolValue::false();
-    }
 }
