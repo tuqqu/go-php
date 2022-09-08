@@ -140,8 +140,8 @@ func test_8() {
 		personB *person
 	}
 
-    var p pair
+	var p pair
 
-    println(p.personA.age == 0)
-    println(p.personB == nil)
+	println(p.personA.age == 0)
+	println(p.personB == nil)
 }

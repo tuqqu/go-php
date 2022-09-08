@@ -183,8 +183,8 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
         assert_nil_comparison($this, $rhs, self::NAME);
 
         return match ($op) {
-            Operator::EqEq => new BoolValue($this->values === null),
-            Operator::NotEq => new BoolValue($this->values !== null),
+            Operator::EqEq => new BoolValue($this->values === NIL),
+            Operator::NotEq => new BoolValue($this->values !== NIL),
             default => throw OperationError::undefinedOperator($op, $this),
         };
     }

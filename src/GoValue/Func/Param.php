@@ -13,4 +13,9 @@ final class Param
         public readonly ?string $name = null,
         public readonly bool $variadic = false,
     ) {}
+
+    public function equals(self $other): bool
+    {
+        return $this->variadic === $other->variadic && $this->type->equals($other->type);
+    }
 }

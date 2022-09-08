@@ -9,9 +9,9 @@ use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
 /**
- * @template-implements Invocable<AddressableValue>
+ * @template-implements Invokable<AddressableValue>
  */
-final class BuiltinFuncValue implements Invocable, GoValue
+final class BuiltinFuncValue implements Invokable, GoValue
 {
     public readonly BuiltinFuncType $type;
 

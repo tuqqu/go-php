@@ -16,9 +16,9 @@ use GoPhp\Operator;
  * e.g. make([]int, 2, 3)
  *           ^^^^^
  *
- * @template-implements Invocable<TypeValue|AddressableValue>
+ * @template-implements Invokable<TypeValue|AddressableValue>
  */
-final class TypeValue implements Invocable, GoValue
+final class TypeValue implements Invokable, GoValue
 {
     public function __construct(
         public readonly GoType $type,

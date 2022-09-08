@@ -129,8 +129,8 @@ final class MapValue implements Map, AddressableValue
         assert_nil_comparison($this, $rhs, self::NAME);
 
         return match ($op) {
-            Operator::EqEq => new BoolValue($this->innerMap === null),
-            Operator::NotEq => new BoolValue($this->innerMap !== null),
+            Operator::EqEq => new BoolValue($this->innerMap === NIL),
+            Operator::NotEq => new BoolValue($this->innerMap !== NIL),
             default => throw OperationError::undefinedOperator($op, $this),
         };
     }

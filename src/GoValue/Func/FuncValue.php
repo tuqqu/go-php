@@ -5,162 +5,60 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Func;
 
 use GoPhp\Env\Environment;
-use GoPhp\Env\EnvMap;
-use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
-use GoPhp\Error\ProgramError;
-use GoPhp\GoType\GoType;
-use GoPhp\GoType\SliceType;
+use GoPhp\Error\PanicError;
+use GoPhp\GoType\FuncType;
+use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\AddressableTrait;
-use GoPhp\GoValue\TupleValue;
-use GoPhp\GoValue\VoidValue;
-use GoPhp\GoValue\Slice\SliceBuilder;
+use GoPhp\GoValue\Invokable;
+use GoPhp\GoValue\PointerValue;
+use GoPhp\GoValue\SealableTrait;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Operator;
-use GoPhp\StmtJump\ReturnJump;
-use GoPhp\StmtJump\None;
-use GoPhp\StmtJump\StmtJump;
 
-use function GoPhp\assert_arg_type;
-use function GoPhp\assert_argc;
 use function GoPhp\assert_nil_comparison;
-use function GoPhp\assert_types_compatible;
+use function GoPhp\assert_values_compatible;
+
+use const GoPhp\NIL;
 
 /**
- * @psalm-type FunctionBody = \Closure(Environment, string): StmtJump
+ * @template-implements Invokable<AddressableValue>
+ * @psalm-import-type FuncBody from Func
  */
-final class FuncValue implements Func, AddressableValue
+final class FuncValue implements Invokable, AddressableValue
 {
     use AddressableTrait;
+    use SealableTrait;
 
-    public readonly Signature $signature;
+    public const NAME = 'func'; //fixme move to types
 
-    /** @var FunctionBody */
-    private readonly \Closure $body;
-    private readonly Environment $enclosure;
-    private readonly string $namespace;
-
-    /**
-     * @param FunctionBody $body
-     */
-    public function __construct(
-        \Closure $body,
-        Params $params,
-        Params $returns,
-        Environment $enclosure,
-        string $namespace,
-    ) {
-        $this->body = $body;
-        $this->namespace = $namespace;
-        $this->signature = new Signature($params, $returns);
-        $this->enclosure = new Environment(enclosing: $enclosure); // remove?
-    }
+    private function __construct(
+        public ?Func $innerFunc,
+        public readonly FuncType $type,
+    ) {}
 
     public function __invoke(GoValue ...$argv): GoValue
     {
-        assert_argc(
-            $argv,
-            $this->signature->arity,
-            $this->signature->variadic,
-            $this->signature->params,
-        );
-
-        $env = new Environment(enclosing: $this->enclosure);
-
-        $namedReturns = [];
-
-        if ($this->signature->returns->named) {
-            foreach ($this->signature->returns->iter() as $param) {
-                $namedReturns[] = $param->name;
-
-                $env->defineVar(
-                    $param->name,
-                    EnvMap::NAMESPACE_TOP,
-                    $param->type->defaultValue(),
-                    $param->type,
-                );
-            }
+        if ($this->innerFunc === NIL) {
+            throw PanicError::nilDereference();
         }
 
-        foreach ($this->signature->params->iter() as $i => $param) {
-            if ($param->variadic) {
-                $sliceType = new SliceType($param->type);
-                $sliceBuilder = SliceBuilder::fromType($sliceType);
+        return ($this->innerFunc)(...$argv);
+    }
 
-                for ($argc = \count($argv); $i < $argc; ++$i) {
-                    assert_arg_type($argv[$i], $param->type, $i);
+    /**
+     * @param FuncBody $body
+     */
+    public static function fromBody(\Closure $body, FuncType $type, Environment $enclosure, string $namespace): self
+    {
+        return new self(new Func($body, $type, $enclosure, $namespace), $type);
+    }
 
-                    $sliceBuilder->pushBlindly($argv[$i]);
-                }
-
-                if ($param->name === null) {
-                    continue;
-                }
-
-                $env->defineVar(
-                    $param->name,
-                    EnvMap::NAMESPACE_TOP,
-                    $sliceBuilder->build(),
-                    $sliceType,
-                );
-
-                break;
-            }
-
-            assert_arg_type($argv[$i], $param->type, $i);
-
-            if ($param->name === null) {
-                continue;
-            }
-
-            $env->defineVar(
-                $param->name,
-                EnvMap::NAMESPACE_TOP,
-                $argv[$i],
-                $param->type,
-            );
-        }
-
-        /** @var StmtJump $stmtJump */
-        $stmtJump = ($this->body)($env, $this->namespace);
-
-        if ($stmtJump instanceof None) {
-            return $this->signature->returnArity === 0 ?
-                new VoidValue() :
-                throw ProgramError::wrongReturnValueNumber([], $this->signature->returns);
-        }
-
-        if (!$stmtJump instanceof ReturnJump) {
-            throw InternalError::unreachable($stmtJump);
-        }
-
-        if ($this->signature->returnArity !== $stmtJump->len) {
-            // named return: single & tuple value
-            if ($stmtJump->len === 0 && !empty($namedReturns)) {
-                $namedValues = [];
-
-                foreach ($namedReturns as $namedReturn) {
-                    $namedValues[] = $env->get($namedReturn, EnvMap::NAMESPACE_TOP)->unwrap();
-                }
-
-                return $this->signature->returns->len === 1
-                    ? $namedValues[0]
-                    : new TupleValue($namedValues);
-            }
-
-            throw ProgramError::wrongReturnValueNumber($stmtJump->values(), $this->signature->returns);
-        }
-
-        // void & single & tuple value return
-        $values = $stmtJump->values();
-
-        foreach ($this->signature->returns->iter() as $i => $param) {
-            assert_types_compatible($param->type, $values[$i]->type());
-        }
-
-        return $stmtJump->value;
+    public static function nil(FuncType $type): self
+    {
+        return new self(NIL, $type);
     }
 
     public function copy(): self
@@ -170,6 +68,7 @@ final class FuncValue implements Func, AddressableValue
 
     public function toString(): string
     {
+        //fixme
         throw OperationError::unsupportedOperation(__METHOD__, $this);
     }
 
@@ -178,29 +77,53 @@ final class FuncValue implements Func, AddressableValue
         return $this;
     }
 
-    public function type(): GoType
+    public function type(): FuncType
     {
-        return $this->signature->type;
+        return $this->type;
     }
 
-    public function operate(Operator $op): never
+    public function operate(Operator $op): PointerValue
     {
+        if ($op === Operator::BitAnd) {
+            if ($this->isSealed()) {
+                throw OperationError::cannotTakeAddressOfValue($this);
+            }
+
+            return PointerValue::fromValue($this);
+        }
+
         throw OperationError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        assert_nil_comparison($this, $rhs);
+        assert_nil_comparison($this, $rhs, self::NAME);
 
         return match ($op) {
-            Operator::EqEq => BoolValue::false(),
-            Operator::NotEq => BoolValue::true(),
+            Operator::EqEq => new BoolValue($this->innerFunc === NIL),
+            Operator::NotEq => new BoolValue($this->innerFunc !== NIL),
             default => throw OperationError::undefinedOperator($op, $this),
         };
     }
 
-    public function mutate(Operator $op, GoValue $rhs): never
+    public function mutate(Operator $op, GoValue $rhs): void
     {
+        if ($op === Operator::Eq) {
+            $this->onMutate();
+
+            if ($rhs instanceof UntypedNilValue) {
+                $this->innerFunc = NIL;
+
+                return;
+            }
+
+            assert_values_compatible($this, $rhs);
+
+            $this->innerFunc = $rhs->innerFunc;
+
+            return;
+        }
+
         throw OperationError::undefinedOperator($op, $this);
     }
 }

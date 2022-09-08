@@ -2,24 +2,19 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\FunctionValidator;
+namespace GoPhp;
 
 use GoPhp\Error\ProgramError;
-use GoPhp\GoValue\Func\Signature;
+use GoPhp\GoType\FuncType;
 
-final class VoidFunctionValidator implements FunctionValidator
+final class VoidFuncTypeValidator implements FuncTypeValidator
 {
     public function __construct(
         private readonly string $funcName,
         private readonly ?string $packageName = null,
     ) {}
 
-    public function funcName(): string
-    {
-        return $this->funcName;
-    }
-
-    public function forFunc(string $name, string $package): bool
+    public function supports(string $name, string $package): bool
     {
         if ($this->packageName !== null && $this->packageName !== $package) {
             return false;
@@ -28,10 +23,15 @@ final class VoidFunctionValidator implements FunctionValidator
         return $this->funcName === $name;
     }
 
-    public function validate(Signature $signature): void
+    public function validate(FuncType $type): void
     {
-        if ($signature->arity !== 0 || $signature->returnArity !== 0) {
+        if ($type->arity !== 0 || $type->returnArity !== 0) {
             throw ProgramError::funcMustBeNoArgsVoid($this->funcName);
         }
+    }
+
+    public function targets(): string
+    {
+        return $this->funcName;
     }
 }

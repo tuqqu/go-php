@@ -6,7 +6,7 @@ namespace GoPhp\Error;
 
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\Func\Func;
+use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\Sequence;
@@ -73,12 +73,23 @@ class OperationError extends \RuntimeException
         );
     }
 
+    //fixme check cannotTakeAddressOfValue
     public static function cannotTakeAddressOfMapValue(GoType $type): self
     {
         return new self(
             \sprintf(
                 'invalid operation: cannot take address of value (map index expression of type %s)',
                 $type->name(),
+            )
+        );
+    }
+
+    public static function cannotTakeAddressOfValue(GoValue $value): self
+    {
+        return new self(
+            \sprintf(
+                'invalid operation: cannot take address of %s',
+                self::valueToString($value),
             )
         );
     }
@@ -179,7 +190,7 @@ class OperationError extends \RuntimeException
         }
 
         $isConst = $value instanceof Sealable && $value->isSealed();
-        $valueString = $value instanceof Func ? 'value' : $value->toString();
+        $valueString = $value instanceof FuncValue ? 'value' : $value->toString();
 
         if ($isConst) {
             return \sprintf(

@@ -50,10 +50,8 @@ To be implemented:
 * type assertions
 * interfaces
 * panic recovering
-* lambda functions
 * generics
 
 Known bugs:
 * goto from loop body
-* weird cases for underlying array capacity 
 * untyped string

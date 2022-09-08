@@ -14,6 +14,7 @@ use GoParser\Ast\Expr\CompositeLit;
 use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\Expr\FloatLit;
 use GoParser\Ast\Expr\FullSliceExpr;
+use GoParser\Ast\Expr\FuncLit;
 use GoParser\Ast\Expr\FuncType as AstFuncType;
 use GoParser\Ast\Expr\GroupExpr;
 use GoParser\Ast\Expr\Ident;
@@ -83,8 +84,6 @@ use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
-use GoPhp\FunctionValidator\FunctionValidator;
-use GoPhp\FunctionValidator\VoidFunctionValidator;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\GoType;
@@ -96,8 +95,6 @@ use GoPhp\GoType\SliceType;
 use GoPhp\GoType\StructType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\UntypedNilValue;
-use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
@@ -109,9 +106,10 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Int\UntypedIntValue;
-use GoPhp\GoValue\Invocable;
+use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapLookupValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
@@ -121,6 +119,7 @@ use GoPhp\GoValue\Struct\StructBuilder;
 use GoPhp\GoValue\Struct\StructValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\TypeValue;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\StmtJump\BreakJump;
 use GoPhp\StmtJump\ContinueJump;
 use GoPhp\StmtJump\FallthroughJump;
@@ -147,13 +146,13 @@ final class Interpreter
     private array $initializers = [];
 
     public function __construct(
-        string $source,
-        ?BuiltinProvider $builtin = null,
-        private readonly array $argv = [],
-        private readonly StreamProvider $streams = new StdStreamProvider(),
-        private readonly FunctionValidator $entryPointValidator = new VoidFunctionValidator('main', 'main'),
-        private readonly FunctionValidator $initValidator = new VoidFunctionValidator('init'),
-        private readonly string $gopath = '',
+        string                             $source,
+        ?BuiltinProvider                   $builtin = null,
+        private readonly array             $argv = [],
+        private readonly StreamProvider    $streams = new StdStreamProvider(),
+        private readonly FuncTypeValidator $entryPointValidator = new VoidFuncTypeValidator('main', 'main'),
+        private readonly FuncTypeValidator $initValidator = new VoidFuncTypeValidator('init'),
+        private readonly string            $gopath = '',
     ) {
         //fixme default provider
         if ($builtin === null) {
@@ -175,7 +174,7 @@ final class Interpreter
             $this->evalDeclsInOrder();
 
             if ($this->entryPoint === null) {
-                throw ProgramError::noEntryPoint($this->entryPointValidator->funcName());
+                throw ProgramError::noEntryPoint($this->entryPointValidator->targets());
             }
 
             $this->callFunc(
@@ -454,34 +453,20 @@ final class Interpreter
 
     private function evalFuncDeclStmt(FuncDecl $decl): void
     {
-        [$params, $returns] = $this->resolveParamsFromAstSignature($decl->signature);
-
         if ($decl->body === null) {
             // fixme
             throw new InternalError('not implemented');
         }
 
-        $funcValue = new FuncValue(
-            function (Environment $env, string $withPackage) use ($decl): StmtJump {
-                [$this->currentPackage, $withPackage] = [$withPackage, $this->currentPackage];
-                $jump = $this->evalBlockStmt($decl->body, $env);
-                $this->currentPackage = $withPackage;
+        $funcValue = $this->constructFuncValue($decl->signature, $decl->body);
 
-                return $jump;
-            },
-            $params,
-            $returns,
-            $this->env,
-            $this->currentPackage,
-        ); //fixme body null
-
-        if ($this->entryPointValidator->forFunc($decl->name->name, $this->currentPackage)) {
-            $this->entryPointValidator->validate($funcValue->signature);
+        if ($this->entryPointValidator->supports($decl->name->name, $this->currentPackage)) {
+            $this->entryPointValidator->validate($funcValue->type);
             $this->entryPoint = $funcValue;
         }
 
-        if ($this->initValidator->forFunc($decl->name->name, $this->currentPackage)) {
-            $this->initValidator->validate($funcValue->signature);
+        if ($this->initValidator->supports($decl->name->name, $this->currentPackage)) {
+            $this->initValidator->validate($funcValue->type);
             // the identifier itself is not declared
             // init functions cannot be referred to from anywhere in a program
             $this->initializers[] = $funcValue;
@@ -490,6 +475,24 @@ final class Interpreter
         }
 
         $this->env->defineFunc($decl->name->name, $this->currentPackage, $funcValue);
+    }
+
+    private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt): FuncValue
+    {
+        $type = $this->resolveTypeFromAstSignature($signature);
+
+        return FuncValue::fromBody(
+            function (Environment $env, string $withPackage) use ($blockStmt): StmtJump {
+                [$this->currentPackage, $withPackage] = [$withPackage, $this->currentPackage];
+                $jump = $this->evalBlockStmt($blockStmt, $env);
+                $this->currentPackage = $withPackage;
+
+                return $jump;
+            },
+            $type,
+            $this->env,
+            $this->currentPackage,
+        );
     }
 
     private function evalDeferStmt(DeferStmt $stmt): None
@@ -507,11 +510,11 @@ final class Interpreter
     {
         $func = $this->evalExpr($expr->expr);
 
-        if (!$func instanceof Invocable) {
+        if (!$func instanceof Invokable) {
             throw OperationError::nonFunctionCall($func);
         }
 
-        /** @var Invocable $func */
+        /** @var Invokable $func */
         $argv = [];
         $exprLen = \count($expr->args->exprs);
         $nValuedContext = 1;
@@ -1136,6 +1139,7 @@ final class Interpreter
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof SliceExpr => $this->evalSliceExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
+            $expr instanceof FuncLit => $this->evalFuncLit($expr),
 //            $expr instanceof AstType => $this->evalTypeConversion($expr),
             default => throw InternalError::unreachable($expr),
         };
@@ -1230,12 +1234,16 @@ final class Interpreter
                 throw InternalError::unreachable($lit);
         }
 
-
         if ($wrapper !== null) {
             $builtValue = $wrapper($builtValue);
         }
 
         return $builtValue;
+    }
+
+    private function evalFuncLit(FuncLit $lit): FuncValue
+    {
+        return $this->constructFuncValue($lit->type->signature, $lit->body);
     }
 
     private function evalRuneLit(RuneLit $lit): UntypedIntValue
@@ -1536,16 +1544,12 @@ final class Interpreter
 
     private function checkNonDeclarableNames(string $name): void
     {
-        /** @var array<FunctionValidator> $matchers */
-        $matchers = [
-            $this->entryPointValidator,
-            $this->initValidator,
-        ];
+        if ($this->entryPointValidator->supports($name, $this->currentPackage)) {
+            throw ProgramError::nameMustBeFunc($name);
+        }
 
-        foreach ($matchers as $matcher) {
-            if ($matcher->forFunc($name, $this->currentPackage)) {
-                throw ProgramError::nameMustBeFunc($name);
-            }
+        if ($this->initValidator->supports($name, $this->currentPackage)) {
+            throw ProgramError::nameMustBeFunc($name);
         }
     }
 

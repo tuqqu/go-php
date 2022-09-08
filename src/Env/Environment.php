@@ -32,7 +32,6 @@ final class Environment
         }
 
         $value->seal();
-
         $this->defineAddressableValue($name, $namespace, $value, $type);
     }
 
@@ -43,7 +42,8 @@ final class Environment
 
     public function defineFunc(string $name, string $namespace, FuncValue $value): void
     {
-        $this->defineAddressableValue($name, $namespace, $value, $value->signature->type);
+        $value->seal();
+        $this->defineAddressableValue($name, $namespace, $value, $value->type);
     }
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void

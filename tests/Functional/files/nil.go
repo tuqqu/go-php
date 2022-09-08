@@ -4,6 +4,7 @@ func main() {
 	test_slice()
 	test_pointer()
 	test_map()
+	test_func()
 }
 
 func test_slice() {
@@ -145,4 +146,38 @@ func test_map() {
 	println(m2 == nil)
 	println(nil == m2)
 	println(p == &m1)
+}
+
+func test_func() {
+	println("test_func")
+
+	var f1 func(int, ...[9]string) int
+	var f2 func(bool) []bool = nil
+	var f3 func(int) uint = func(x int) uint { return uint(x) }
+
+	println(f3(1))
+	println(f3 == nil)
+	println(nil == f3)
+	f3 = nil
+
+	println(f1 == nil)
+	println(nil == f2)
+	println(f2 == nil)
+	println(nil == f2)
+	println(f3 == nil)
+	println(nil == f3)
+	println(f4 == nil)
+	println(nil == f4)
+
+	var p *func(int) uint
+
+	println(p == &f3)
+
+	p = &f3
+
+	println(&f3 == p)
+}
+
+func f4(int) uint {
+	return 0
 }

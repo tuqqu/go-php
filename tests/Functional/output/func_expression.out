@@ -1,0 +1,20 @@
+test_assignment
+bye 1
+bye 2
+6
+inside closure with named return params
+55 some_string
+1 str
+test_iiffe
+inside IIFE 1
+inside IIFE 2
+0
+1
+2
+inside IIFE 3
+9
+test_closure
+12
+2
+13
+3

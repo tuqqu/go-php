@@ -31,7 +31,7 @@ final class TypeError extends OperationError
                 self::valueToString($value),
                 $funcValue instanceof BuiltinFuncValue
                     ? '[]T (slice)'
-                    : $funcValue->signature->params->params[$funcValue->signature->params->len - 1]->type->name(),
+                    : $funcValue->type->params->params[$funcValue->type->params->len - 1]->type->name(),
                 $funcValue instanceof BuiltinFuncValue
                     ? $funcValue->name
                     : $funcValue->getName(),

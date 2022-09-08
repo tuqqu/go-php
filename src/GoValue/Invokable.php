@@ -9,7 +9,7 @@ namespace GoPhp\GoValue;
  *
  * @template T of GoValue
  */
-interface Invocable
+interface Invokable
 {
     /**
      * @param T ...$argv

@@ -50,6 +50,7 @@ final class Params
     /**
      * @return Param[]
      * @psalm-return iterable<Param>
+     * fixme
      */
     public function iter(): iterable
     {
