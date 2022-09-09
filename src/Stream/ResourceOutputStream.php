@@ -7,15 +7,15 @@ namespace GoPhp\Stream;
 class ResourceOutputStream implements OutputStream
 {
     /**
-     * @param resource $resource
+     * @param resource $stream
      */
     public function __construct(
-        private mixed $resource
+        private readonly mixed $stream
     ) {}
 
     public function write(string $str): void
     {
-        \fwrite($this->resource, $str);
+        \fwrite($this->stream, $str);
     }
 
     public function writeln(string $str): void

@@ -7,27 +7,23 @@ namespace GoPhp\Stream;
 class ResourceInputStream implements InputStream
 {
     /**
-     * @param resource $resource
+     * @param resource $stream
      */
     public function __construct(
-        private mixed $resource
+        private readonly mixed $stream
     ) {}
 
     public function getChar(): ?string
     {
-        $char = \fgetc($this->resource);
+        $char = \fgetc($this->stream);
 
-        return $char === false ?
-            null :
-            $char;
+        return $char === false ? null : $char;
     }
 
     public function getLine(): ?string
     {
-        $char = \fgets($this->resource);
+        $char = \fgets($this->stream);
 
-        return $char === false ?
-            null :
-            $char;
+        return $char === false ? null : $char;
     }
 }
