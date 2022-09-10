@@ -40,13 +40,13 @@ final class FuncType implements RefType
         }
 
         foreach ($this->params->iter() as $i => $param) {
-            if (!$param->equals($other->params->params[$i])) {
+            if (!$param->equals($other->params[$i])) {
                 return false;
             }
         }
 
         foreach ($this->returns->iter() as $i => $param) {
-            if (!$param->equals($other->returns->params[$i])) {
+            if (!$param->equals($other->returns[$i])) {
                 return false;
             }
         }

@@ -12,7 +12,7 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_int;
-use function GoPhp\assert_slice_indices;
+use function GoPhp\assert_index_sliceable;
 use function GoPhp\assert_values_compatible;
 
 /**
@@ -63,7 +63,7 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, A
         $low ??= 0;
         $high ??= $this->byteLen;
 
-        assert_slice_indices($this->byteLen, $low, $high);
+        assert_index_sliceable($this->byteLen, $low, $high);
 
         return new self(\substr($this->value, $low, $high - $low));
     }

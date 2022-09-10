@@ -18,7 +18,24 @@ use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\NonRefValue;
 
 /**
+ * Asserts that two types are compatible with each other,
+ * i.e. values of those types can be used in an operation.
+ *
+ * @internal
+ * @template T of GoType
+ * @param T $a
+ * @psalm-assert T $b
+ */
+function assert_types_compatible(GoType $a, GoType $b): void
+{
+    if (!$a->isCompatible($b)) {
+        throw TypeError::mismatchedTypes($a, $b);
+    }
+}
+
+/**
  * Asserts that the two values can be used in one operation.
+ * Shorthand for `assert_types_compatible`, but with values.
  *
  * @internal
  * @template V of GoValue
@@ -30,10 +47,11 @@ function assert_values_compatible(GoValue $a, GoValue $b): void
     assert_types_compatible($a->type(), $b->type());
 }
 
-// fixme remove name
 /**
+ * Assertion for operations with `nil`
+ *
  * @internal
- * @psalm-assert !NilValue $b
+ * @psalm-assert !UntypedNilValue $b
  */
 function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
 {
@@ -41,19 +59,6 @@ function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
 
     if (!$b instanceof UntypedNilValue) {
         throw TypeError::onlyComparableToNil($name);
-    }
-}
-
-/**
- * @internal
- * @template T of GoType
- * @param T $a
- * @psalm-assert T $b
- */
-function assert_types_compatible(GoType $a, GoType $b): void
-{
-    if (!$a->isCompatible($b)) {
-        throw TypeError::mismatchedTypes($a, $b);
     }
 }
 
@@ -70,6 +75,9 @@ function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
     }
 }
 
+/**
+ * @internal
+ */
 function assert_argc(
     array $argv,
     int $expectedArgc,
@@ -139,7 +147,7 @@ function assert_index_positive(int $index): void
     }
 }
 
-function assert_slice_indices(int $cap, int $low, int $high, ?int $max = null): void
+function assert_index_sliceable(int $cap, int $low, int $high, ?int $max = null): void
 {
     //fixme revisit -1 weird cases
     assert_index_exists($low, $cap);
@@ -161,6 +169,7 @@ function assert_slice_indices(int $cap, int $low, int $high, ?int $max = null): 
  */
 function assert_index_int(GoValue $index, string $context): void
 {
+    //fixme [2.0] indices
     if (!$index instanceof BaseIntValue) {
         throw DefinitionError::indexOfWrongType($index, BaseIntValue::NAME, $context);
     }

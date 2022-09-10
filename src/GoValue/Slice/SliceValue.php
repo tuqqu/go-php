@@ -22,7 +22,7 @@ use GoPhp\Operator;
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_int;
 use function GoPhp\assert_nil_comparison;
-use function GoPhp\assert_slice_indices;
+use function GoPhp\assert_index_sliceable;
 use function GoPhp\assert_types_compatible;
 use function GoPhp\assert_values_compatible;
 
@@ -111,7 +111,7 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
         $high ??= $this->len;
         $cap = $max === null ? $this->len - $low : $max - $low;
 
-        assert_slice_indices($this->len, $low, $high, $max);
+        assert_index_sliceable($this->len, $low, $high, $max);
 
         return self::fromUnderlyingArray($this->values, $this->type, $low, $high, $cap);
     }

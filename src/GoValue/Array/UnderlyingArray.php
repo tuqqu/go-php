@@ -35,6 +35,9 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
         return $copiedItems;
     }
 
+    /**
+     * @return V[]
+     */
     public function slice(int $offset, int $len): array
     {
         return \array_slice($this->array, $offset, $len);
@@ -68,7 +71,10 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
         return \current($this->array) !== false;
     }
 
-    public function rewind(): void {}
+    public function rewind(): void
+    {
+        \reset($this->array);
+    }
 
     public function offsetExists(mixed $offset): bool
     {

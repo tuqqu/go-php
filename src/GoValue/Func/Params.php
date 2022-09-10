@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
-final class Params
+use GoPhp\Error\InternalError;
+
+/**
+ * @template-implements \ArrayAccess<int, Param>
+ */
+final class Params implements \ArrayAccess
 {
-    /** @var Param[] */
-    public readonly array $params;
     public readonly int $len;
     public readonly bool $variadic;
     public readonly bool $named;
+
+    /** @var Param[] */
+    private readonly array $params;
 
     /**
      * @param Param[] $params
@@ -50,10 +56,30 @@ final class Params
     /**
      * @return Param[]
      * @psalm-return iterable<Param>
-     * fixme
      */
     public function iter(): iterable
     {
         yield from $this->params;
     }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        return isset($this->params[$offset]);
+    }
+
+    public function offsetGet(mixed $offset): Param
+    {
+        return $this->params[$offset];
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): never
+    {
+        throw InternalError::unreachableMethodCall();
+    }
+
+    public function offsetUnset(mixed $offset): never
+    {
+        throw InternalError::unreachableMethodCall();
+    }
+
 }
