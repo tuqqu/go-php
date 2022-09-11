@@ -183,7 +183,6 @@ final class Interpreter
         } catch (InternalError $err) {
             throw $err;
         } catch (\Throwable $throwable) {
-            throw $throwable;
             $this->onError($throwable->getMessage());
 
             return ExitCode::Failure;

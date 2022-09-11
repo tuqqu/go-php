@@ -11,7 +11,6 @@ use GoPhp\GoValue\GoValue;
 
 final class FuncType implements RefType
 {
-    public readonly string $name;
     public readonly int $arity;
     public readonly int $returnArity;
     public readonly bool $variadic;
@@ -25,12 +24,19 @@ final class FuncType implements RefType
         $this->returnArity = $this->returns->len;
         $this->variadic = $this->params->variadic;
         $this->namedReturns = $this->returns->named;
-        $this->name = \sprintf('func(%s)(%s)', $params, $returns);
     }
 
     public function name(): string
     {
-        return $this->name;
+        return \sprintf(
+            'func(%s)%s',
+            $this->params,
+            match ($this->returns->len) {
+                0 => '',
+                1 => \sprintf(' %s', $this->returns),
+                default => \sprintf(' (%s)', $this->returns),
+            }
+        );
     }
 
     public function equals(GoType $other): bool
