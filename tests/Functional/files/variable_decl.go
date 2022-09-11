@@ -1,5 +1,11 @@
 package main
 
+func main() {
+	test_var_decl()
+	test_short_var_decl()
+	test_mixed()
+}
+
 var a = 1
 var b string = "string"
 var (
@@ -7,7 +13,9 @@ var (
 	d, e, f     = "string", 1, true
 )
 
-func main() {
+func test_var_decl() {
+	println("test_var_decl")
+
 	println(a, b, c, e, f)
 
 	var a uint8 = 2
@@ -25,13 +33,13 @@ func main() {
 
 	println(d, e, f, g, h, i)
 
-	j := 1
-	k, l, m := true, false, 3
+	var j = 1
+	var k, l, m = true, false, 3
 
 	println(j, k, l, m)
 
 	{
-		j := false
+		var j = false
 		{
 			println(j)
 			var j = 88
@@ -40,4 +48,42 @@ func main() {
 		println(j)
 	}
 	println(j)
+}
+
+func test_short_var_decl() {
+	println("test_short_var_decl")
+
+	j := 1
+	k, l, m, j := true, false, 3, 0
+
+	println(j, k, l, m)
+
+	v, w := "hi", []int{1, 2, 3}
+	v, w, x := "hello", []int{65, 66, 67}, true
+
+	println(v, w[0], x)
+
+	{
+		j := false
+		{
+			println(j)
+			j := 88
+			println(j)
+		}
+		println(j)
+	}
+	println(j)
+}
+
+func test_mixed() {
+	println("test_mixed")
+
+	var j = 1
+	k, l, m, j := true, false, 3, 0
+	println(j, k, l, m)
+
+	v, w := "hi", []int{1, 2, 3}
+	v, w, x := "hello", []int{65, 66, 67}, true
+
+	println(v, w[0], x)
 }

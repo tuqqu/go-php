@@ -1,3 +1,4 @@
+test_var_decl
 1 string 2 1 true
 2 true 4
    1 2 3
@@ -6,3 +7,13 @@ false
 88
 false
 1
+test_short_var_decl
+0 true false 3
+hello 65 true
+false
+88
+false
+0
+test_mixed
+0 true false 3
+hello 65 true

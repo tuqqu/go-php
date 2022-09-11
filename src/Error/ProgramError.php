@@ -59,6 +59,11 @@ final class ProgramError extends \LogicException
         return new self(\sprintf('undefined: %s', $name));
     }
 
+    public static function noNewVarsInShortAssignment(): self
+    {
+        return new self('no new variables on left side of :=');
+    }
+
     public static function nameMustBeFunc(string $name): self
     {
         return new self(\sprintf('cannot declare %s - must be func', $name));

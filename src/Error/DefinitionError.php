@@ -79,7 +79,7 @@ final class DefinitionError extends \LogicException
 
     public static function assignmentMismatch(int $expected, int $actual): self
     {
-        return new self(\sprintf('assignment mismatch: %d variables, but got %d values', $expected, $actual));
+        return new self(\sprintf('assignment mismatch: %d variables, but %d values', $expected, $actual));
     }
 
     public static function labelAlreadyDefined(string $label): self

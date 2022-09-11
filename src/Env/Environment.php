@@ -84,6 +84,11 @@ final class Environment
             || $this->enclosing?->isNamespaceDefined($namespace);
     }
 
+    public function tryGetFromSameScope(string $name): ?EnvValue
+    {
+        return $this->envMap->tryGet($name);
+    }
+
     private function tryGet(string $name, string $namespace, bool $implicit = true): ?EnvValue
     {
         return $this->envMap->tryGet($name, $namespace, $implicit)

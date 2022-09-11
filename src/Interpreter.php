@@ -1077,8 +1077,20 @@ final class Interpreter
         $len = \count($stmt->identList->idents);
         $values = $this->collectValuesFromExprList($stmt->exprList, $len);
 
+        $hasNew = false;
         foreach ($stmt->identList->idents as $i => $ident) {
-            $this->defineVar($ident->name, $values[$i]);
+            $envValue = $this->env->tryGetFromSameScope($ident->name);
+
+            if ($envValue === null) {
+                $hasNew = true;
+                $this->defineVar($ident->name, $values[$i]);
+            } else {
+                $envValue->unwrap()->mutate(Operator::Eq, $values[$i]);
+            }
+        }
+
+        if (!$hasNew) {
+            throw ProgramError::noNewVarsInShortAssignment();
         }
 
         return None::None;
