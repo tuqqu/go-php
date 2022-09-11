@@ -64,6 +64,11 @@ final class ProgramError extends \LogicException
         return new self('no new variables on left side of :=');
     }
 
+    public static function cannotUseBlankIdent(string $blankIdent): self
+    {
+        return new self(\sprintf('cannot use %s as value or type', $blankIdent));
+    }
+
     public static function nameMustBeFunc(string $name): self
     {
         return new self(\sprintf('cannot declare %s - must be func', $name));

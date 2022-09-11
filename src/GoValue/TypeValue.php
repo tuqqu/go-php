@@ -18,8 +18,10 @@ use GoPhp\Operator;
  *
  * @template-implements Invokable<TypeValue|AddressableValue>
  */
-final class TypeValue implements Invokable, GoValue
+final class TypeValue implements Invokable, AddressableValue
 {
+    use AddressableTrait;
+
     public function __construct(
         public readonly GoType $type,
     ) {}

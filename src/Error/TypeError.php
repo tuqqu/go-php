@@ -117,6 +117,11 @@ final class TypeError extends OperationError
         return new self(\sprintf('%s (built-in) must be called', $name));
     }
 
+    public static function valueIsNotType(GoValue $value): self
+    {
+        return new self(\sprintf('%s is not a type', self::valueToString($value)));
+    }
+
     private static function tupleTypeToString(TupleValue $tuple): string
     {
         return \sprintf(

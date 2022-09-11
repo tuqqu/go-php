@@ -183,6 +183,7 @@ final class Interpreter
         } catch (InternalError $err) {
             throw $err;
         } catch (\Throwable $throwable) {
+            throw $throwable;
             $this->onError($throwable->getMessage());
 
             return ExitCode::Failure;
@@ -1319,7 +1320,7 @@ final class Interpreter
             $expr->expr instanceof Ident
             && $this->env->isNamespaceDefined($expr->expr->name)
         ) {
-            return $this->env->get($expr->selector->name, $expr->expr->name, false)->unwrap();
+            return $this->env->get($expr->selector->name, $expr->expr->name, implicit: false)->unwrap();
         }
 
         // struct access
@@ -1343,7 +1344,7 @@ final class Interpreter
             throw DefinitionError::undefinedFieldAccess(
                 $value->getName(),
                 $expr->selector->name,
-                $value->type()
+                $value->type(),
             );
         }
 
@@ -1409,18 +1410,23 @@ final class Interpreter
 
     private function resolveTypeFromSingleName(SingleTypeName $type): GoType
     {
-        return $this->env
-            ->getType($type->name->name, $this->currentPackage)
-            ->unwrap()
-            ->unwrap();
+        return $this->getTypeFromEnv($type->name->name, $this->currentPackage);
     }
 
     private function resolveTypeFromQualifiedName(QualifiedTypeName $type): GoType
     {
-        return $this->env
-            ->getType($type->typeName->name->name, $type->packageName->name)
-            ->unwrap()
-            ->unwrap();
+        return $this->getTypeFromEnv($type->typeName->name->name, $type->packageName->name);
+    }
+
+    private function getTypeFromEnv(string $name, string $namespace): GoType
+    {
+        $value = $this->env->get($name, $namespace)->unwrap();
+
+        if (!$value instanceof TypeValue) {
+            throw TypeError::valueIsNotType($value);
+        }
+
+        return $value->unwrap();
     }
 
     private function resolveTypeFromAstSignature(AstSignature $signature): FuncType

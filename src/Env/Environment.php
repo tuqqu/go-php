@@ -9,6 +9,7 @@ use GoPhp\Error\ProgramError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\BlankValue;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Sealable;
@@ -16,13 +17,20 @@ use GoPhp\GoValue\TypeValue;
 
 final class Environment
 {
+    public const BLANK_IDENT = '_';
+
     private readonly EnvMap $envMap;
     private readonly ?self $enclosing;
+    private readonly string $blankIdent;
 
-    public function __construct(?self $enclosing = null)
+    public function __construct(?self $enclosing = null, string $blankIdent = self::BLANK_IDENT)
     {
         $this->envMap = new EnvMap();
         $this->enclosing = $enclosing;
+        $this->blankIdent = $blankIdent;
+
+        $blankValue = new EnvValue(self::BLANK_IDENT, new BlankValue());
+        $this->envMap->add($blankValue);
     }
 
     public function defineConst(string $name, string $namespace, AddressableValue $value, BasicType $type): void
@@ -54,8 +62,7 @@ final class Environment
 
     public function defineType(string $name, string $namespace, TypeValue $value): void
     {
-        $type = new EnvValue($name, $value);
-        $this->envMap->add($type, $namespace);
+        $this->defineAddressableValue($name, $namespace, $value, $value->type);
     }
 
     public function defineTypeAlias(string $alias, string $namespace, TypeValue $value): void
@@ -67,15 +74,6 @@ final class Environment
     {
         return $this->tryGet($name, $namespace, $implicit)
             ?? throw ProgramError::undefinedName($name);
-    }
-
-    public function getType(string $name, string $namespace, bool $implicit = true): EnvValue
-    {
-        $envValue = $this->get($name, $namespace, $implicit);
-
-        return $envValue->unwrap() instanceof TypeValue
-            ? $envValue
-            :  throw ProgramError::undefinedName($name);
     }
 
     public function isNamespaceDefined(string $namespace): bool
@@ -99,9 +97,12 @@ final class Environment
     private function defineAddressableValue(string $name, string $namespace, AddressableValue $value, ?GoType $type): void {
         $value->makeAddressable();
 
-        $this->envMap->add(
-            new EnvValue($name, $value, $type),
-            $namespace,
-        );
+        $envValue = new EnvValue($name, $value, $type);
+
+        if ($name === $this->blankIdent) {
+            return;
+        }
+
+        $this->envMap->add($envValue, $namespace);
     }
 }

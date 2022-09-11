@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 /**
- * Value that is stored and can be addressed either by name or by reference.
+ * Value that is stored and can be addressed either by name or, sometimes, by reference.
  */
 interface AddressableValue extends GoValue
 {

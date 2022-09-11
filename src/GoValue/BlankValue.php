@@ -5,24 +5,15 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\InternalError;
+use GoPhp\Error\ProgramError;
 use GoPhp\Operator;
 
 /**
- * Not a real Go value, but an internal representation
- * of a set of values returned from a function call with multiple return values.
+ * Represents runtime value of a blank identifier ("_" by default)
  */
-final class TupleValue implements GoValue
+final class BlankValue implements AddressableValue
 {
-    public readonly int $len;
-
-    /**
-     * @param GoValue[] $values
-     */
-    public function __construct(
-        public readonly array $values,
-    ) {
-        $this->len = \count($this->values);
-    }
+    use AddressableTrait;
 
     public function toString(): never
     {
@@ -39,9 +30,13 @@ final class TupleValue implements GoValue
         throw InternalError::unreachableMethodCall();
     }
 
-    public function mutate(Operator $op, GoValue $rhs): never
+    public function mutate(Operator $op, GoValue $rhs): void
     {
-        throw InternalError::unreachableMethodCall();
+        if ($op === Operator::Eq) {
+            return;
+        }
+
+        throw ProgramError::cannotUseBlankIdent($this->getName());
     }
 
     public function copy(): never
@@ -49,12 +44,9 @@ final class TupleValue implements GoValue
         throw InternalError::unreachableMethodCall();
     }
 
-    /**
-     * @return GoValue[]
-     */
     public function unwrap(): array
     {
-        return $this->values;
+        throw ProgramError::cannotUseBlankIdent($this->getName());
     }
 
     public function type(): never
