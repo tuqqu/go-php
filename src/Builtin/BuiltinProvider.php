@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\Env\Builtin;
+namespace GoPhp\Builtin;
 
 use GoPhp\Env\Environment;
-use GoPhp\GoValue\Int\Iota;
 
 interface BuiltinProvider
 {

@@ -75,8 +75,9 @@ use GoParser\Ast\TypeSpec;
 use GoParser\Ast\VarSpec;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
-use GoPhp\Env\Builtin\BuiltinProvider;
-use GoPhp\Env\Builtin\StdBuiltinProvider;
+use GoPhp\Builtin\BuiltinProvider;
+use GoPhp\Builtin\Iota;
+use GoPhp\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
 use GoPhp\Env\EnvMap;
 use GoPhp\Error\DefinitionError;
@@ -104,7 +105,6 @@ use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
-use GoPhp\GoValue\Int\Iota;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Map\MapBuilder;
@@ -326,7 +326,7 @@ final class Interpreter
         $initExprs = [];
 
         foreach (self::wrapSpecs($decl->spec) as $j => $spec) {
-            $this->iota->setValue($j);
+            $this->iota->set($j);
 
             /** @var ConstSpec $spec */
             $type = null;

@@ -56,7 +56,7 @@ final class Environment
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void
     {
-        $func = new EnvValue($value->name, $value);
+        $func = new EnvValue($value->name(), $value);
         $this->envMap->add($func);
     }
 

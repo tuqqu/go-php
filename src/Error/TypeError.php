@@ -33,7 +33,7 @@ final class TypeError extends OperationError
                     ? '[]T (slice)'
                     : $funcValue->type->params[$funcValue->type->params->len - 1]->type->name(),
                 $funcValue instanceof BuiltinFuncValue
-                    ? $funcValue->name
+                    ? $funcValue->name()
                     : $funcValue->getName(),
             ),
         );
