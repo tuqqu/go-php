@@ -9,7 +9,7 @@ use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
 /**
- * @template-implements Invokable<AddressableValue>
+ * @template-implements Invokable<TypeValue|AddressableValue>
  */
 final class BuiltinFuncValue implements Invokable, GoValue
 {

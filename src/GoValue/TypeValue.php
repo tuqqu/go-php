@@ -16,7 +16,7 @@ use GoPhp\Operator;
  * e.g. make([]int, 2, 3)
  *           ^^^^^
  *
- * @template-implements Invokable<TypeValue|AddressableValue>
+ * @template-implements Invokable<AddressableValue>
  */
 final class TypeValue implements Invokable, AddressableValue
 {
@@ -68,16 +68,6 @@ final class TypeValue implements Invokable, AddressableValue
     }
 
     public function toString(): never
-    {
-        throw InternalError::unreachableMethodCall();
-    }
-
-    public function isNamed(): never
-    {
-        throw InternalError::unreachableMethodCall();
-    }
-
-    public function makeNamed(): never
     {
         throw InternalError::unreachableMethodCall();
     }
