@@ -35,6 +35,6 @@ class Len implements BuiltinFunc
 
     public function expectsTypeAsFirstArg(): bool
     {
-        return true;
+        return false;
     }
 }

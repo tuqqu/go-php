@@ -520,10 +520,9 @@ final class Interpreter
         $nValuedContext = 1;
 
         if (
-            // fixme add "expectsType(): bool" to builtin functions
             $func instanceof BuiltinFuncValue
-            && $exprLen > 0
-            && $expr->args->exprs[0] instanceof AstType
+            && $func->expectsTypeAsFirstArg()
+            && isset($expr->args->exprs[0])
         ) {
             $argv[] = new TypeValue($this->resolveType($expr->args->exprs[0]));
         }
