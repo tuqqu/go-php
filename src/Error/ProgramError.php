@@ -91,9 +91,9 @@ final class ProgramError extends \LogicException
 
     public static function wrongBuiltinArgumentNumber(int|string $expected, int $actual): self
     {
-        $msg = $expected > $actual ?
-            'not enough arguments in call (expected %s, found %d)' :
-            'too many arguments in call (expected %s, found %d)';
+        $msg = $expected > $actual
+            ? 'invalid operation: not enough arguments in call (expected %s, found %d)'
+            : 'invalid operation: too many arguments in call (expected %s, found %d)';
 
         return new self(\sprintf($msg, $expected, $actual));
     }
