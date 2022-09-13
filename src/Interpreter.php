@@ -360,9 +360,9 @@ final class Interpreter
 
                 $this->env->defineConst(
                     $ident->name,
-                    $this->resolveDefinitionScope(),
                     $value->copy(),
                     $type?->reify() ?? $value->type(),
+                    $this->resolveDefinitionScope(),
                 );
             }
         }
@@ -430,8 +430,8 @@ final class Interpreter
 
         $this->env->defineTypeAlias(
             $alias,
-            $this->resolveDefinitionScope(),
             $typeValue,
+            $this->resolveDefinitionScope(),
         );
     }
 
@@ -446,8 +446,8 @@ final class Interpreter
 
         $this->env->defineType(
             $name,
-            $this->resolveDefinitionScope(),
             $typeValue,
+            $this->resolveDefinitionScope(),
         );
     }
 
@@ -474,7 +474,7 @@ final class Interpreter
             return;
         }
 
-        $this->env->defineFunc($decl->name->name, $this->currentPackage, $funcValue);
+        $this->env->defineFunc($decl->name->name, $funcValue, $this->currentPackage);
     }
 
     private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt): FuncValue
@@ -1553,9 +1553,9 @@ final class Interpreter
 
         $this->env->defineVar(
             $name,
-            $this->resolveDefinitionScope(),
             $value,
             ($type ?? $value->type())->reify(),
+            $this->resolveDefinitionScope(),
         );
     }
 

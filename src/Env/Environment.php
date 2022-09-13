@@ -33,25 +33,24 @@ final class Environment
         $this->envMap->add($blankValue);
     }
 
-    public function defineConst(string $name, string $namespace, AddressableValue $value, BasicType $type): void
-    {
+    public function defineConst(string $name, AddressableValue $value, BasicType $type, string $namespace = EnvMap::NAMESPACE_TOP): void {
         if (!$value instanceof Sealable) {
             throw DefinitionError::valueIsNotConstant($value);
         }
 
         $value->seal();
-        $this->defineAddressableValue($name, $namespace, $value, $type);
+        $this->defineAddressableValue($name, $value, $type, $namespace);
     }
 
-    public function defineVar(string $name, string $namespace, AddressableValue $value, ?GoType $type): void
+    public function defineVar(string $name, AddressableValue $value, ?GoType $type, string $namespace = EnvMap::NAMESPACE_TOP): void
     {
-        $this->defineAddressableValue($name, $namespace, $value, $type);
+        $this->defineAddressableValue($name, $value, $type, $namespace);
     }
 
-    public function defineFunc(string $name, string $namespace, FuncValue $value): void
+    public function defineFunc(string $name, FuncValue $value, string $namespace = EnvMap::NAMESPACE_TOP): void
     {
         $value->seal();
-        $this->defineAddressableValue($name, $namespace, $value, $value->type);
+        $this->defineAddressableValue($name, $value, $value->type, $namespace);
     }
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void
@@ -60,14 +59,14 @@ final class Environment
         $this->envMap->add($func);
     }
 
-    public function defineType(string $name, string $namespace, TypeValue $value): void
+    public function defineType(string $name, TypeValue $value, string $namespace = EnvMap::NAMESPACE_TOP): void
     {
-        $this->defineAddressableValue($name, $namespace, $value, $value->type);
+        $this->defineAddressableValue($name, $value, $value->type, $namespace);
     }
 
-    public function defineTypeAlias(string $alias, string $namespace, TypeValue $value): void
+    public function defineTypeAlias(string $alias, TypeValue $value, string $namespace = EnvMap::NAMESPACE_TOP): void
     {
-        $this->defineType($alias, $namespace, $value);
+        $this->defineType($alias, $value, $namespace);
     }
 
     public function get(string $name, string $namespace, bool $implicit = true): EnvValue
@@ -94,7 +93,7 @@ final class Environment
             ?? null;
     }
 
-    private function defineAddressableValue(string $name, string $namespace, AddressableValue $value, ?GoType $type): void {
+    private function defineAddressableValue(string $name, AddressableValue $value, ?GoType $type, string $namespace): void {
         $value->makeAddressable();
 
         $envValue = new EnvValue($name, $value, $type);

@@ -67,7 +67,6 @@ final class Func
 
                 $env->defineVar(
                     $param->name,
-                    EnvMap::NAMESPACE_TOP,
                     $param->type->defaultValue(),
                     $param->type,
                 );
@@ -91,7 +90,6 @@ final class Func
 
                 $env->defineVar(
                     $param->name,
-                    EnvMap::NAMESPACE_TOP,
                     $sliceBuilder->build(),
                     $sliceType,
                 );
@@ -107,7 +105,6 @@ final class Func
 
             $env->defineVar(
                 $param->name,
-                EnvMap::NAMESPACE_TOP,
                 $argv[$i],
                 $param->type,
             );
