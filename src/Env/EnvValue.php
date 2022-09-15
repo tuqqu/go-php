@@ -11,9 +11,12 @@ use GoPhp\GoType\UntypedNilType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\TypeValue;
+
+use GoPhp\Operator;
 
 use function GoPhp\assert_types_compatible;
 
@@ -51,6 +54,18 @@ final class EnvValue
     public function copy(): self
     {
         return new self($this->name, $this->value->copy());
+    }
+
+    public function equals(self $other): bool
+    {
+        if ($this->name !== $other->name) {
+            return false;
+        }
+
+        /** @var BoolValue $opResult */
+        $opResult = $this->value->operateOn(Operator::EqEq, $other->value);
+
+        return $opResult->unwrap();
     }
 
     private static function convertIfNeeded(GoValue $value, GoType $type): GoValue

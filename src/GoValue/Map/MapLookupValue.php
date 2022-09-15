@@ -44,11 +44,6 @@ final class MapLookupValue implements GoValue
         return $this->value->operateOn($op, $rhs);
     }
 
-    public function equals(GoValue $rhs): BoolValue
-    {
-        return $this->value->equals($rhs);
-    }
-
     public function mutate(Operator $op, GoValue $rhs): void
     {
         $this->value->mutate($op, $rhs);

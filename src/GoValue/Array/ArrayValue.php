@@ -129,18 +129,6 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         };
     }
 
-    public function equals(GoValue $rhs): BoolValue
-    {
-        /** @var self $rhs */
-        foreach ($this->values as $k => $v) {
-            if (!$v->operateOn(Operator::EqEq, $rhs->values[$k])->unwrap()) {
-                return BoolValue::false();
-            }
-        }
-
-        return BoolValue::true();
-    }
-
     public function mutate(Operator $op, GoValue $rhs): void
     {
         if ($op === Operator::Eq) {
@@ -182,5 +170,19 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         }
 
         return $self;
+    }
+
+    /**
+     * @param self<V> $rhs
+     */
+    private function equals(self $rhs): BoolValue
+    {
+        foreach ($this->values as $k => $v) {
+            if (!$v->operateOn(Operator::EqEq, $rhs->values[$k])->unwrap()) {
+                return BoolValue::false();
+            }
+        }
+
+        return BoolValue::true();
     }
 }

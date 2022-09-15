@@ -159,6 +159,7 @@ func test_9() {
 
 	var earth1 = planet{name: "earth", age: 4543, atmosphere: true, system: "solar"}
 	var earth2 = planet{"solar", "earth", 4543, true}
+	var earth3 = earth1
 
 	println(earth1.system)
 	println(earth1.name)
@@ -170,5 +171,15 @@ func test_9() {
 	println(earth2.age)
 	println(earth2.atmosphere)
 
-	//fixme add comparison
+	earth3.name = "mars"
+	println(earth1.name)
+	println(earth3.name)
+
+	println(earth1 == earth2)
+	println(earth3 == earth2)
+	println(earth1 == earth3)
+
+	earth3.name = "earth"
+	println(earth3 == earth2)
+	println(earth1 == earth3)
 }

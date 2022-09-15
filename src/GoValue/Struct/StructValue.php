@@ -49,7 +49,15 @@ final class StructValue implements AddressableValue
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
     {
-        throw OperationError::undefinedOperator($op, $this);
+        assert_values_compatible($this, $rhs);
+
+        $rhs = normalize_value($rhs);
+
+        return match ($op) {
+            Operator::EqEq => $this->equals($rhs),
+            Operator::NotEq => $this->equals($rhs)->invert(),
+            default => throw OperationError::undefinedOperator($op, $this),
+        };
     }
 
     public function mutate(Operator $op, GoValue $rhs): void
@@ -91,5 +99,18 @@ final class StructValue implements AddressableValue
     public function accessField(string $name): GoValue
     {
         return $this->fields->get($name)->unwrap();
+    }
+
+    private function equals(self $rhs): BoolValue
+    {
+        foreach ($this->fields->iter() as $field => $envValue) {
+            $rhsEnvValue = $rhs->fields->get($field);
+
+            if (!$envValue->equals($rhsEnvValue)) {
+                return BoolValue::false();
+            }
+        }
+
+        return BoolValue::true();
     }
 }
