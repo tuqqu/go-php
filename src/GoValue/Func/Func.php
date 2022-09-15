@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Func;
 
 use GoPhp\Env\Environment;
-use GoPhp\Env\EnvMap;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\FuncType;
@@ -63,11 +62,12 @@ final class Func
 
         if ($this->type->returns->named) {
             foreach ($this->type->returns->iter() as $param) {
-                $namedReturns[] = $param->name;
+                $defaultValue = $param->type->defaultValue();
+                $namedReturns[] = $defaultValue;
 
                 $env->defineVar(
                     $param->name,
-                    $param->type->defaultValue(),
+                    $defaultValue,
                     $param->type,
                 );
             }
@@ -126,15 +126,9 @@ final class Func
         if ($this->type->returnArity !== $stmtJump->len) {
             // named return: single & tuple value
             if ($stmtJump->len === 0 && !empty($namedReturns)) {
-                $namedValues = [];
-
-                foreach ($namedReturns as $namedReturn) {
-                    $namedValues[] = $env->get($namedReturn, EnvMap::NAMESPACE_TOP)->unwrap();
-                }
-
                 return $this->type->returns->len === 1
-                    ? $namedValues[0]
-                    : new TupleValue($namedValues);
+                    ? $namedReturns[0]
+                    : new TupleValue($namedReturns);
             }
 
             throw ProgramError::wrongReturnValueNumber($stmtJump->values(), $this->type->returns);
