@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\OperationError;
+use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\UntypedIntValue;
@@ -71,6 +72,10 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, A
     public function operate(Operator $op): PointerValue
     {
         if ($op === Operator::BitAnd) {
+            if (!$this->isAddressable()) {
+                throw TypeError::cannotTakeAddressOfValue($this);
+            }
+
             return PointerValue::fromValue($this);
         }
 

@@ -13,12 +13,20 @@ use GoPhp\GoValue\GoValue;
  */
 final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
 {
+    /** @var V[] */
+    public array $array; // fixme make private
+
     /**
      * @param V[] $array
      */
-    public function __construct(
-        public array $array,
-    ) {}
+    public function __construct(array $array)
+    {
+        foreach ($array as $value) {
+            $value->makeAddressable();
+        }
+
+        $this->array = $array;
+    }
 
     public static function fromEmpty(): self
     {
@@ -91,6 +99,8 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
+        $value->makeAddressable();
+
         $this->array[$offset] = $value;
     }
 

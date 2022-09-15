@@ -101,9 +101,11 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
     final public function operate(Operator $op): self|PointerValue
     {
         return match ($op) {
-            Operator::BitAnd => PointerValue::fromValue($this),
             Operator::Plus => $this->noop(),
             Operator::Minus => $this->negate(),
+            Operator::BitAnd => $this->isAddressable()
+                ? PointerValue::fromValue($this)
+                : throw TypeError::cannotTakeAddressOfValue($this),
             default => static::completeOperate($op),
         };
     }
@@ -140,10 +142,8 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 
         match ($op) {
             Operator::Eq => $this->assign($rhs),
-            Operator::PlusEq,
-            Operator::Inc => $this->mutAdd($rhs),
-            Operator::MinusEq,
-            Operator::Dec => $this->mutSub($rhs),
+            Operator::PlusEq, Operator::Inc => $this->mutAdd($rhs),
+            Operator::MinusEq, Operator::Dec => $this->mutSub($rhs),
             Operator::MulEq => $this->mutMul($rhs),
             Operator::DivEq => $this->mutDiv($rhs),
             Operator::ModEq => $this->mutMod($rhs),

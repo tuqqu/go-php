@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 use GoPhp\GoType\NamedType;
@@ -73,8 +74,10 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
     public function operate(Operator $op): self|PointerValue
     {
         return match ($op) {
-            Operator::BitAnd => PointerValue::fromValue($this),
             Operator::LogicNot => $this->invert(),
+            Operator::BitAnd => $this->isAddressable()
+                ? PointerValue::fromValue($this)
+                : throw TypeError::cannotTakeAddressOfValue($this),
             default => throw OperationError::undefinedOperator($op, $this, true),
         };
     }
