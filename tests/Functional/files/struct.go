@@ -9,6 +9,7 @@ func main() {
 	test_6()
 	test_7()
 	test_8()
+	test_9()
 }
 
 func test_1() {
@@ -120,7 +121,7 @@ func test_7() {
 	}
 
 	var c1 cat = cat{age: 9}
-	var c2 cat = cat{age: 1}
+	var c2 cat = cat{1}
 
 	var p1 *cat = &c1
 
@@ -144,4 +145,30 @@ func test_8() {
 
 	println(p.personA.age == 0)
 	println(p.personB == nil)
+}
+
+func test_9() {
+    println("test_9")
+
+	type planet struct {
+		system     string
+		name       string
+		age        int
+		atmosphere bool
+	}
+
+	var earth1 = planet{name: "earth", age: 4543, atmosphere: true, system: "solar"}
+	var earth2 = planet{"solar", "earth", 4543, true}
+
+	println(earth1.system)
+	println(earth1.name)
+	println(earth1.age)
+	println(earth1.atmosphere)
+
+	println(earth2.system)
+	println(earth2.name)
+	println(earth2.age)
+	println(earth2.atmosphere)
+
+	//fixme add comparison
 }

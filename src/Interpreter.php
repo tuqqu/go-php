@@ -1202,20 +1202,25 @@ final class Interpreter
         switch (true) {
             case $type instanceof ArrayType:
                 $builder = ArrayBuilder::fromType($type);
+
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->push($this->evalExpr($element->element));
                 }
                 $builtValue = $builder->build();
+
                 break;
             case $type instanceof SliceType:
                 $builder = SliceBuilder::fromType($type);
+
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->push($this->evalExpr($element->element));
                 }
                 $builtValue = $builder->build();
+
                 break;
             case $type instanceof MapType:
                 $builder = MapBuilder::fromType($type);
+
                 foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->set(
                         $this->evalExpr($element->element),
@@ -1223,23 +1228,28 @@ final class Interpreter
                     );
                 }
                 $builtValue = $builder->build();
+
                 break;
             case $type instanceof StructType:
                 $builder = StructBuilder::fromType($type);
-                foreach ($lit->elementList->elements ?? [] as $element) {
-                    if (!$element->key instanceof Ident) {
-                        throw DefinitionError::invalidFieldName();
-                    }
 
+                foreach ($lit->elementList->elements ?? [] as $element) {
                     $builder->addField(
-                        $element->key->name,
+                        match (true) {
+                            $element->key === null => null,
+                            $element->key instanceof Ident => $element->key->name,
+                            default => throw DefinitionError::invalidFieldName(),
+                        },
                         $this->evalExpr($element->element),
                     );
                 }
+
                 $builtValue = $builder->build();
+
                 break;
             case $type instanceof WrappedType:
                 $builtValue = $this->resolveCompositeLitWithType($lit, $type->unwind(), $type->valueCallback());
+
                 break;
             default:
                 throw InternalError::unreachable($lit);

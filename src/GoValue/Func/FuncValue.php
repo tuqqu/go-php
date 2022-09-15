@@ -31,7 +31,6 @@ final class FuncValue implements Invokable, AddressableValue
 {
     use AddressableTrait;
     use SealableTrait;
-
     public const NAME = 'func'; //fixme move to types
 
     private function __construct(
