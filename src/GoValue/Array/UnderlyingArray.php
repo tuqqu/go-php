@@ -14,7 +14,7 @@ use GoPhp\GoValue\GoValue;
 final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
 {
     /** @var V[] */
-    public array $array; // fixme make private
+    private array $array;
 
     /**
      * @param V[] $array
@@ -49,6 +49,14 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
     public function slice(int $offset, int $len): array
     {
         return \array_slice($this->array, $offset, $len);
+    }
+
+    /**
+     * @return V[]
+     */
+    public function values(): array
+    {
+        return $this->array;
     }
 
     public function count(): int

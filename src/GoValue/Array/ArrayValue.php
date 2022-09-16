@@ -83,7 +83,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
     public function get(GoValue $at): GoValue
     {
         assert_index_int($at, self::NAME);
-        assert_index_exists($int = $at->unwrap(), $this->len);
+        assert_index_exists($int = (int) $at->unwrap(), $this->len);
 
         return $this->values[$int];
     }
@@ -91,7 +91,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
     public function set(GoValue $value, GoValue $at): void
     {
         assert_index_int($at, self::NAME);
-        assert_index_exists($int = $at->unwrap(), $this->len);
+        assert_index_exists($int = (int) $at->unwrap(), $this->len);
         assert_types_compatible($value->type(), $this->type->elemType);
 
         $this->values[$int] = $value;
@@ -147,7 +147,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
      */
     public function unwrap(): array
     {
-        return $this->values->array;
+        return $this->values->values();
     }
 
     public function type(): ArrayType

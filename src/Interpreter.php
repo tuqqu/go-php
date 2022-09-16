@@ -627,7 +627,7 @@ final class Interpreter
         $index = $this->evalExpr($expr);
         assert_index_int($index, SliceValue::NAME);
 
-        return $index->unwrap();
+        return (int) $index->unwrap();
     }
 
     private function evalEmptyStmt(EmptyStmt $stmt): None

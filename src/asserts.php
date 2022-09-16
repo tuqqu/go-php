@@ -165,12 +165,14 @@ function assert_index_sliceable(int $cap, int $low, int $high, ?int $max = null)
 }
 
 /**
- * @psalm-assert BaseIntValue $index
+ * @psalm-assert BaseIntValue|BaseFloatValue $index
  */
 function assert_index_int(GoValue $index, string $context): void
 {
-    //fixme [2.0] indices
-    if (!$index instanceof BaseIntValue) {
+    if (
+        !$index instanceof BaseIntValue
+        && $index->type() !== UntypedType::UntypedRoundFloat
+    ) {
         throw DefinitionError::indexOfWrongType($index, BaseIntValue::NAME, $context);
     }
 }

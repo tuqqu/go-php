@@ -20,7 +20,7 @@ final class EnvMap
         }
 
         return $this->values[$namespace][$name]
-            ?? $this->values[self::NAMESPACE_TOP][$name] //fixme refactor double lookup for NAMESPACE_TOP
+            ?? $this->values[self::NAMESPACE_TOP][$name]
             ?? null;
     }
 

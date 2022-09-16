@@ -156,7 +156,7 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, A
     public function get(GoValue $at): UntypedIntValue
     {
         assert_index_int($at, self::NAME);
-        assert_index_exists($int = $at->unwrap(), $this->byteLen);
+        assert_index_exists($int = (int) $at->unwrap(), $this->byteLen);
 
         return UntypedIntValue::fromRune($this->value[$int]);
     }
