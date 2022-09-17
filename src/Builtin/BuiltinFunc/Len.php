@@ -22,7 +22,7 @@ class Len implements BuiltinFunc
 
     public function __invoke(GoValue ...$argv): IntValue
     {
-        assert_argc($argv, 1);
+        assert_argc($this, $argv, 1);
         assert_arg_value($argv[0], Sequence::class, 'slice, array, string, map', 1);
 
         return new IntValue($argv[0]->len());

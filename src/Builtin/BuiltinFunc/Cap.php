@@ -23,7 +23,7 @@ class Cap implements BuiltinFunc
 
     public function __invoke(GoValue ...$argv): IntValue
     {
-        assert_argc($argv, 1);
+        assert_argc($this, $argv, 1);
 
         $value = $argv[0];
 

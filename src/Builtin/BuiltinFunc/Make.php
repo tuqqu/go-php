@@ -31,7 +31,7 @@ class Make implements BuiltinFunc
 
     public function __invoke(GoValue ...$argv): SliceValue|MapValue
     {
-        assert_argc($argv, 1, variadic: true);
+        assert_argc($this, $argv, 2, true);
         assert_arg_value($argv[0], TypeValue::class, 'type', 1);
 
         /** @var TypeValue $type */

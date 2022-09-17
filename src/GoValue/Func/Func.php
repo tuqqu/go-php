@@ -49,12 +49,7 @@ final class Func
 
     public function __invoke(GoValue ...$argv): GoValue
     {
-        assert_argc(
-            $argv,
-            $this->type->arity,
-            $this->type->variadic,
-            $this->type->params,
-        );
+        assert_argc($this, $argv, $this->type->arity, $this->type->variadic);
 
         $env = new Environment(enclosing: $this->enclosure);
 

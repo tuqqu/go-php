@@ -22,7 +22,7 @@ class New_ implements BuiltinFunc
 
     public function __invoke(GoValue ...$argv): PointerValue
     {
-        assert_argc($argv, 1);
+        assert_argc($this, $argv, 1);
         assert_arg_value($argv[0], TypeValue::class, 'type', 1);
 
         return PointerValue::fromValue($argv[0]->unwrap()->defaultValue());

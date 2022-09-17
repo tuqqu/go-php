@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use GoPhp\Builtin\BuiltinFunc\BuiltinFunc;
 use GoPhp\Error\DefinitionError;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
@@ -11,11 +12,11 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Float\BaseFloatValue;
-use GoPhp\GoValue\Func\Params;
+use GoPhp\GoValue\Func\Func;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
-use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\NonRefValue;
+use GoPhp\GoValue\UntypedNilValue;
 
 /**
  * Asserts that two types are compatible with each other,
@@ -64,7 +65,6 @@ function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
 
 /**
  * @internal
- * @psalm-assert NonRefValue $b
  */
 function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
 {
@@ -76,28 +76,28 @@ function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
 }
 
 /**
+ * Assert the number of arguments passed to a function
+ *
  * @internal
  */
-function assert_argc(
-    array $argv,
-    int $expectedArgc,
-    bool $variadic = false,
-    ?Params $params = null
-): void {
+function assert_argc(Func|BuiltinFunc $func, array $argv, int $expectedArgc, bool $variadic = false): void
+{
     $actualArgc = \count($argv);
-    //fixme empty with variadic e.g. make()
-    $mismatch = ($variadic && $actualArgc < $expectedArgc - 1)
-        || (!$variadic && $actualArgc < $expectedArgc)
-        || (!$variadic && $actualArgc > $expectedArgc);
+    $mismatch = ($variadic && $actualArgc < $expectedArgc - 1) || (!$variadic && $actualArgc !== $expectedArgc);
 
-    if ($mismatch) {
-        $params === null ?
-            throw ProgramError::wrongBuiltinArgumentNumber($expectedArgc, $actualArgc) :
-            throw ProgramError::wrongFuncArgumentNumber($argv, $params);
+    if (!$mismatch) {
+        return;
     }
+
+    if ($func instanceof BuiltinFunc) {
+        throw ProgramError::wrongBuiltinArgumentNumber($expectedArgc, $actualArgc, $func->name());
+    }
+
+    throw ProgramError::wrongFuncArgumentNumber($argv, $func->type->params);
 }
 
 /**
+ * @internal
  * @template C
  * @psalm-param class-string<C> $value
  * @psalm-assert C $arg
@@ -110,6 +110,7 @@ function assert_arg_value(GoValue $arg, string $value, string $name, int $pos): 
 }
 
 /**
+ * @internal
  * @psalm-assert BaseIntValue $arg
  */
 function assert_arg_int(GoValue $arg, int $pos) {
@@ -121,6 +122,9 @@ function assert_arg_int(GoValue $arg, int $pos) {
     }
 }
 
+/**
+ * @internal
+ */
 function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
 {
     if (!$type->isCompatible($arg->type())) {
@@ -128,6 +132,9 @@ function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
     }
 }
 
+/**
+ * @internal
+ */
 function assert_index_exists(int $index, int $max): void
 {
     assert_index_positive($index);
@@ -138,6 +145,7 @@ function assert_index_exists(int $index, int $max): void
 }
 
 /**
+ * @internal
  * @psalm-assert positive-int $index
  */
 function assert_index_positive(int $index): void
@@ -147,6 +155,9 @@ function assert_index_positive(int $index): void
     }
 }
 
+/**
+ * @internal
+ */
 function assert_index_sliceable(int $cap, int $low, int $high, ?int $max = null): void
 {
     //fixme revisit -1 weird cases
@@ -165,6 +176,7 @@ function assert_index_sliceable(int $cap, int $low, int $high, ?int $max = null)
 }
 
 /**
+ * @internal
  * @psalm-assert BaseIntValue|BaseFloatValue $index
  */
 function assert_index_int(GoValue $index, string $context): void
@@ -177,6 +189,9 @@ function assert_index_int(GoValue $index, string $context): void
     }
 }
 
+/**
+ * @internal
+ */
 function assert_index_type(GoValue $index, GoType $type, string $context): void
 {
     if (!$index->type()->isCompatible($type)) {

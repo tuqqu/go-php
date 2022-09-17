@@ -99,13 +99,13 @@ final class ProgramError extends \LogicException
         return new self('cannot use iota outside constant declaration');
     }
 
-    public static function wrongBuiltinArgumentNumber(int|string $expected, int $actual): self
+    public static function wrongBuiltinArgumentNumber(int|string $expected, int $actual, string $name): self
     {
         $msg = $expected > $actual
-            ? 'invalid operation: not enough arguments in call (expected %s, found %d)'
-            : 'invalid operation: too many arguments in call (expected %s, found %d)';
+            ? 'invalid operation: not enough arguments for %s() (expected %s, found %d)'
+            : 'invalid operation: too many arguments for %s() (expected %s, found %d)';
 
-        return new self(\sprintf($msg, $expected, $actual));
+        return new self(\sprintf($msg, $expected, $actual, $name));
     }
 
     public static function wrongFuncArgumentNumber(array $actualArgv, Params $params): self
