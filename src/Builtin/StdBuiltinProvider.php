@@ -6,6 +6,7 @@ namespace GoPhp\Builtin;
 
 use GoPhp\Builtin\BuiltinFunc\Append;
 use GoPhp\Builtin\BuiltinFunc\Cap;
+use GoPhp\Builtin\BuiltinFunc\Copy;
 use GoPhp\Builtin\BuiltinFunc\Delete;
 use GoPhp\Builtin\BuiltinFunc\Len;
 use GoPhp\Builtin\BuiltinFunc\Make;
@@ -66,6 +67,7 @@ class StdBuiltinProvider implements BuiltinProvider
     {
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Len('len')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Cap('cap')));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Copy('copy')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Append('append')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Make('make')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Delete('delete')));

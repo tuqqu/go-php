@@ -240,6 +240,16 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
         );
     }
 
+    /**
+     * Types must be checked beforehand
+     *
+     * @param V $value
+     */
+    public function setBlindly(GoValue $value, int $at): void
+    {
+        $this->values[$at + $this->pos] = $value;
+    }
+
     private function exceedsCapacity(): bool
     {
         return $this->len - $this->pos + 1 > $this->cap;

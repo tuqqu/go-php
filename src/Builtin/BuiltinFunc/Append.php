@@ -27,6 +27,10 @@ class Append implements BuiltinFunc
         /** @var SliceValue $slice */
         $slice = $argv[0]->clone();
 
+        // fixme
+        //As a special case, it is legal to append a string to a byte slice, like this:
+        //slice = append([]byte("hello "), "world"...)
+
         unset($argv[0]);
         foreach ($argv as $value) {
             $slice->append($value);
