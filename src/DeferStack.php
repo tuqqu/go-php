@@ -26,6 +26,7 @@ final class DeferStack
     public function iter(): iterable
     {
         $defers = $this->stack[$this->context - 1] ?? [];
+
         unset($this->stack[$this->context - 1]);
         $this->context--;
 

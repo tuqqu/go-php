@@ -68,7 +68,7 @@ enum NamedType: string implements BasicType
         return $this === $other;
     }
 
-    public function reify(): static
+    public function reify(): self
     {
         return $this;
     }

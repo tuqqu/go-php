@@ -41,6 +41,10 @@ final class StructType implements GoType
             return false;
         }
 
+        if (\count($this->fields) !== \count($other->fields)) {
+            return false;
+        }
+
         foreach ($this->fields as $field => $typeA) {
             $typeB = $other->fields[$field] ?? null;
             $equals = (bool) $typeB?->equals($typeA);

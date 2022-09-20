@@ -32,7 +32,6 @@ final class WrappedType implements GoType
 
     public function equals(GoType $other): bool
     {
-        // fixme check `type a struct{} == struct{}`
         return $other instanceof self
             && $other->name === $this->name
             && $this->underlyingType->equals($other->underlyingType);
