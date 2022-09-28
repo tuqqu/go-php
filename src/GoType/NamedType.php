@@ -182,4 +182,9 @@ enum NamedType: string implements BasicType
             default => false,
         };
     }
+
+    public function isString(): bool
+    {
+        return $this === self::String;
+    }
 }

@@ -102,6 +102,11 @@ enum UntypedType implements BasicType
         };
     }
 
+    public function isString(): bool
+    {
+        return false; // fixme add untyped str
+    }
+
     public function convert(GoValue $value): never
     {
         throw InternalError::unreachableMethodCall();
