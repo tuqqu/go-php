@@ -18,8 +18,9 @@ use function GoPhp\assert_values_compatible;
 
 /**
  * @template-implements Sequence<UntypedIntValue, UntypedIntValue>
+ * @template-implements Unpackable<UntypedIntValue>
  */
-final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, AddressableValue
+final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, NonRefValue, AddressableValue
 {
     use SealableTrait;
     use AddressableTrait;
@@ -171,15 +172,20 @@ final class StringValue implements Sliceable, Sequence, Sealable, NonRefValue, A
         return $this->byteLen;
     }
 
-    /**
-     * @return iterable<UntypedIntValue, UntypedIntValue>
-     */
     public function iter(): iterable
     {
         $i = 0;
         foreach (\mb_str_split($this->value) as $char) {
             yield new UntypedIntValue($i) => UntypedIntValue::fromRune($char);
             $i += \strlen($char);
+        }
+    }
+
+    public function unpack(): iterable
+    {
+        // fixme check $elem = yield $call() ^
+        foreach (\mb_str_split($this->value) as $char) {
+            yield UntypedIntValue::fromRune($char);
         }
     }
 }

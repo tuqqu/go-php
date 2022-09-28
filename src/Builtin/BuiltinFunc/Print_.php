@@ -11,12 +11,14 @@ use GoPhp\Stream\OutputStream;
 /**
  * @see https://pkg.go.dev/builtin#print
  */
-class Print_ implements BuiltinFunc
+class Print_ extends BaseBuiltinFunc
 {
     public function __construct(
-        private readonly string $name,
+        string $name,
         private readonly OutputStream $stderr,
-    ) {}
+    ) {
+        parent::__construct($name);
+    }
 
     public function __invoke(GoValue ...$argv): VoidValue
     {
@@ -29,15 +31,5 @@ class Print_ implements BuiltinFunc
         $this->stderr->write(\implode('', $output));
 
         return new VoidValue();
-    }
-
-    public function name(): string
-    {
-        return $this->name;
-    }
-
-    public function expectsTypeAsFirstArg(): bool
-    {
-        return false;
     }
 }

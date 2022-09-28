@@ -7,6 +7,7 @@ namespace GoPhp\GoValue\Slice;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\Unpackable;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Array\UnderlyingArray;
@@ -31,8 +32,9 @@ use const GoPhp\NIL;
 /**
  * @template V of GoValue
  * @template-implements Sequence<BaseIntValue, V>
+ * @template-implements Unpackable<V>
  */
-final class SliceValue implements Sliceable, Sequence, AddressableValue
+final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableValue
 {
     use AddressableTrait;
 
@@ -148,6 +150,11 @@ final class SliceValue implements Sliceable, Sequence, AddressableValue
         foreach ($this->accessUnderlyingArray() as $key => $value) {
             yield new UntypedIntValue($key) => $value;
         }
+    }
+
+    public function unpack(): iterable
+    {
+        yield from $this->accessUnderlyingArray();
     }
 
     /**

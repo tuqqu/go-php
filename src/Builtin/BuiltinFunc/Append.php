@@ -13,12 +13,8 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#append
  */
-class Append implements BuiltinFunc
+class Append extends BaseBuiltinFunc
 {
-    public function __construct(
-        private readonly string $name,
-    ) {}
-
     public function __invoke(GoValue ...$argv): SliceValue
     {
         assert_argc($this, $argv, 2, true);
@@ -26,26 +22,19 @@ class Append implements BuiltinFunc
 
         /** @var SliceValue $slice */
         $slice = $argv[0]->clone();
+        $elems = \array_slice($argv, 1);
 
-        // fixme
-        //As a special case, it is legal to append a string to a byte slice, like this:
-        //slice = append([]byte("hello "), "world"...)
-
-        unset($argv[0]);
-        foreach ($argv as $value) {
-            $slice->append($value);
+        foreach ($elems as $elem) {
+            $slice->append($elem);
         }
 
         return $slice;
     }
 
-    public function name(): string
+    public function permitsStringUnpacking(): bool
     {
-        return $this->name;
-    }
-
-    public function expectsTypeAsFirstArg(): bool
-    {
-        return false;
+        // As a special case, it is legal to append a string to a byte slice, like this:
+        // slice = append([]byte("hello "), "world"...)
+        return true;
     }
 }

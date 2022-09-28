@@ -15,7 +15,7 @@ use GoPhp\Operator;
 final class BuiltinFuncValue implements Invokable, GoValue
 {
     public readonly BuiltinFuncType $type;
-    private readonly BuiltinFunc $func;
+    public readonly BuiltinFunc $func;
 
     public function __construct(BuiltinFunc $func)
     {
@@ -31,11 +31,6 @@ final class BuiltinFuncValue implements Invokable, GoValue
     public function name(): string
     {
         return $this->func->name();
-    }
-
-    public function expectsTypeAsFirstArg(): bool
-    {
-        return $this->func->expectsTypeAsFirstArg();
     }
 
     public function type(): BuiltinFuncType

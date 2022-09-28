@@ -521,7 +521,7 @@ final class Interpreter
 
         if (
             $func instanceof BuiltinFuncValue
-            && $func->expectsTypeAsFirstArg()
+            && $func->func->expectsTypeAsFirstArg()
             && isset($expr->args->exprs[0])
         ) {
             $argv[] = new TypeValue($this->resolveType($expr->args->exprs[0]));
@@ -552,13 +552,22 @@ final class Interpreter
                 throw TypeError::cannotSplatMultipleValuedReturn($nValuedContext);
             }
 
-            $slice = \array_pop($argv);
+            $unpackable = \array_pop($argv);
 
-            if (!$slice instanceof SliceValue) {
-                throw TypeError::expectedSliceInArgumentUnpacking($slice, $func);
+            switch (true) {
+                case $unpackable instanceof SliceValue:
+                case $unpackable instanceof StringValue
+                    && $func instanceof BuiltinFuncValue
+                    && $func->func->permitsStringUnpacking():
+
+                    foreach ($unpackable->unpack() as $value) {
+                        $argv[] = $value;
+                    }
+
+                    break;
+                default:
+                    throw TypeError::expectedSliceInArgumentUnpacking($unpackable, $func);
             }
-
-            $argv = [...$argv, ...$slice->unwrap()];
         }
 
         return static fn () => $func(...$argv);

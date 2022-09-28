@@ -14,27 +14,13 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#len
  */
-class Len implements BuiltinFunc
+class Len extends BaseBuiltinFunc
 {
-    public function __construct(
-        private readonly string $name,
-    ) {}
-
     public function __invoke(GoValue ...$argv): IntValue
     {
         assert_argc($this, $argv, 1);
         assert_arg_value($argv[0], Sequence::class, 'slice, array, string, map', 1);
 
         return new IntValue($argv[0]->len());
-    }
-
-    public function name(): string
-    {
-        return $this->name;
-    }
-
-    public function expectsTypeAsFirstArg(): bool
-    {
-        return false;
     }
 }

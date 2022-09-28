@@ -23,12 +23,8 @@ use function GoPhp\assert_index_positive;
 /**
  * @see https://pkg.go.dev/builtin#make
  */
-class Make implements BuiltinFunc
+class Make extends BaseBuiltinFunc
 {
-    public function __construct(
-        private readonly string $name,
-    ) {}
-
     public function __invoke(GoValue ...$argv): SliceValue|MapValue
     {
         assert_argc($this, $argv, 2, true);
@@ -89,11 +85,6 @@ class Make implements BuiltinFunc
         }
 
         throw OperationError::wrongArgumentType($type->type, 'slice, map or channel', 1);
-    }
-
-    public function name(): string
-    {
-        return $this->name;
     }
 
     public function expectsTypeAsFirstArg(): bool

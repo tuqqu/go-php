@@ -13,7 +13,9 @@ use GoPhp\GoValue\TypeValue;
  */
 interface BuiltinFunc extends Invokable
 {
-    public function name();
+    public function name(): string;
 
     public function expectsTypeAsFirstArg(): bool;
+
+    public function permitsStringUnpacking(): bool;
 }

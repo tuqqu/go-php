@@ -14,23 +14,14 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#new
  */
-class New_ implements BuiltinFunc
+class New_ extends BaseBuiltinFunc
 {
-    public function __construct(
-        private readonly string $name,
-    ) {}
-
     public function __invoke(GoValue ...$argv): PointerValue
     {
         assert_argc($this, $argv, 1);
         assert_arg_value($argv[0], TypeValue::class, 'type', 1);
 
         return PointerValue::fromValue($argv[0]->unwrap()->defaultValue());
-    }
-
-    public function name(): string
-    {
-        return $this->name;
     }
 
     public function expectsTypeAsFirstArg(): bool
