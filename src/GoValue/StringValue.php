@@ -8,6 +8,8 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
+use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\Operator;
 
@@ -17,7 +19,7 @@ use function GoPhp\assert_index_sliceable;
 use function GoPhp\assert_values_compatible;
 
 /**
- * @template-implements Sequence<UntypedIntValue, UntypedIntValue>
+ * @template-implements Sequence<BaseIntValue, UntypedIntValue|Uint8Value>
  * @template-implements Unpackable<UntypedIntValue>
  */
 final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, NonRefValue, AddressableValue
@@ -154,12 +156,12 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
 //        // TODO: Implement lessEq() method.
 //    }
 
-    public function get(GoValue $at): UntypedIntValue
+    public function get(GoValue $at): Uint8Value
     {
         assert_index_int($at, self::NAME);
         assert_index_exists($int = (int) $at->unwrap(), $this->byteLen);
 
-        return UntypedIntValue::fromRune($this->value[$int]);
+        return Uint8Value::fromByte($this->value[$int]);
     }
 
     public function set(GoValue $value, GoValue $at): void
@@ -175,7 +177,7 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
     public function iter(): iterable
     {
         $i = 0;
-        foreach (\mb_str_split($this->value) as $char) {
+        foreach ($this->chars() as $char) {
             yield new UntypedIntValue($i) => UntypedIntValue::fromRune($char);
             $i += \strlen($char);
         }
@@ -183,9 +185,16 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
 
     public function unpack(): iterable
     {
-        // fixme check $elem = yield $call() ^
-        foreach (\mb_str_split($this->value) as $char) {
+        foreach ($this->chars() as $char) {
             yield UntypedIntValue::fromRune($char);
         }
+    }
+
+    /**
+     * @return iterable<string>
+     */
+    private function chars(): iterable
+    {
+        yield from \mb_str_split($this->value);
     }
 }

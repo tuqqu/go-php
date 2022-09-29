@@ -33,10 +33,7 @@ final class UntypedIntValue extends BaseIntValue
 
     public static function fromRune(string $rune): self
     {
-        return new self(
-            \mb_ord($rune),
-            UntypedType::UntypedRune,
-        );
+        return new self(\mb_ord($rune), UntypedType::UntypedRune);
     }
 
     public function type(): UntypedType
