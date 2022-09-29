@@ -22,12 +22,6 @@ interface Sequence
     public function get(GoValue $at): GoValue;
 
     /**
-     * @param V $value
-     * @param K $at
-     */
-    public function set(GoValue $value, GoValue $at): void;
-
-    /**
      * @return iterable<K, V>
      */
     public function iter(): iterable;

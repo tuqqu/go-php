@@ -126,15 +126,6 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
         return $this->accessUnderlyingArray()[$int];
     }
 
-    public function set(GoValue $value, GoValue $at): void
-    {
-        assert_index_int($at, self::NAME);
-        assert_index_exists($int = (int) $at->unwrap(), $this->len);
-        assert_types_compatible($value->type(), $this->type->elemType);
-
-        $this->values[$int + $this->pos] = $value;
-    }
-
     public function len(): int
     {
         return $this->len - $this->pos;
@@ -173,7 +164,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
             $this->grow();
         }
 
-        $this->values[$this->len++] = $value;
+        $this->values[$this->len++] = $value; // fixme maybe pos?
     }
 
     public function operate(Operator $op): PointerValue

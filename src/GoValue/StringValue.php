@@ -161,12 +161,10 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
         assert_index_int($at, self::NAME);
         assert_index_exists($int = (int) $at->unwrap(), $this->byteLen);
 
-        return Uint8Value::fromByte($this->value[$int]);
-    }
+        $byte = Uint8Value::fromByte($this->value[$int]);
+        $byte->seal();
 
-    public function set(GoValue $value, GoValue $at): void
-    {
-        throw new \Exception('cannot assign to %s (value of type byte)');
+        return $byte;
     }
 
     public function len(): int

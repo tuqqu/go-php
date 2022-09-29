@@ -23,4 +23,10 @@ interface Map extends Sequence
      * @param K $at
      */
     public function delete(GoValue $at): void;
+
+    /**
+     * @param V $value
+     * @param K $at
+     */
+    public function set(GoValue $value, GoValue $at): void;
 }
