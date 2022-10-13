@@ -142,13 +142,14 @@ final class Interpreter
     private ?FuncValue $entryPoint = null;
     private bool $constDefinition = false;
     private int $switchContext = 0;
-    /** @var array<FuncValue> */
+    /** @var array<callable(): GoValue> */
     private array $initializers = [];
+    private readonly Argv $argv;
 
     public function __construct(
         string                             $source,
         ?BuiltinProvider                   $builtin = null,
-        private readonly array             $argv = [],
+        array             $argv = [],
         private readonly StreamProvider    $streams = new StdStreamProvider(),
         private readonly FuncTypeValidator $entryPointValidator = new VoidFuncTypeValidator('main', 'main'),
         private readonly FuncTypeValidator $initValidator = new VoidFuncTypeValidator('init'),
@@ -166,6 +167,13 @@ final class Interpreter
 
         $ast = self::parseSourceToAst($source);
         $this->setAst($ast);
+
+        $argvBuilder = new ArgvBuilder();
+        foreach ($argv as $arg) {
+            $argvBuilder->add($arg);
+        }
+
+        $this->argv = $argvBuilder->build();
     }
 
     public function run(): ExitCode
@@ -177,9 +185,7 @@ final class Interpreter
                 throw ProgramError::noEntryPoint($this->entryPointValidator->targets());
             }
 
-            $this->callFunc(
-                fn (): GoValue => ($this->entryPoint)(...$this->argv)
-            );
+            $this->callFunc(fn (): GoValue => ($this->entryPoint)($this->argv));
         } catch (InternalError $err) {
             throw $err;
         } catch (\Throwable $throwable) {
@@ -469,7 +475,7 @@ final class Interpreter
             $this->initValidator->validate($funcValue->type);
             // the identifier itself is not declared
             // init functions cannot be referred to from anywhere in a program
-            $this->initializers[] = $funcValue;
+            $this->initializers[] = static fn (): GoValue => $funcValue(Argv::fromEmpty());
 
             return;
         }
@@ -515,19 +521,21 @@ final class Interpreter
         }
 
         /** @var Invokable $func */
-        $argv = [];
         $exprLen = \count($expr->args->exprs);
         $nValuedContext = 1;
+        $argvBuilder = new ArgvBuilder();
+        $startFrom = 0;
 
         if (
             $func instanceof BuiltinFuncValue
             && $func->func->expectsTypeAsFirstArg()
             && isset($expr->args->exprs[0])
         ) {
-            $argv[] = new TypeValue($this->resolveType($expr->args->exprs[0]));
+            $argvBuilder->add(new TypeValue($this->resolveType($expr->args->exprs[0])));
+            ++$startFrom;
         }
 
-        for ($i = \count($argv); $i < $exprLen; ++$i) {
+        for ($i = $startFrom; $i < $exprLen; ++$i) {
             $arg = $this->evalExpr($expr->args->exprs[$i]);
 
             if ($arg instanceof TupleValue) {
@@ -538,13 +546,13 @@ final class Interpreter
                 $nValuedContext = $arg->len;
 
                 foreach ($arg->values as $value) {
-                    $argv[] = $value->copy();
+                    $argvBuilder->add($value->copy());
                 }
 
                 break;
             }
 
-            $argv[] = $arg->copy();
+            $argvBuilder->add($arg->copy());
         }
 
         if ($expr->ellipsis !== null) {
@@ -552,17 +560,15 @@ final class Interpreter
                 throw TypeError::cannotSplatMultipleValuedReturn($nValuedContext);
             }
 
-            $unpackable = \array_pop($argv);
+            $unpackable = $argvBuilder->lookUpLast();
 
+            //fixme move to builder
             switch (true) {
                 case $unpackable instanceof SliceValue:
                 case $unpackable instanceof StringValue
                     && $func instanceof BuiltinFuncValue
                     && $func->func->permitsStringUnpacking():
-
-                    foreach ($unpackable->unpack() as $value) {
-                        $argv[] = $value;
-                    }
+                    $argvBuilder->markUnpacked();
 
                     break;
                 default:
@@ -570,7 +576,7 @@ final class Interpreter
             }
         }
 
-        return static fn () => $func(...$argv);
+        return static fn (): mixed => $func($argvBuilder->build());
     }
 
     private function evalCallExpr(CallExpr $expr): GoValue

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
+use GoPhp\Argv;
 use GoPhp\Env\Environment;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\VoidValue;
@@ -24,7 +26,7 @@ use function GoPhp\assert_types_compatible;
 /**
  * @psalm-type FuncBody = \Closure(Environment, string): StmtJump
  */
-final class Func
+final class Func implements Invokable
 {
     /** @var FuncBody */
     public readonly \Closure $body;
@@ -47,7 +49,7 @@ final class Func
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
     }
 
-    public function __invoke(GoValue ...$argv): GoValue
+    public function __invoke(Argv $argv): GoValue
     {
         assert_argc($this, $argv, $this->type->arity, $this->type->variadic);
 
@@ -74,9 +76,9 @@ final class Func
                 $sliceBuilder = SliceBuilder::fromType($sliceType);
 
                 for ($argc = \count($argv); $i < $argc; ++$i) {
-                    assert_arg_type($argv[$i], $param->type, $i);
+                    assert_arg_type($argv[$i], $param->type);
 
-                    $sliceBuilder->pushBlindly($argv[$i]);
+                    $sliceBuilder->pushBlindly($argv[$i]->value);
                 }
 
                 if ($param->name === null) {
@@ -92,7 +94,7 @@ final class Func
                 break;
             }
 
-            assert_arg_type($argv[$i], $param->type, $i);
+            assert_arg_type($argv[$i], $param->type);
 
             if ($param->name === null) {
                 continue;
@@ -100,7 +102,7 @@ final class Func
 
             $env->defineVar(
                 $param->name,
-                $argv[$i],
+                $argv[$i]->value,
                 $param->type,
             );
         }

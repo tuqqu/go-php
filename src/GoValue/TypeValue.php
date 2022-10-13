@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Argv;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\GoType;
@@ -15,8 +16,6 @@ use GoPhp\Operator;
  *
  * e.g. make([]int, 2, 3)
  *           ^^^^^
- *
- * @template-implements Invokable<AddressableValue>
  */
 final class TypeValue implements Invokable, AddressableValue
 {
@@ -26,10 +25,11 @@ final class TypeValue implements Invokable, AddressableValue
         public readonly GoType $type,
     ) {}
 
-    public function __invoke(GoValue ...$argv): GoValue
+    public function __invoke(Argv $argv): GoValue
     {
-        $value = match (\count($argv)) {
-            1 => $argv[0],
+        //fixme move
+        $value = match ($argv->argc) {
+            1 => $argv[0]->value,
             0 => throw new OperationError(\sprintf('missing argument in conversion to %s', $this->type->name())),
             default => throw new OperationError(\sprintf('too many arguments in conversion to %s', $this->type->name())),
         };

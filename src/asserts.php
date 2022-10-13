@@ -80,55 +80,55 @@ function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
  *
  * @internal
  */
-function assert_argc(Func|BuiltinFunc $func, array $argv, int $expectedArgc, bool $variadic = false): void
+function assert_argc(Func|BuiltinFunc $context, Argv $argv, int $expectedArgc, bool $variadic = false): void
 {
-    $actualArgc = \count($argv);
-    $mismatch = ($variadic && $actualArgc < $expectedArgc - 1) || (!$variadic && $actualArgc !== $expectedArgc);
+    $mismatch = ($variadic && $argv->argc < $expectedArgc - 1) || (!$variadic && $argv->argc !== $expectedArgc);
 
     if (!$mismatch) {
         return;
     }
 
-    if ($func instanceof BuiltinFunc) {
-        throw ProgramError::wrongBuiltinArgumentNumber($expectedArgc, $actualArgc, $func->name());
+    if ($context instanceof BuiltinFunc) {
+        throw ProgramError::wrongBuiltinArgumentNumber($expectedArgc, $argv->argc, $context->name());
     }
 
-    throw ProgramError::wrongFuncArgumentNumber($argv, $func->type->params);
+    throw ProgramError::wrongFuncArgumentNumber($argv, $context->type->params);
 }
 
 /**
  * @internal
  * @template C
  * @psalm-param class-string<C> $value
- * @psalm-assert C $arg
+ * @psalm-assert Arg<C> $arg
  */
-function assert_arg_value(GoValue $arg, string $value, string $name, int $pos): void
+function assert_arg_value(Arg $arg, string $value, string $name): void
 {
-    if (!$arg instanceof $value) {
-        throw OperationError::wrongArgumentType($arg->type(), $name, $pos);
+    if (!$arg->value instanceof $value) {
+        throw OperationError::wrongArgumentType($arg, $name);
     }
 }
 
 /**
  * @internal
- * @psalm-assert BaseIntValue $arg
+ * @psalm-assert Arg<BaseIntValue> $arg
  */
-function assert_arg_int(GoValue $arg, int $pos) {
+function assert_arg_int(Arg $arg): void
+{
     if (
-        !$arg instanceof BaseIntValue
-        && ($arg instanceof BaseFloatValue && $arg->type() !== UntypedType::UntypedRoundFloat)
+        !$arg->value instanceof BaseIntValue
+        && ($arg->value instanceof BaseFloatValue && $arg->value->type() !== UntypedType::UntypedRoundFloat)
     ) {
-        throw OperationError::wrongArgumentType($arg->type(), 'int', $pos);
+        throw OperationError::wrongArgumentType($arg, 'int');
     }
 }
 
 /**
  * @internal
  */
-function assert_arg_type(GoValue $arg, GoType $type, int $pos): void
+function assert_arg_type(Arg $arg, GoType $type): void
 {
-    if (!$type->isCompatible($arg->type())) {
-        throw OperationError::wrongArgumentType($arg->type(), $type->name(), $pos);
+    if (!$type->isCompatible($arg->value->type())) {
+        throw OperationError::wrongArgumentType($arg, $type->name());
     }
 }
 

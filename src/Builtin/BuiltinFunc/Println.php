@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Builtin\BuiltinFunc;
 
-use GoPhp\GoValue\GoValue;
+use GoPhp\Argv;
 use GoPhp\GoValue\VoidValue;
 use GoPhp\Stream\OutputStream;
 
@@ -20,12 +20,12 @@ class Println extends BaseBuiltinFunc
         parent::__construct($name);
     }
 
-    public function __invoke(GoValue ...$argv): VoidValue
+    public function __invoke(Argv $argv): VoidValue
     {
         $output = [];
 
-        foreach ($argv as $argv) {
-            $output[] = $argv->toString();
+        foreach ($argv->values as $arg) {
+            $output[] = $arg->value->toString();
         }
 
         $this->stderr->writeln(\implode(' ', $output));

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace GoPhp\Builtin\BuiltinFunc;
 
+use GoPhp\Argv;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\SliceType;
-use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Slice\SliceValue;
+
 use GoPhp\GoValue\StringValue;
 
 use function GoPhp\assert_arg_type;
@@ -21,28 +22,35 @@ use function GoPhp\assert_argc;
  */
 class Copy extends BaseBuiltinFunc
 {
-    public function __invoke(GoValue ...$argv): IntValue
+    public function __invoke(Argv $argv): IntValue
     {
         assert_argc($this, $argv, 2);
 
-        /** @var array{SliceValue, SliceValue|StringValue} $argv */
         $dst = $argv[0];
         $src = $argv[1];
 
-        assert_arg_value($dst, SliceValue::class, 'slice', 1);
+        assert_arg_value($dst, SliceValue::class, SliceValue::NAME);
 
         // As a special case, if the destination's type is []byte,
         // copy also accepts a source argument with type string.
-        $srcType = $src->type();
+        $srcType = $src->value->type();
 
         if ($srcType instanceof BasicType && $srcType->isString()) {
-            assert_arg_type($dst, new SliceType(NamedType::Byte), 1);
+            /** @psalm-suppress InvalidArgument */
+            assert_arg_type($dst, new SliceType(NamedType::Byte));
         } else {
-            assert_arg_type($src, $dst->type(), 2);
+            assert_arg_type($src, $dst->value->type());
         }
 
-        $i = 0;
+        $dst = $dst->value;
+        $src = $src->value;
+
+        /**
+         * @var SliceValue $dst
+         * @var SliceValue|StringValue $src
+         */
         $until = $dst->len();
+        $i = 0;
 
         foreach ($src->iter() as $value) {
             if ($i >= $until) {

@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Argv;
+
 /**
  * Value that supports invoking with a () operator.
- *
- * @template T of GoValue
  */
 interface Invokable
 {
-    /**
-     * @param T ...$argv
-     */
-    public function __invoke(GoValue ...$argv): GoValue;
+    public function __invoke(Argv $argv): GoValue;
 }

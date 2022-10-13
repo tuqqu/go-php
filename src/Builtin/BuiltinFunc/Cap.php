@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\Builtin\BuiltinFunc;
 
+use GoPhp\Argv;
 use GoPhp\Error\OperationError;
 use GoPhp\GoValue\Array\ArrayValue;
-use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Slice\SliceValue;
 
@@ -17,20 +17,20 @@ use function GoPhp\assert_argc;
  */
 class Cap extends BaseBuiltinFunc
 {
-    public function __invoke(GoValue ...$argv): IntValue
+    public function __invoke(Argv $argv): IntValue
     {
         assert_argc($this, $argv, 1);
 
-        $value = $argv[0];
+        $capable = $argv[0];
 
-        if ($value instanceof ArrayValue) {
-            return new IntValue($value->len());
+        if ($capable->value instanceof ArrayValue) {
+            return new IntValue($capable->value->len());
         }
 
-        if ($value instanceof SliceValue) {
-            return new IntValue($value->cap());
+        if ($capable->value instanceof SliceValue) {
+            return new IntValue($capable->value->cap());
         }
 
-        throw OperationError::wrongArgumentType($value->type(), 'slice, array', 1);
+        throw OperationError::wrongArgumentType($capable, 'slice, array');
     }
 }

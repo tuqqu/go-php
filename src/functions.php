@@ -10,7 +10,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\WrappedValue;
 
 /**
- * Alias for NULL-nil value in reference types.
+ * Alias for `null` in place of `nil` value in reference types.
  *
  * @internal
  */

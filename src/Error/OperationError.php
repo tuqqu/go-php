@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
+use GoPhp\Arg;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Func\FuncValue;
@@ -136,14 +137,14 @@ class OperationError extends \RuntimeException
         return new self(\sprintf($msg, $expected, $actual));
     }
 
-    public static function wrongArgumentType(GoType $actual, string|GoType $expected, int $pos)
+    public static function wrongArgumentType(Arg $arg, string|GoType $expectedType)
     {
         return new self(
             \sprintf(
                 'invalid argument %d (%s), expected %s',
-                $pos,
-                $actual->name(),
-                \is_string($expected) ? $expected : $expected->name(),
+                $arg->pos,
+                $arg->value->type()->name(),
+                \is_string($expectedType) ? $expectedType : $expectedType->name(),
             )
         );
     }

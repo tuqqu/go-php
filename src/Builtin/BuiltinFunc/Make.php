@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace GoPhp\Builtin\BuiltinFunc;
 
+use GoPhp\Argv;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
-use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\BaseIntValue;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapValue;
@@ -25,26 +25,25 @@ use function GoPhp\assert_index_positive;
  */
 class Make extends BaseBuiltinFunc
 {
-    public function __invoke(GoValue ...$argv): SliceValue|MapValue
+    public function __invoke(Argv $argv): SliceValue|MapValue
     {
         assert_argc($this, $argv, 2, true);
-        assert_arg_value($argv[0], TypeValue::class, 'type', 1);
+        assert_arg_value($argv[0], TypeValue::class, 'type');
 
         /** @var TypeValue $type */
-        $type = $argv[0];
-        $argc = \count($argv);
+        $type = $argv[0]->value;
 
         if ($type->type instanceof SliceType) {
-            if ($argc > 3) {
-                throw OperationError::wrongArgumentNumber('2 or 3', $argc);
+            if ($argv->argc > 3) {
+                throw OperationError::wrongArgumentNumber('2 or 3', $argv->argc);
             }
 
             $builder = SliceBuilder::fromType($type->type);
 
             if (isset($argv[1])) {
-                assert_arg_int($argv[1], 2);
+                assert_arg_int($argv[1]);
 
-                $len = $argv[1]->unwrap();
+                $len = $argv[1]->value->unwrap();
 
                 assert_index_positive($len);
 
@@ -54,9 +53,9 @@ class Make extends BaseBuiltinFunc
             }
 
             if (isset($argv[2])) {
-                assert_arg_int($argv[2], 3);
+                assert_arg_int($argv[2]);
 
-                $cap = $argv[2]->unwrap();
+                $cap = $argv[2]->value->unwrap();
 
                 assert_index_positive($cap);
 
@@ -71,20 +70,21 @@ class Make extends BaseBuiltinFunc
         }
 
         if ($type->type instanceof MapType) {
-            if ($argc > 2) {
-                throw OperationError::wrongArgumentNumber(2, $argc);
+            if ($argv->argc > 2) {
+                throw OperationError::wrongArgumentNumber(2, $argv->argc);
             }
 
             if (isset($argv[1])) {
                 // we do not use this value, just validating it
-                assert_arg_value($argv[1], BaseIntValue::class, 'int', 3);
-                assert_index_positive($argv[1]->unwrap());
+                assert_arg_value($argv[1], BaseIntValue::class, BaseIntValue::NAME);
+                assert_index_positive($argv[1]->value->unwrap());
             }
 
             return MapBuilder::fromType($type->type)->build();
         }
 
-        throw OperationError::wrongArgumentType($type->type, 'slice, map or channel', 1);
+        /** @psalm-suppress InvalidArgument */
+        throw OperationError::wrongArgumentType($argv[0], 'slice, map or channel');
     }
 
     public function expectsTypeAsFirstArg(): bool

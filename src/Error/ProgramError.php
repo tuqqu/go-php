@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
+use GoPhp\Argv;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 
@@ -108,22 +109,26 @@ final class ProgramError extends \LogicException
         return new self(\sprintf($msg, $expected, $actual, $name));
     }
 
-    public static function wrongFuncArgumentNumber(array $actualArgv, Params $params): self
+    public static function wrongFuncArgumentNumber(Argv $argv, Params $params): self
     {
-        return self::wrongFuncArity($actualArgv, $params, 'arguments in call');
+        return self::wrongFuncArity($argv, $params, 'arguments in call');
     }
 
-    public static function wrongReturnValueNumber(array $actualArgv, Params $params): self
+    public static function wrongReturnValueNumber(array $returnValues, Params $params): self
     {
-        return self::wrongFuncArity($actualArgv, $params, 'return values');
+        return self::wrongFuncArity($returnValues, $params, 'return values');
     }
 
     private static function wrongFuncArity(
-        array $actualArgv,
+        Argv|array $values,
         Params $params,
         string $type,
     ): self {
-        $msg = $params->len > \count($actualArgv) ?
+        [$len, $values] = \is_array($values)
+            ? [\count($values), $values]
+            : [$values->argc, $values->values];
+
+        $msg = $params->len > $len ?
             'not enough ' :
             'too many ';
 
@@ -132,7 +137,7 @@ final class ProgramError extends \LogicException
             $type,
             \implode(', ', \array_map(
                 static fn (GoValue $value): string => $value->type()->name(),
-                $actualArgv,
+                $values,
             )),
             $params,
         );

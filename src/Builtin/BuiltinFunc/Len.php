@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Builtin\BuiltinFunc;
 
-use GoPhp\GoValue\GoValue;
+use GoPhp\Argv;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Sequence;
 
@@ -16,11 +16,13 @@ use function GoPhp\assert_argc;
  */
 class Len extends BaseBuiltinFunc
 {
-    public function __invoke(GoValue ...$argv): IntValue
+    public function __invoke(Argv $argv): IntValue
     {
         assert_argc($this, $argv, 1);
-        assert_arg_value($argv[0], Sequence::class, 'slice, array, string, map', 1);
+        assert_arg_value($argv[0], Sequence::class, 'slice, array, string, map');
 
-        return new IntValue($argv[0]->len());
+        $v = $argv[0]->value;
+
+        return new IntValue($v->len());
     }
 }

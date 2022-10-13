@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Argv;
 use GoPhp\Builtin\BuiltinFunc\BuiltinFunc;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
-/**
- * @template-implements Invokable<TypeValue|AddressableValue>
- */
 final class BuiltinFuncValue implements Invokable, GoValue
 {
     public readonly BuiltinFuncType $type;
@@ -23,9 +21,9 @@ final class BuiltinFuncValue implements Invokable, GoValue
         $this->type = new BuiltinFuncType($func->name());
     }
 
-    public function __invoke(GoValue ...$argv): GoValue
+    public function __invoke(Argv $argv): GoValue
     {
-        return ($this->func)(...$argv);
+        return ($this->func)($argv);
     }
 
     public function name(): string

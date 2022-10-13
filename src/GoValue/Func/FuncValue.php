@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
+use GoPhp\Argv;
 use GoPhp\Env\Environment;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\PanicError;
@@ -24,7 +25,6 @@ use function GoPhp\assert_values_compatible;
 use const GoPhp\NIL;
 
 /**
- * @template-implements Invokable<AddressableValue>
  * @psalm-import-type FuncBody from Func
  */
 final class FuncValue implements Invokable, AddressableValue
@@ -38,13 +38,13 @@ final class FuncValue implements Invokable, AddressableValue
         public readonly FuncType $type,
     ) {}
 
-    public function __invoke(GoValue ...$argv): GoValue
+    public function __invoke(Argv $argv): GoValue
     {
         if ($this->innerFunc === NIL) {
             throw PanicError::nilDereference();
         }
 
-        return ($this->innerFunc)(...$argv);
+        return ($this->innerFunc)($argv);
     }
 
     /**
