@@ -41,17 +41,11 @@ Already implemented:
 
 * see [tests](tests/Functional/files/)
 
-
 To be implemented:
 
-* complex numbers
 * channels and select statements
 * methods
 * type assertions
 * interfaces
 * panic recovering
 * generics
-
-Known bugs:
-* goto from loop body
-* untyped string

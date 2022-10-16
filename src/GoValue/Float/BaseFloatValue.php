@@ -8,10 +8,11 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
+use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\SimpleNumber;
 
 /**
- * @template-extends SimpleNumber<self>
  * @psalm-suppress ImplementedParamTypeMismatch
  */
 abstract class BaseFloatValue extends SimpleNumber
@@ -45,60 +46,60 @@ abstract class BaseFloatValue extends SimpleNumber
 
     final protected function add(parent $value): static
     {
-        return new static($this->value + $value->value);
+        return new static($this->value + $value->unwrap());
     }
 
     final protected function sub(parent $value): static
     {
-        return new static($this->value - $value->value);
+        return new static($this->value - $value->unwrap());
     }
 
     final protected function div(parent $value): static
     {
-        return new static($this->value / $value->value);
+        return new static($this->value / $value->unwrap());
     }
 
     final protected function mod(parent $value): static
     {
-        return new static($this->value % $value->value);
+        return new static($this->value % $value->unwrap());
     }
 
     final protected function mul(parent $value): static
     {
-        return new static($this->value * $value->value);
+        return new static($this->value * $value->unwrap());
     }
 
     final protected function mutAdd(parent $value): void
     {
-        $this->value += $value->value;
+        $this->value += $value->unwrap();
     }
 
     final protected function mutSub(parent $value): void
     {
-        $this->value += $value->value;
+        $this->value += $value->unwrap();
     }
 
     final protected function mutDiv(parent $value): void
     {
-        $this->value /= $value->value;
+        $this->value /= $value->unwrap();
     }
 
     final protected function mutMod(parent $value): void
     {
-        $this->value %= $value->value;
+        $this->value %= $value->unwrap();
     }
 
     final protected function mutMul(parent $value): void
     {
-        $this->value *= $value->value;
+        $this->value *= $value->unwrap();
     }
 
     final protected function assign(parent $value): void
     {
-        $this->value = $value->value;
+        $this->value = $value->unwrap();
     }
 
-    final protected function doBecomeTyped(NamedType $type): parent
+    final protected function doBecomeTyped(NamedType $type): AddressableValue&Sealable
     {
         $number = $this->unwrap();
 

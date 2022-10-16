@@ -5,6 +5,9 @@ func main() {
 	test_2()
 	test_3()
 	test_4()
+	test_5()
+	test_6()
+	test_7()
 }
 
 func test_1() {
@@ -72,4 +75,51 @@ func test_4() {
 
 	println(z1, z2, z3, z4, z5, z6)
 	println(f4, f5, f6, f7, f8)
+}
+
+func test_5() {
+    println("test_5")
+
+    var z0 = -45.8 + 1i
+    var z1 = 1 + 1i
+    var z2 = -9i
+    var z3 complex128 = 0.2i
+    var z4 complex64 = -9-45i
+
+    var z5 = z1 + z2 * z2 / z2 - z1
+
+    var z6 complex64 = 1 * 9i
+
+    println(z0, z1, z2, z3, z4, z5, z6)
+    println(
+        1+1+2i,
+        3*3+1i,
+        5/(4+1i),
+        z0+1,
+        z0*3.3,
+        1i/4,
+        1-8i/3,
+        1-9i/4-4i,
+    )
+}
+
+func test_6() {
+    println("test_6")
+
+    var z0 = -45.8 + 1i
+    z0 += 1
+    z0 += 4.4
+    z0 *= 3
+
+    println(z0)
+}
+
+func test_7() {
+    println("test_7")
+
+    var z = 1+8i
+    var t = 4.4-1.4i
+
+    println(z*t)
+    println(z/t)
 }

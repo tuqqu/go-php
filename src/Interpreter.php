@@ -191,6 +191,7 @@ final class Interpreter
         } catch (InternalError $err) {
             throw $err;
         } catch (\Throwable $throwable) {
+            dd($throwable);
             $this->onError($throwable->getMessage());
 
             return ExitCode::Failure;

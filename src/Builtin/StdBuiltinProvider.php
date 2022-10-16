@@ -68,7 +68,6 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineFuncs(): void
     {
-        //fixme move name to BuiltinFuncValue
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Len('len')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Cap('cap')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Copy('copy')));

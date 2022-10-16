@@ -9,6 +9,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
@@ -18,6 +19,7 @@ use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\SealableTrait;
+use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
@@ -35,6 +37,11 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
     {
         // fixme check
         throw new InternalError();
+    }
+
+    public static function fromSimpleNumber(SimpleNumber $number): static
+    {
+        return new static((float) $number->unwrap(), 0.0);
     }
 
     public function __construct(
@@ -61,9 +68,9 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
     {
         return \sprintf(
             '(%s%f%s%f)',
-            $this->real > 0 ? '+' : '',
+            $this->real >= 0 ? '+' : '',
             $this->real,
-            $this->imag > 0 ? '+' : '',
+            $this->imag >= 0 ? '+' : '',
             $this->imag,
         );
     }
@@ -86,6 +93,10 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
 
         $rhs = normalize_value($rhs);
 
+        if ($rhs instanceof SimpleNumber && $rhs->type() instanceof UntypedType) {
+            $rhs = static::fromSimpleNumber($rhs);
+        }
+
         return match ($op) {
             Operator::Plus => $this->add($rhs),
             Operator::Minus => $this->sub($rhs),
@@ -104,6 +115,10 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
         assert_values_compatible($this, $rhs);
 
         $rhs = normalize_value($rhs);
+
+        if ($rhs instanceof SimpleNumber && $rhs->type() instanceof UntypedType) {
+            $rhs = static::fromSimpleNumber($rhs);
+        }
 
         match ($op) {
             Operator::Eq => $this->assign($rhs),
@@ -168,12 +183,19 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
 
     final protected function div(self $value): static
     {
-        return new static($this->real / $value->real, $this->imag / $value->imag);
+        $a = $value->real**2 + $value->imag**2;
+        $b = ($this->real * $value->real + $this->imag * $value->imag) / $a;
+        $c = ($this->imag * $value->real - $this->real * $value->imag) / $a;
+
+        return new static($b, $c);
     }
 
     final protected function mul(self $value): static
     {
-        return new static($this->real * $value->real, $this->imag * $value->imag);
+        $a = $this->real * $value->real - $this->imag * $value->imag;
+        $b = $this->real * $value->imag + $this->imag * $value->real;
+
+        return new static($a, $b);
     }
 
     final protected function mutAdd(self $value): void

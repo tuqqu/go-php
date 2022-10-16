@@ -7,6 +7,9 @@ namespace GoPhp\GoValue\Int;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
+use GoPhp\GoValue\Complex\BaseComplexValue;
+use GoPhp\GoValue\Complex\Complex128Value;
+use GoPhp\GoValue\Complex\Complex64Value;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NonRefValue;
@@ -14,7 +17,6 @@ use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
 /**
- * @template-extends SimpleNumber<self>
  * @psalm-suppress ImplementedParamTypeMismatch
  */
 abstract class BaseIntValue extends SimpleNumber
@@ -225,26 +227,26 @@ abstract class BaseIntValue extends SimpleNumber
         };
     }
 
-    final protected function doBecomeTyped(NamedType $type): self
+    final protected function doBecomeTyped(NamedType $type): self|BaseComplexValue
     {
         if (!$this->type() instanceof UntypedType) {
             throw TypeError::implicitConversionError($this, $type);
         }
 
-        $number = $this->unwrap();
-
         return match ($type) {
-            NamedType::Int => new IntValue($number),
-            NamedType::Int8 => new Int8Value($number),
-            NamedType::Int16 => new Int16Value($number),
-            NamedType::Int32 => new Int32Value($number),
-            NamedType::Int64 => new Int64Value($number),
-            NamedType::Uint => new UintValue($number),
-            NamedType::Uint8 => new Uint8Value($number),
-            NamedType::Uint16 => new Uint16Value($number),
-            NamedType::Uint32 => new Uint32Value($number),
-            NamedType::Uint64 => new Uint64Value($number),
-            NamedType::Uintptr => new UintptrValue($number),
+            NamedType::Int => new IntValue($this->value),
+            NamedType::Int8 => new Int8Value($this->value),
+            NamedType::Int16 => new Int16Value($this->value),
+            NamedType::Int32 => new Int32Value($this->value),
+            NamedType::Int64 => new Int64Value($this->value),
+            NamedType::Uint => new UintValue($this->value),
+            NamedType::Uint8 => new Uint8Value($this->value),
+            NamedType::Uint16 => new Uint16Value($this->value),
+            NamedType::Uint32 => new Uint32Value($this->value),
+            NamedType::Uint64 => new Uint64Value($this->value),
+            NamedType::Uintptr => new UintptrValue($this->value),
+            NamedType::Complex64 => Complex64Value::fromSimpleNumber($this),
+            NamedType::Complex128 => Complex128Value::fromSimpleNumber($this),
             default => throw TypeError::implicitConversionError($this, $type),
         };
     }

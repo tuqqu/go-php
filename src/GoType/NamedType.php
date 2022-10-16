@@ -130,7 +130,9 @@ enum NamedType: string implements BasicType
             },
             self::Complex64,
             self::Complex128 => match ($other) {
-                UntypedType::UntypedComplex => true,
+                UntypedType::UntypedComplex,
+                UntypedType::UntypedFloat,
+                UntypedType::UntypedInt => true,
                 default => $this->equals($other),
             },
             self::Bool => match ($other) {

@@ -9,6 +9,9 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
+use GoPhp\GoValue\Complex\BaseComplexValue;
+use GoPhp\GoValue\Complex\Complex128Value;
+use GoPhp\GoValue\Complex\Complex64Value;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
 use GoPhp\GoValue\Int\Int16Value;
@@ -27,9 +30,6 @@ use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\normalize_value;
 
-/**
- * @template N of self
- */
 abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 {
     use SealableTrait;
@@ -45,7 +45,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
         return new static($value);
     }
 
-    final public function reify(?GoType $with = null): self
+    final public function reify(?GoType $with = null): self|BaseComplexValue
     {
         if ($this->type() instanceof UntypedType) {
             return $this->convertTo($with);
@@ -55,7 +55,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
     }
 
     // fixme move this to child classes
-    final public function convertTo(NamedType $type): self
+    final public function convertTo(NamedType $type): self|BaseComplexValue
     {
         $number = $this->unwrap();
 
@@ -73,11 +73,13 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
             NamedType::Uintptr => new UintptrValue((int) $number),
             NamedType::Float32 => new Float32Value((float) $number),
             NamedType::Float64 => new Float64Value((float) $number),
+            NamedType::Complex64 => Complex64Value::fromSimpleNumber($this),
+            NamedType::Complex128 => Complex128Value::fromSimpleNumber($this),
             default => throw TypeError::implicitConversionError($this, $type),
         };
     }
 
-    final public function becomeTyped(NamedType $type): self
+    final public function becomeTyped(NamedType $type): AddressableValue
     {
         $value = $this->doBecomeTyped($type);
 
@@ -97,7 +99,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
         return (string) $this->unwrap();
     }
 
-    abstract protected function doBecomeTyped(NamedType $type): self;
+    abstract protected function doBecomeTyped(NamedType $type): AddressableValue&Sealable;
 
     final public function operate(Operator $op): self|PointerValue
     {
@@ -116,6 +118,10 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
         assert_values_compatible($this, $rhs);
 
         $rhs = normalize_value($rhs);
+
+        if ($rhs instanceof BaseComplexValue && $this->type() instanceof UntypedType) {
+            return $rhs::fromSimpleNumber($this)->operateOn($op, $rhs);
+        }
 
         return match ($op) {
             Operator::Plus => $this->add($rhs),
@@ -189,59 +195,26 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 
     abstract protected function negate(): static;
 
-    /**
-     * @param N $value
-     */
     abstract protected function add(self $value): static;
 
-    /**
-     * @param N $value
-     */
     abstract protected function sub(self $value): static;
 
-    /**
-     * @param N $value
-     */
     abstract protected function div(self $value): static;
 
-    /**
-     * @param N $value
-     */
     abstract protected function mod(self $value): static;
 
-    /**
-     * @param N $value
-     */
     abstract protected function mul(self $value): static;
 
-    /**
-     * @param N $value
-     */
     abstract protected function mutAdd(self $value): void;
 
-    /**
-     * @param N $value
-     */
     abstract protected function mutSub(self $value): void;
 
-    /**
-     * @param N $value
-     */
     abstract protected function mutDiv(self $value): void;
 
-    /**
-     * @param N $value
-     */
     abstract protected function mutMod(self $value): void;
 
-    /**
-     * @param N $value
-     */
     abstract protected function mutMul(self $value): void;
 
-    /**
-     * @param N $value
-     */
     abstract protected function assign(self $value): void;
 
     protected function completeOperate(Operator $op): self|PointerValue
