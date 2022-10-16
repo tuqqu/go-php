@@ -16,6 +16,7 @@ use GoPhp\Operator;
 
 class OperationError extends \RuntimeException
 {
+    // fixme move unary to own method
     public static function undefinedOperator(Operator $op, AddressableValue $value, bool $unary = false): self
     {
         if ($op === Operator::Eq) {
@@ -74,7 +75,6 @@ class OperationError extends \RuntimeException
         );
     }
 
-    //fixme check cannotTakeAddressOfValue
     public static function cannotTakeAddressOfMapValue(GoType $type): self
     {
         return new self(

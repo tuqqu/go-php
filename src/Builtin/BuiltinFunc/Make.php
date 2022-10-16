@@ -83,7 +83,6 @@ class Make extends BaseBuiltinFunc
             return MapBuilder::fromType($type->type)->build();
         }
 
-        /** @psalm-suppress InvalidArgument */
         throw OperationError::wrongArgumentType($argv[0], 'slice, map or channel');
     }
 

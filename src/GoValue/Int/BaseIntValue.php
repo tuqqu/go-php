@@ -121,57 +121,57 @@ abstract class BaseIntValue extends SimpleNumber
 
     final protected function add(parent $value): static
     {
-        return self::newWithWrap($this->value + $value->value);
+        return self::newWithWrap($this->value + $value->unwrap());
     }
 
     final protected function sub(parent $value): static
     {
-        return self::newWithWrap($this->value - $value->value);
+        return self::newWithWrap($this->value - $value->unwrap());
     }
 
     final protected function div(parent $value): static
     {
-        return self::newWithWrap((int) ($this->value / $value->value));
+        return self::newWithWrap((int) ($this->value / $value->unwrap()));
     }
 
     final protected function mod(parent $value): static
     {
-        return self::newWithWrap($this->value % $value->value);
+        return self::newWithWrap($this->value % $value->unwrap());
     }
 
     final protected function mul(parent $value): static
     {
-        return self::newWithWrap($this->value * $value->value);
+        return self::newWithWrap($this->value * $value->unwrap());
     }
 
     final protected function mutAdd(parent $value): void
     {
-        $this->value = self::wrap($this->value + $value->value);
+        $this->value = self::wrap($this->value + $value->unwrap());
     }
 
     final protected function mutSub(parent $value): void
     {
-        $this->value = self::wrap($this->value - $value->value);
+        $this->value = self::wrap($this->value - $value->unwrap());
     }
 
     final protected function mutDiv(parent $value): void
     {
-        $this->value = self::wrap((int) ($this->value / $value->value));
+        $this->value = self::wrap((int) ($this->value / $value->unwrap()));
     }
 
     final protected function mutMod(parent $value): void
     {
-        $this->value = self::wrap($this->value % $value->value);
+        $this->value = self::wrap($this->value % $value->unwrap());
     }
 
     final protected function mutMul(parent $value): void
     {
-        $this->value = self::wrap($this->value * $value->value);
+        $this->value = self::wrap($this->value * $value->unwrap());
     }
 
     final protected function assign(parent $value): void
     {
-        $this->value = $value->value;
+        $this->value = $value->unwrap();
     }
 
     final protected function mutBitwiseAndNot(self $value): void

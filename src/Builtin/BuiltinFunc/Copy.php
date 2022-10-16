@@ -36,7 +36,6 @@ class Copy extends BaseBuiltinFunc
         $srcType = $src->value->type();
 
         if ($srcType instanceof BasicType && $srcType->isString()) {
-            /** @psalm-suppress InvalidArgument */
             assert_arg_type($dst, new SliceType(NamedType::Byte));
         } else {
             assert_arg_type($src, $dst->value->type());

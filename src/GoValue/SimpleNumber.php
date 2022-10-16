@@ -54,6 +54,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
         return $this;
     }
 
+    // fixme move this to child classes
     final public function convertTo(NamedType $type): self
     {
         $number = $this->unwrap();
@@ -156,7 +157,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
         return clone $this;
     }
 
-    public function equals(GoValue $rhs): BoolValue
+    public function equals(self $rhs): BoolValue
     {
         return new BoolValue($this->unwrap() === $rhs->unwrap());
     }

@@ -7,7 +7,7 @@ namespace GoPhp;
 use GoPhp\GoValue\AddressableValue;
 
 /**
- * @template V of AddressableValue
+ * @template V
  */
 final class Arg
 {

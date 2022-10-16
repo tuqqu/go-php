@@ -6,13 +6,16 @@ namespace GoPhp\Builtin;
 
 use GoPhp\Builtin\BuiltinFunc\Append;
 use GoPhp\Builtin\BuiltinFunc\Cap;
+use GoPhp\Builtin\BuiltinFunc\Complex;
 use GoPhp\Builtin\BuiltinFunc\Copy;
 use GoPhp\Builtin\BuiltinFunc\Delete;
+use GoPhp\Builtin\BuiltinFunc\Imag;
 use GoPhp\Builtin\BuiltinFunc\Len;
 use GoPhp\Builtin\BuiltinFunc\Make;
 use GoPhp\Builtin\BuiltinFunc\New_;
 use GoPhp\Builtin\BuiltinFunc\Print_;
 use GoPhp\Builtin\BuiltinFunc\Println;
+use GoPhp\Builtin\BuiltinFunc\Real;
 use GoPhp\Env\Environment;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
@@ -65,6 +68,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
     protected function defineFuncs(): void
     {
+        //fixme move name to BuiltinFuncValue
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Len('len')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Cap('cap')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Copy('copy')));
@@ -72,6 +76,9 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Make('make')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Delete('delete')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new New_('new')));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Complex('complex')));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Real('real')));
+        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Imag('imag')));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Println('println', $this->stderr)));
         $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Print_('print', $this->stderr)));
     }
@@ -93,6 +100,8 @@ class StdBuiltinProvider implements BuiltinProvider
         $this->env->defineType('uintptr', new TypeValue(NamedType::Uintptr));
         $this->env->defineType('float32', new TypeValue(NamedType::Float32));
         $this->env->defineType('float64', new TypeValue(NamedType::Float64));
+        $this->env->defineType('complex64', new TypeValue(NamedType::Complex64));
+        $this->env->defineType('complex128', new TypeValue(NamedType::Complex128));
 
         $this->env->defineTypeAlias('byte', $uint8);
         $this->env->defineTypeAlias('rune', $int32);

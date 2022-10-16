@@ -8,6 +8,8 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoType\Converter\NumberConverter;
 use GoPhp\GoType\Converter\StringConverter;
 use GoPhp\GoValue\BoolValue;
+use GoPhp\GoValue\Complex\Complex128Value;
+use GoPhp\GoValue\Complex\Complex64Value;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
 use GoPhp\GoValue\GoValue;
@@ -87,15 +89,12 @@ enum NamedType: string implements BasicType
             self::Uint32 => new Uint32Value(0),
             self::Uint64 => new Uint64Value(0),
             self::Uintptr => new UintptrValue(0),
-            self::Float32 => new Float32Value(0),
-            self::Float64 => new Float64Value(0),
-            //fixme add complex types
-            // self::Complex64 =>
-            // self::Complex128 =>
+            self::Float32 => new Float32Value(0.0),
+            self::Float64 => new Float64Value(0.0),
+            self::Complex64 => new Complex64Value(0.0, 0.0),
+            self::Complex128 => new Complex128Value(0.0, 0.0),
             self::Bool => BoolValue::false(),
             self::String => new StringValue(''),
-            // fixme remove after complex
-            default => throw new \UnhandledMatchError('not impls def val'),
         };
     }
 
@@ -127,6 +126,11 @@ enum NamedType: string implements BasicType
             self::Float32 => match ($other) {
                 UntypedType::UntypedFloat,
                 UntypedType::UntypedRoundFloat => true,
+                default => $this->equals($other),
+            },
+            self::Complex64,
+            self::Complex128 => match ($other) {
+                UntypedType::UntypedComplex => true,
                 default => $this->equals($other),
             },
             self::Bool => match ($other) {

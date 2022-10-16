@@ -18,6 +18,7 @@ use GoParser\Ast\Expr\FuncLit;
 use GoParser\Ast\Expr\FuncType as AstFuncType;
 use GoParser\Ast\Expr\GroupExpr;
 use GoParser\Ast\Expr\Ident;
+use GoParser\Ast\Expr\ImagLit;
 use GoParser\Ast\Expr\IndexExpr;
 use GoParser\Ast\Expr\IntLit;
 use GoParser\Ast\Expr\MapType as AstMapType;
@@ -99,6 +100,7 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
+use GoPhp\GoValue\Complex\UntypedComplexValue;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
@@ -359,6 +361,8 @@ final class Interpreter
                     null;
 
                 if ($value === null) {
+
+                    dd($initExprs, $i);
                     throw DefinitionError::uninitialisedConstant($ident->name);
                 }
 
@@ -1180,6 +1184,7 @@ final class Interpreter
 //            $expr instanceof RawStringLit => $this->evalStringLit($expr),
             $expr instanceof IntLit => $this->evalIntLit($expr),
             $expr instanceof FloatLit => $this->evalFloatLit($expr),
+            $expr instanceof ImagLit => $this->evalImagLit($expr),
             $expr instanceof UnaryExpr => $this->evalUnaryExpr($expr),
             $expr instanceof BinaryExpr => $this->evalBinaryExpr($expr),
             $expr instanceof GroupExpr => $this->evalGroupExpr($expr),
@@ -1300,6 +1305,11 @@ final class Interpreter
     private function evalFloatLit(FloatLit $lit): UntypedFloatValue
     {
         return UntypedFloatValue::fromString($lit->digits);
+    }
+
+    private function evalImagLit(ImagLit $lit): UntypedComplexValue
+    {
+        return UntypedComplexValue::fromString($lit->digits);
     }
 
     private function evalBinaryExpr(BinaryExpr $expr): GoValue
@@ -1601,6 +1611,7 @@ final class Interpreter
 
     private function onError(string $error): void
     {
+        // fixme add error handler
         $this->streams->stderr()->writeln($error);
     }
 }

@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use GoPhp\Error\InternalError;
+use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\NamedType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\WrappedValue;
@@ -42,4 +46,17 @@ function normalize_type(GoType $type): GoType
     }
 
     return $type;
+}
+
+/**
+ * @internal
+ */
+function float_type_from_complex(BasicType $complexType): NamedType
+{
+    return match ($complexType) {
+        NamedType::Complex64 => NamedType::Float32,
+        NamedType::Complex128,
+        UntypedType::UntypedComplex => NamedType::Float64,
+        default => throw InternalError::unreachable($complexType),
+    };
 }

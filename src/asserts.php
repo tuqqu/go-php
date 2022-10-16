@@ -110,7 +110,7 @@ function assert_arg_value(Arg $arg, string $value, string $name): void
 
 /**
  * @internal
- * @psalm-assert Arg<BaseIntValue> $arg
+ * @psalm-assert Arg<BaseIntValue|BaseFloatValue> $arg
  */
 function assert_arg_int(Arg $arg): void
 {
@@ -119,6 +119,20 @@ function assert_arg_int(Arg $arg): void
         && ($arg->value instanceof BaseFloatValue && $arg->value->type() !== UntypedType::UntypedRoundFloat)
     ) {
         throw OperationError::wrongArgumentType($arg, 'int');
+    }
+}
+
+/**
+ * @internal
+ * @psalm-assert Arg<BaseIntValue|BaseFloatValue> $arg
+ */
+function assert_arg_float(Arg $arg): void
+{
+    if (
+        !$arg->value instanceof BaseFloatValue
+        && !$arg->value instanceof BaseIntValue
+    ) {
+        throw OperationError::wrongArgumentType($arg, 'float');
     }
 }
 

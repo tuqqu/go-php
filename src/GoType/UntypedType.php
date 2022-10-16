@@ -16,6 +16,7 @@ enum UntypedType implements BasicType
     case UntypedFloat;
     case UntypedRoundFloat;
     case UntypedBool;
+    case UntypedComplex;
 
     public function name(): string
     {
@@ -25,6 +26,7 @@ enum UntypedType implements BasicType
             self::UntypedFloat,
             self::UntypedRoundFloat => 'untyped float',
             self::UntypedBool => 'untyped bool',
+            self::UntypedComplex => 'untyped complex',
         };
     }
 
@@ -41,6 +43,7 @@ enum UntypedType implements BasicType
             self::UntypedFloat,
             self::UntypedRoundFloat => NamedType::Float32,
             self::UntypedBool => NamedType::Bool,
+            self::UntypedComplex => NamedType::Complex128,
         };
     }
 
@@ -74,11 +77,26 @@ enum UntypedType implements BasicType
             },
             self::UntypedRoundFloat => match ($other) {
                 NamedType::Float32,
-                NamedType::Float64 => true,
-                default => $this->isCompatible(self::UntypedInt),
+                NamedType::Float64,
+                NamedType::Int,
+                NamedType::Int8,
+                NamedType::Int32,
+                NamedType::Int64,
+                NamedType::Uint,
+                NamedType::Uint8,
+                NamedType::Uint16,
+                NamedType::Uint32,
+                NamedType::Uint64,
+                NamedType::Uintptr => true,
+                default => $this->equals($other),
             },
             self::UntypedBool => match ($other) {
                 NamedType::Bool => true,
+                default => $this->equals($other),
+            },
+            self::UntypedComplex => match ($other) {
+                NamedType::Complex64,
+                NamedType::Complex128 => true,
                 default => $this->equals($other),
             },
         };

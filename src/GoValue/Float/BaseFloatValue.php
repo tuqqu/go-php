@@ -16,6 +16,7 @@ use GoPhp\GoValue\SimpleNumber;
  */
 abstract class BaseFloatValue extends SimpleNumber
 {
+    public const NAME = 'float';
     protected float $value;
 
     public function __construct(float $value)
@@ -30,7 +31,7 @@ abstract class BaseFloatValue extends SimpleNumber
 
     public function toString(): string
     {
-        return (string) $this->value;
+        return \sprintf('%f', $this->value);
     }
 
     abstract public function type(): BasicType;
