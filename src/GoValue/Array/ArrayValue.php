@@ -12,7 +12,7 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\Sequence;
@@ -27,7 +27,7 @@ use function GoPhp\assert_values_compatible;
 
 /**
  * @template V of GoValue
- * @template-implements Sequence<BaseIntValue, V>
+ * @template-implements Sequence<IntNumber, V>
  */
 final class ArrayValue implements Sliceable, Sequence, AddressableValue
 {

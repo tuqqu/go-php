@@ -7,7 +7,7 @@ namespace GoPhp\GoType\Converter;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\StringValue;
 
@@ -19,14 +19,14 @@ final class StringConverter
     {
         return match (true) {
             $value instanceof StringValue => $value,
-            $value instanceof BaseIntValue => new StringValue(self::char($value)),
+            $value instanceof IntNumber => new StringValue(self::char($value)),
             $value instanceof SliceValue
             && self::isSliceConvertible($value) => new StringValue(self::chars($value->unwrap())),
             default => throw TypeError::conversionError($value, NamedType::String),
         };
     }
 
-    private static function char(BaseIntValue $value): string
+    private static function char(IntNumber $value): string
     {
         $int = $value->unwrap();
 

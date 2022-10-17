@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Complex;
 
 use GoPhp\GoType\NamedType;
 
-final class Complex128Value extends BaseComplexValue
+final class Complex128Value extends ComplexNumber
 {
     public function type(): NamedType
     {

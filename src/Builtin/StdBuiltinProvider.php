@@ -21,14 +21,14 @@ use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Stream\OutputStream;
 
 class StdBuiltinProvider implements BuiltinProvider
 {
-    private readonly BaseIntValue&Iota $iota;
+    private readonly IntNumber&Iota $iota;
     private readonly Environment $env;
     private readonly OutputStream $stderr;
 

@@ -8,7 +8,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\Operator;
@@ -19,7 +19,7 @@ use function GoPhp\assert_index_sliceable;
 use function GoPhp\assert_values_compatible;
 
 /**
- * @template-implements Sequence<BaseIntValue, UntypedIntValue|Uint8Value>
+ * @template-implements Sequence<IntNumber, UntypedIntValue|Uint8Value>
  * @template-implements Unpackable<UntypedIntValue>
  */
 final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, NonRefValue, AddressableValue

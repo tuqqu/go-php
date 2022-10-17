@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Int;
 
 use GoPhp\GoType\NamedType;
 
-final class Int32Value extends BaseIntValue
+final class Int32Value extends IntNumber
 {
     public const MIN = -2_147_483_648;
     public const MAX = +2_147_483_647;

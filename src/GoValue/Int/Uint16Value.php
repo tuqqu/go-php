@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Int;
 
 use GoPhp\GoType\NamedType;
 
-final class Uint16Value extends BaseIntValue
+final class Uint16Value extends IntNumber
 {
     public const MIN = 0;
     public const MAX = 65_535;

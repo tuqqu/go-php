@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Complex;
 
 use GoPhp\GoType\UntypedType;
 
-final class UntypedComplexValue extends BaseComplexValue
+final class UntypedComplexValue extends ComplexNumber
 {
     public static function fromString(string $digits): self
     {

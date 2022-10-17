@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Int;
 
 use GoPhp\GoType\NamedType;
 
-final class Uint8Value extends BaseIntValue
+final class Uint8Value extends IntNumber
 {
     public const MIN = 0;
     public const MAX = 255;

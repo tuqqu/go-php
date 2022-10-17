@@ -13,7 +13,7 @@ use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Array\UnderlyingArray;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\Sequence;
@@ -31,7 +31,7 @@ use const GoPhp\NIL;
 
 /**
  * @template V of GoValue
- * @template-implements Sequence<BaseIntValue, V>
+ * @template-implements Sequence<IntNumber, V>
  * @template-implements Unpackable<V>
  */
 final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableValue

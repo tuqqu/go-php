@@ -7,7 +7,7 @@ namespace GoPhp\GoValue\Int;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
-use GoPhp\GoValue\Complex\BaseComplexValue;
+use GoPhp\GoValue\Complex\ComplexNumber;
 use GoPhp\GoValue\Complex\Complex128Value;
 use GoPhp\GoValue\Complex\Complex64Value;
 use GoPhp\GoValue\PointerValue;
@@ -19,7 +19,7 @@ use GoPhp\Operator;
 /**
  * @psalm-suppress ImplementedParamTypeMismatch
  */
-abstract class BaseIntValue extends SimpleNumber
+abstract class IntNumber extends SimpleNumber
 {
     public const NAME = 'int';
 
@@ -227,7 +227,7 @@ abstract class BaseIntValue extends SimpleNumber
         };
     }
 
-    final protected function doBecomeTyped(NamedType $type): self|BaseComplexValue
+    final protected function doBecomeTyped(NamedType $type): self|ComplexNumber
     {
         if (!$this->type() instanceof UntypedType) {
             throw TypeError::implicitConversionError($this, $type);

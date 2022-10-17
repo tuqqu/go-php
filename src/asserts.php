@@ -11,10 +11,10 @@ use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\UntypedType;
-use GoPhp\GoValue\Float\BaseFloatValue;
+use GoPhp\GoValue\Float\FloatNumber;
 use GoPhp\GoValue\Func\Func;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\UntypedNilValue;
 
@@ -110,13 +110,13 @@ function assert_arg_value(Arg $arg, string $value, string $name): void
 
 /**
  * @internal
- * @psalm-assert Arg<BaseIntValue|BaseFloatValue> $arg
+ * @psalm-assert Arg<IntNumber|FloatNumber> $arg
  */
 function assert_arg_int(Arg $arg): void
 {
     if (
-        !$arg->value instanceof BaseIntValue
-        && ($arg->value instanceof BaseFloatValue && $arg->value->type() !== UntypedType::UntypedRoundFloat)
+        !$arg->value instanceof IntNumber
+        && ($arg->value instanceof FloatNumber && $arg->value->type() !== UntypedType::UntypedRoundFloat)
     ) {
         throw OperationError::wrongArgumentType($arg, 'int');
     }
@@ -124,13 +124,13 @@ function assert_arg_int(Arg $arg): void
 
 /**
  * @internal
- * @psalm-assert Arg<BaseIntValue|BaseFloatValue> $arg
+ * @psalm-assert Arg<IntNumber|FloatNumber> $arg
  */
 function assert_arg_float(Arg $arg): void
 {
     if (
-        !$arg->value instanceof BaseFloatValue
-        && !$arg->value instanceof BaseIntValue
+        !$arg->value instanceof FloatNumber
+        && !$arg->value instanceof IntNumber
     ) {
         throw OperationError::wrongArgumentType($arg, 'float');
     }
@@ -191,15 +191,15 @@ function assert_index_sliceable(int $cap, int $low, int $high, ?int $max = null)
 
 /**
  * @internal
- * @psalm-assert BaseIntValue|BaseFloatValue $index
+ * @psalm-assert IntNumber|FloatNumber $index
  */
 function assert_index_int(GoValue $index, string $context): void
 {
     if (
-        !$index instanceof BaseIntValue
+        !$index instanceof IntNumber
         && $index->type() !== UntypedType::UntypedRoundFloat
     ) {
-        throw DefinitionError::indexOfWrongType($index, BaseIntValue::NAME, $context);
+        throw DefinitionError::indexOfWrongType($index, IntNumber::NAME, $context);
     }
 }
 

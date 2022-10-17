@@ -106,7 +106,7 @@ use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Map\MapBuilder;
@@ -1479,7 +1479,7 @@ final class Interpreter
         } elseif ($arrayType->len instanceof Expr) {
             $len = $this->tryEvalConstExpr($arrayType->len) ?? throw ProgramError::invalidArrayLength();
 
-            if (!$len instanceof BaseIntValue) {
+            if (!$len instanceof IntNumber) {
                 throw TypeError::invalidArrayLen($len);
             }
         } else {

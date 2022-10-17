@@ -6,9 +6,9 @@ namespace GoPhp\Builtin;
 
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\UntypedType;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 
-class StdIota extends BaseIntValue implements Iota
+class StdIota extends IntNumber implements Iota
 {
     public function __construct(int $value = 0)
     {

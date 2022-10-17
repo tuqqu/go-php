@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
-use GoPhp\GoValue\Complex\BaseComplexValue;
+use GoPhp\GoValue\Complex\ComplexNumber;
 use GoPhp\GoValue\Complex\Complex128Value;
 use GoPhp\GoValue\Complex\Complex64Value;
 use GoPhp\GoValue\Complex\UntypedComplexValue;
@@ -21,7 +21,7 @@ use function GoPhp\assert_argc;
  */
 class Complex extends BaseBuiltinFunc
 {
-    public function __invoke(Argv $argv): BaseComplexValue
+    public function __invoke(Argv $argv): ComplexNumber
     {
         assert_argc($this, $argv, 2);
 

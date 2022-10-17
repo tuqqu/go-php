@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Float;
 
 use GoPhp\GoType\NamedType;
 
-final class Float64Value extends BaseFloatValue
+final class Float64Value extends FloatNumber
 {
     public function type(): NamedType
     {

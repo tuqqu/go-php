@@ -8,7 +8,7 @@ use GoPhp\Argv;
 use GoPhp\Error\OperationError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
-use GoPhp\GoValue\Int\BaseIntValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
@@ -76,7 +76,7 @@ class Make extends BaseBuiltinFunc
 
             if (isset($argv[1])) {
                 // we do not use this value, just validating it
-                assert_arg_value($argv[1], BaseIntValue::class, BaseIntValue::NAME);
+                assert_arg_value($argv[1], IntNumber::class, IntNumber::NAME);
                 assert_index_positive($argv[1]->value->unwrap());
             }
 

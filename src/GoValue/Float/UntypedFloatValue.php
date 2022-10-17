@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Float;
 
 use GoPhp\GoType\UntypedType;
 
-final class UntypedFloatValue extends BaseFloatValue
+final class UntypedFloatValue extends FloatNumber
 {
     private UntypedType $type;
 

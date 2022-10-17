@@ -9,7 +9,7 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
-use GoPhp\GoValue\Complex\BaseComplexValue;
+use GoPhp\GoValue\Complex\ComplexNumber;
 use GoPhp\GoValue\Complex\Complex128Value;
 use GoPhp\GoValue\Complex\Complex64Value;
 use GoPhp\GoValue\Float\Float32Value;
@@ -45,7 +45,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
         return new static($value);
     }
 
-    final public function reify(?GoType $with = null): self|BaseComplexValue
+    final public function reify(?GoType $with = null): self|ComplexNumber
     {
         if ($this->type() instanceof UntypedType) {
             return $this->convertTo($with);
@@ -55,7 +55,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
     }
 
     // fixme move this to child classes
-    final public function convertTo(NamedType $type): self|BaseComplexValue
+    final public function convertTo(NamedType $type): self|ComplexNumber
     {
         $number = $this->unwrap();
 
@@ -119,7 +119,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 
         $rhs = normalize_value($rhs);
 
-        if ($rhs instanceof BaseComplexValue && $this->type() instanceof UntypedType) {
+        if ($rhs instanceof ComplexNumber && $this->type() instanceof UntypedType) {
             return $rhs::fromSimpleNumber($this)->operateOn($op, $rhs);
         }
 

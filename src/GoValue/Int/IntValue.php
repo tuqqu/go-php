@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Int;
 
 use GoPhp\GoType\NamedType;
 
-final class IntValue extends BaseIntValue
+final class IntValue extends IntNumber
 {
     public function type(): NamedType
     {

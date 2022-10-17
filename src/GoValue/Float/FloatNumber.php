@@ -15,7 +15,7 @@ use GoPhp\GoValue\SimpleNumber;
 /**
  * @psalm-suppress ImplementedParamTypeMismatch
  */
-abstract class BaseFloatValue extends SimpleNumber
+abstract class FloatNumber extends SimpleNumber
 {
     public const NAME = 'float';
     protected float $value;

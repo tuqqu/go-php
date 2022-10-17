@@ -7,7 +7,7 @@ namespace GoPhp\GoValue\Int;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\UntypedType;
 
-final class UntypedIntValue extends BaseIntValue
+final class UntypedIntValue extends IntNumber
 {
     public function __construct(
         int $value,

@@ -13,7 +13,7 @@ use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
-use GoPhp\GoValue\Float\BaseFloatValue;
+use GoPhp\GoValue\Float\FloatNumber;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\PointerValue;
@@ -26,7 +26,7 @@ use function GoPhp\assert_values_compatible;
 use function GoPhp\float_type_from_complex;
 use function GoPhp\normalize_value;
 
-abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableValue
+abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 {
     use SealableTrait;
     use AddressableTrait;
@@ -57,6 +57,7 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
 
     final public function reify(?GoType $with = null): self
     {
+        //fixme
 //        if ($this->type() instanceof UntypedType) {
 //            return $this->convertTo($with);
 //        }
@@ -141,12 +142,12 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
         return new BoolValue($this->real === $rhs->real && $this->imag === $rhs->imag);
     }
 
-    final public function real(): BaseFloatValue
+    final public function real(): FloatNumber
     {
         return $this->createFloat($this->real);
     }
 
-    final public function imag(): BaseFloatValue
+    final public function imag(): FloatNumber
     {
         return $this->createFloat($this->imag);
     }
@@ -156,7 +157,7 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
     /**
      * @psalm-suppress
      */
-    final protected function createFloat(float $float): BaseFloatValue
+    final protected function createFloat(float $float): FloatNumber
     {
         return float_type_from_complex($this->type())->defaultValue()::create($float);
     }
@@ -183,19 +184,12 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
 
     final protected function div(self $value): static
     {
-        $a = $value->real**2 + $value->imag**2;
-        $b = ($this->real * $value->real + $this->imag * $value->imag) / $a;
-        $c = ($this->imag * $value->real - $this->real * $value->imag) / $a;
-
-        return new static($b, $c);
+        return new static(...self::computeForDiv($this, $value));
     }
 
     final protected function mul(self $value): static
     {
-        $a = $this->real * $value->real - $this->imag * $value->imag;
-        $b = $this->real * $value->imag + $this->imag * $value->real;
-
-        return new static($a, $b);
+        return new static(...self::computeForMul($this, $value));
     }
 
     final protected function mutAdd(self $value): void
@@ -212,19 +206,46 @@ abstract class BaseComplexValue implements NonRefValue, Sealable, AddressableVal
 
     final protected function mutDiv(self $value): void
     {
-        $this->real /= $value->real;
-        $this->imag /= $value->imag;
+        [$real, $imag] = self::computeForDiv($this, $value);
+
+        $this->real = $real;
+        $this->imag = $imag;
     }
 
     final protected function mutMul(self $value): void
     {
-        $this->real *= $value->real;
-        $this->imag *= $value->imag;
+        [$real, $imag] = self::computeForMul($this, $value);
+
+        $this->real = $real;
+        $this->imag = $imag;
     }
 
     final protected function assign(self $value): void
     {
         $this->real = $value->real;
         $this->imag = $value->imag;
+    }
+
+    /**
+     * @return array{float, float}
+     */
+    private static function computeForMul(self $lhs, self $rhs): array
+    {
+        $real = $lhs->real * $rhs->real - $lhs->imag * $rhs->imag;
+        $imag = $lhs->real * $rhs->imag + $lhs->imag * $rhs->real;
+
+        return [$real, $imag];
+    }
+
+    /**
+     * @return array{float, float}
+     */
+    private static function computeForDiv(self $lhs, self $rhs): array
+    {
+        $denominator = $rhs->real**2 + $rhs->imag**2;
+        $real = ($lhs->real * $rhs->real + $lhs->imag * $rhs->imag) / $denominator;
+        $imag = ($lhs->imag * $rhs->real - $lhs->real * $rhs->imag) / $denominator;
+
+        return [$real, $imag];
     }
 }
