@@ -17,7 +17,7 @@ use GoPhp\Operator;
  * e.g. make([]int, 2, 3)
  *           ^^^^^
  */
-final class TypeValue implements Invokable, AddressableValue
+final class TypeValue implements ConstInvokable, AddressableValue
 {
     use AddressableTrait;
 

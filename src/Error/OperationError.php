@@ -163,6 +163,11 @@ class OperationError extends \RuntimeException
         return new self('invalid operation: 3-index slice of string');
     }
 
+    public static function notConstantExpr(GoValue $value): self
+    {
+        return new self(\sprintf('%s is not constant', self::valueToString($value)));
+    }
+
     final protected static function valueToString(GoValue $value): string
     {
         if (!$value instanceof AddressableValue) {

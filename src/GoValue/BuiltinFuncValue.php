@@ -10,7 +10,7 @@ use GoPhp\Error\TypeError;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
-final class BuiltinFuncValue implements Invokable, GoValue
+final class BuiltinFuncValue implements ConstInvokable, GoValue
 {
     public readonly BuiltinFuncType $type;
     public readonly BuiltinFunc $func;

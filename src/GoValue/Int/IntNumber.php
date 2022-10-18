@@ -218,12 +218,12 @@ abstract class IntNumber extends SimpleNumber
         }
     }
 
-    final protected static function wrap(int|float $value): int|float
+    final protected static function wrap(int|float $value): int
     {
         return match (true) {
             $value < static::MIN => self::wrap($value + static::MAX),
             $value > static::MAX => self::wrap($value - static::MAX),
-            default => $value,
+            default => (int) $value,
         };
     }
 

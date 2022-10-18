@@ -49,6 +49,7 @@ function normalize_type(GoType $type): GoType
 }
 
 /**
+ * fixme: move to class
  * @internal
  */
 function float_type_from_complex(BasicType $complexType): NamedType

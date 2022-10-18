@@ -101,6 +101,7 @@ use GoPhp\GoValue\Array\ArrayBuilder;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Complex\UntypedComplexValue;
+use GoPhp\GoValue\ConstInvokable;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
@@ -142,7 +143,7 @@ final class Interpreter
     private string $currentPackage;
     private bool $packageScope = false;
     private ?FuncValue $entryPoint = null;
-    private bool $constDefinition = false;
+    private bool $constContext = false;
     private int $switchContext = 0;
     /** @var array<callable(): GoValue> */
     private array $initializers = [];
@@ -191,7 +192,6 @@ final class Interpreter
         } catch (InternalError $err) {
             throw $err;
         } catch (\Throwable $throwable) {
-            dd($throwable);
             $this->onError($throwable->getMessage());
 
             return ExitCode::Failure;
@@ -331,7 +331,7 @@ final class Interpreter
 
     private function evalConstDeclStmt(ConstDecl $decl): None
     {
-        $this->constDefinition = true;
+        $this->constContext = true;
         $initExprs = [];
 
         foreach (self::wrapSpecs($decl->spec) as $j => $spec) {
@@ -362,8 +362,6 @@ final class Interpreter
                     null;
 
                 if ($value === null) {
-
-                    dd($initExprs, $i);
                     throw DefinitionError::uninitialisedConstant($ident->name);
                 }
 
@@ -378,7 +376,7 @@ final class Interpreter
             }
         }
 
-        $this->constDefinition = false;
+        $this->constContext = false;
 
         return None::None;
     }
@@ -523,6 +521,10 @@ final class Interpreter
 
         if (!$func instanceof Invokable) {
             throw OperationError::nonFunctionCall($func);
+        }
+
+        if ($this->constContext && !$func instanceof ConstInvokable) {
+            throw OperationError::notConstantExpr($func);
         }
 
         /** @var Invokable $func */
@@ -1163,26 +1165,34 @@ final class Interpreter
     {
         $value = $this->tryEvalConstExpr($expr);
 
-        return match (true) {
-            // literals
-            $value !== null => $value,
+        if ($value !== null) {
+            return $value;
+        }
+
+        $value = match (true) {
             $expr instanceof CallExpr => $this->evalCallExpr($expr),
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof SliceExpr => $this->evalSliceExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
             $expr instanceof FuncLit => $this->evalFuncLit($expr),
-//            $expr instanceof AstType => $this->evalTypeConversion($expr),
             default => throw InternalError::unreachable($expr),
         };
+
+        if ($this->constContext) {
+            throw OperationError::notConstantExpr($value);
+        }
+
+        return $value;
     }
 
     private function tryEvalConstExpr(Expr $expr): ?GoValue
     {
         return match (true) {
             // literals
+            $expr instanceof CallExpr => $this->evalCallExpr($expr),
             $expr instanceof RuneLit => $this->evalRuneLit($expr),
             $expr instanceof StringLit => $this->evalStringLit($expr),
-//            $expr instanceof RawStringLit => $this->evalStringLit($expr),
+            // $expr instanceof RawStringLit => $this->evalStringLit($expr),
             $expr instanceof IntLit => $this->evalIntLit($expr),
             $expr instanceof FloatLit => $this->evalFloatLit($expr),
             $expr instanceof ImagLit => $this->evalImagLit($expr),
@@ -1389,7 +1399,7 @@ final class Interpreter
     {
         $value = $this->env->get($ident->name, $this->currentPackage)->unwrap();
 
-        if ($value === $this->iota && !$this->constDefinition) {
+        if ($value === $this->iota && !$this->constContext) {
             throw ProgramError::iotaMisuse();
         }
 
