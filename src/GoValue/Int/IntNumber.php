@@ -10,6 +10,8 @@ use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Complex\ComplexNumber;
 use GoPhp\GoValue\Complex\Complex128Value;
 use GoPhp\GoValue\Complex\Complex64Value;
+use GoPhp\GoValue\Float\Float32Value;
+use GoPhp\GoValue\Float\Float64Value;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NonRefValue;
@@ -227,7 +229,7 @@ abstract class IntNumber extends SimpleNumber
         };
     }
 
-    final protected function doBecomeTyped(NamedType $type): self|ComplexNumber
+    final protected function doBecomeTyped(NamedType $type): parent|ComplexNumber
     {
         if (!$this->type() instanceof UntypedType) {
             throw TypeError::implicitConversionError($this, $type);
@@ -245,6 +247,8 @@ abstract class IntNumber extends SimpleNumber
             NamedType::Uint32 => new Uint32Value($this->value),
             NamedType::Uint64 => new Uint64Value($this->value),
             NamedType::Uintptr => new UintptrValue($this->value),
+            NamedType::Float32 => new Float32Value($this->value),
+            NamedType::Float64 => new Float64Value($this->value),
             NamedType::Complex64 => Complex64Value::fromSimpleNumber($this),
             NamedType::Complex128 => Complex128Value::fromSimpleNumber($this),
             default => throw TypeError::implicitConversionError($this, $type),

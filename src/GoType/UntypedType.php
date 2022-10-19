@@ -70,7 +70,8 @@ enum UntypedType implements BasicType
                 NamedType::Uintptr,
                 NamedType::Complex64,
                 NamedType::Complex128,
-                self::UntypedComplex => true,
+                self::UntypedComplex,
+                self::UntypedRoundFloat => true,
                 default => $this->equals($other),
             },
             self::UntypedFloat => match ($other) {
@@ -83,6 +84,8 @@ enum UntypedType implements BasicType
                 default => $this->equals($other),
             },
             self::UntypedRoundFloat => match ($other) {
+                self::UntypedInt,
+                self::UntypedRune,
                 self::UntypedFloat,
                 NamedType::Float32,
                 NamedType::Float64,
