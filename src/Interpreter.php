@@ -74,6 +74,7 @@ use GoParser\Ast\StmtList;
 use GoParser\Ast\TypeDef;
 use GoParser\Ast\TypeSpec;
 use GoParser\Ast\VarSpec;
+use GoParser\Error;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
 use GoPhp\Builtin\BuiltinProvider;
@@ -81,11 +82,14 @@ use GoPhp\Builtin\Iota;
 use GoPhp\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
 use GoPhp\Env\EnvMap;
+use GoPhp\Error\AbortExecutionError;
 use GoPhp\Error\DefinitionError;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\OperationError;
 use GoPhp\Error\ProgramError;
 use GoPhp\Error\TypeError;
+use GoPhp\ErrorHandler\ErrorHandler;
+use GoPhp\ErrorHandler\OutputToStream;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\GoType;
@@ -149,27 +153,31 @@ final class Interpreter
     private array $initializers = [];
     private readonly Argv $argv;
 
+    private readonly ErrorHandler $errorHandler;
+
     public function __construct(
-        string                             $source,
+        private string $source,
         ?BuiltinProvider                   $builtin = null,
         array             $argv = [],
         private readonly StreamProvider    $streams = new StdStreamProvider(),
         private readonly FuncTypeValidator $entryPointValidator = new VoidFuncTypeValidator('main', 'main'),
         private readonly FuncTypeValidator $initValidator = new VoidFuncTypeValidator('init'),
         private readonly string            $gopath = '',
+        ?ErrorHandler $errorHandler = null,
     ) {
         //fixme default provider
         if ($builtin === null) {
             $builtin = new StdBuiltinProvider($this->streams->stderr());
         }
 
+        $this->errorHandler = $errorHandler === null
+            ? new OutputToStream($this->streams->stderr())
+            : $errorHandler;
+
         $this->iota = $builtin->iota();
         $this->jumpStack = new JumpStack();
         $this->deferStack = new DeferStack();
         $this->env = new Environment($builtin->env());
-
-        $ast = self::parseSourceToAst($source);
-        $this->setAst($ast);
 
         $argvBuilder = new ArgvBuilder();
         foreach ($argv as $arg) {
@@ -179,9 +187,14 @@ final class Interpreter
         $this->argv = $argvBuilder->build();
     }
 
+    /**
+     * @throws InternalError unexpected error during the execution
+     */
     public function run(): ExitCode
     {
         try {
+            $ast = $this->parseSourceToAst($this->source);
+            $this->setAst($ast);
             $this->evalDeclsInOrder();
 
             if ($this->entryPoint === null) {
@@ -189,10 +202,12 @@ final class Interpreter
             }
 
             $this->callFunc(fn (): GoValue => ($this->entryPoint)($this->argv));
-        } catch (InternalError $err) {
-            throw $err;
-        } catch (\Throwable $throwable) {
-            $this->onError($throwable->getMessage());
+        } catch (InternalError $error) {
+            throw $error;
+        } catch (\Throwable $error) {
+            if (!$error instanceof AbortExecutionError) {
+                $this->onError($error->getMessage());
+            }
 
             return ExitCode::Failure;
         }
@@ -256,9 +271,9 @@ final class Interpreter
             $path = \trim(\trim($spec->path->str, '"'), '"');
             $path = $this->resolveImportPath($path);
             $source = \file_get_contents($path);
-            $ast = self::parseSourceToAst($source);
-
+            $ast = $this->parseSourceToAst($source);
             $this->setAst($ast);
+
             $this->evalDeclsInOrder();
         }
 
@@ -288,14 +303,11 @@ final class Interpreter
         $ast = $parser->parse();
 
         if ($parser->hasErrors()) {
-            $errs = $parser->getErrors();
-            $lastIndex = \array_key_last($errs);
-
-            for ($i = 0; $i < $lastIndex; $i++) {
-                $this->onError((string) $errs[$i]);
+            foreach ($parser->getErrors() as $error) {
+                $this->errorHandler->onError($error);
             }
 
-            throw $errs[$lastIndex];
+            throw new AbortExecutionError();
         }
 
         return $ast;

@@ -136,7 +136,7 @@ class OperationError extends \RuntimeException
         return new self(\sprintf($msg, $expected, $actual));
     }
 
-    public static function wrongArgumentType(Arg $arg, string|GoType $expectedType)
+    public static function wrongArgumentType(Arg $arg, string|GoType $expectedType): self
     {
         return new self(
             \sprintf(
