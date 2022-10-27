@@ -152,31 +152,33 @@ final class Interpreter
     /** @var array<callable(): GoValue> */
     private array $initializers = [];
     private readonly Argv $argv;
-
     private readonly ErrorHandler $errorHandler;
 
+    /**
+     * @param list<GoValue> $argv
+     */
     public function __construct(
-        private string $source,
-        ?BuiltinProvider                   $builtin = null,
-        array             $argv = [],
-        private readonly StreamProvider    $streams = new StdStreamProvider(),
+        private readonly string $source,
+        ?BuiltinProvider $builtin = null,
+        array $argv = [],
+        ?ErrorHandler $errorHandler = null,
+        private readonly StreamProvider $streams = new StdStreamProvider(),
         private readonly FuncTypeValidator $entryPointValidator = new VoidFuncTypeValidator('main', 'main'),
         private readonly FuncTypeValidator $initValidator = new VoidFuncTypeValidator('init'),
-        private readonly string            $gopath = '',
-        ?ErrorHandler $errorHandler = null,
+        private readonly string $gopath = '',
     ) {
-        //fixme default provider
-        if ($builtin === null) {
-            $builtin = new StdBuiltinProvider($this->streams->stderr());
-        }
+        $this->jumpStack = new JumpStack();
+        $this->deferStack = new DeferStack();
 
         $this->errorHandler = $errorHandler === null
             ? new OutputToStream($this->streams->stderr())
             : $errorHandler;
 
+        if ($builtin === null) {
+            $builtin = new StdBuiltinProvider($this->streams->stderr());
+        }
+
         $this->iota = $builtin->iota();
-        $this->jumpStack = new JumpStack();
-        $this->deferStack = new DeferStack();
         $this->env = new Environment($builtin->env());
 
         $argvBuilder = new ArgvBuilder();
@@ -188,7 +190,7 @@ final class Interpreter
     }
 
     /**
-     * @throws InternalError unexpected error during the execution
+     * @throws InternalError unexpected error during execution
      */
     public function run(): ExitCode
     {

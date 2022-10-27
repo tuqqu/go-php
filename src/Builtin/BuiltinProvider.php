@@ -14,7 +14,7 @@ interface BuiltinProvider
     public function iota(): Iota;
 
     /**
-     * Returns environment with predefined values (builtins).
+     * Returns environment with predefined values: builtin functions, constants, vars.
      */
     public function env(): Environment;
 }

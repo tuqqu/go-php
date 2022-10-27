@@ -28,16 +28,10 @@ use GoPhp\Stream\OutputStream;
 
 class StdBuiltinProvider implements BuiltinProvider
 {
-    private readonly IntNumber&Iota $iota;
-    private readonly Environment $env;
-    private readonly OutputStream $stderr;
-
-    public function __construct(OutputStream $stderr)
-    {
-        $this->env = new Environment();
-        $this->iota = new StdIota(0);
-        $this->stderr = $stderr;
-    }
+    public function __construct(
+        private readonly OutputStream $stderr,
+        private readonly IntNumber&Iota $iota = new StdIota(),
+    ) {}
 
     public function iota(): Iota
     {
@@ -46,63 +40,65 @@ class StdBuiltinProvider implements BuiltinProvider
 
     public function env(): Environment
     {
-        $this->defineConsts();
-        $this->defineVars();
-        $this->defineFuncs();
-        $this->defineTypes();
+        $env = new Environment();
 
-        return $this->env;
+        $this->defineConsts($env);
+        $this->defineVars($env);
+        $this->defineFuncs($env);
+        $this->defineTypes($env);
+
+        return $env;
     }
 
-    protected function defineConsts(): void
+    protected function defineConsts(Environment $env): void
     {
-        $this->env->defineConst('true', BoolValue::true(), UntypedType::UntypedBool);
-        $this->env->defineConst('false', BoolValue::false(), UntypedType::UntypedBool);
-        $this->env->defineConst('iota', $this->iota, UntypedType::UntypedInt);
+        $env->defineConst('true', BoolValue::true(), UntypedType::UntypedBool);
+        $env->defineConst('false', BoolValue::false(), UntypedType::UntypedBool);
+        $env->defineConst('iota', $this->iota, UntypedType::UntypedInt);
     }
 
-    protected function defineVars(): void
+    protected function defineVars(Environment $env): void
     {
-        $this->env->defineVar('nil', new UntypedNilValue(), null);
+        $env->defineVar('nil', new UntypedNilValue(), null);
     }
 
-    protected function defineFuncs(): void
+    protected function defineFuncs(Environment $env): void
     {
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Len('len')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Cap('cap')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Copy('copy')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Append('append')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Make('make')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Delete('delete')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new New_('new')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Complex('complex')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Real('real')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Imag('imag')));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Println('println', $this->stderr)));
-        $this->env->defineBuiltinFunc(new BuiltinFuncValue(new Print_('print', $this->stderr)));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Len('len')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Cap('cap')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Copy('copy')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Append('append')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Make('make')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Delete('delete')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new New_('new')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Complex('complex')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Real('real')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Imag('imag')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Println('println', $this->stderr)));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Print_('print', $this->stderr)));
     }
 
-    protected function defineTypes(): void
+    protected function defineTypes(Environment $env): void
     {
-        $this->env->defineType('bool', new TypeValue(NamedType::Bool));
-        $this->env->defineType('string', new TypeValue(NamedType::String));
-        $this->env->defineType('int', new TypeValue(NamedType::Int));
-        $this->env->defineType('int8', new TypeValue(NamedType::Int8));
-        $this->env->defineType('int16', new TypeValue(NamedType::Int16));
-        $this->env->defineType('int32', $int32 = new TypeValue(NamedType::Int32));
-        $this->env->defineType('int64', new TypeValue(NamedType::Int64));
-        $this->env->defineType('uint', new TypeValue(NamedType::Uint));
-        $this->env->defineType('uint8', $uint8 = new TypeValue(NamedType::Uint8));
-        $this->env->defineType('uint16', new TypeValue(NamedType::Uint16));
-        $this->env->defineType('uint32', new TypeValue(NamedType::Uint32));
-        $this->env->defineType('uint64', new TypeValue(NamedType::Uint64));
-        $this->env->defineType('uintptr', new TypeValue(NamedType::Uintptr));
-        $this->env->defineType('float32', new TypeValue(NamedType::Float32));
-        $this->env->defineType('float64', new TypeValue(NamedType::Float64));
-        $this->env->defineType('complex64', new TypeValue(NamedType::Complex64));
-        $this->env->defineType('complex128', new TypeValue(NamedType::Complex128));
+        $env->defineType('bool', new TypeValue(NamedType::Bool));
+        $env->defineType('string', new TypeValue(NamedType::String));
+        $env->defineType('int', new TypeValue(NamedType::Int));
+        $env->defineType('int8', new TypeValue(NamedType::Int8));
+        $env->defineType('int16', new TypeValue(NamedType::Int16));
+        $env->defineType('int32', $int32 = new TypeValue(NamedType::Int32));
+        $env->defineType('int64', new TypeValue(NamedType::Int64));
+        $env->defineType('uint', new TypeValue(NamedType::Uint));
+        $env->defineType('uint8', $uint8 = new TypeValue(NamedType::Uint8));
+        $env->defineType('uint16', new TypeValue(NamedType::Uint16));
+        $env->defineType('uint32', new TypeValue(NamedType::Uint32));
+        $env->defineType('uint64', new TypeValue(NamedType::Uint64));
+        $env->defineType('uintptr', new TypeValue(NamedType::Uintptr));
+        $env->defineType('float32', new TypeValue(NamedType::Float32));
+        $env->defineType('float64', new TypeValue(NamedType::Float64));
+        $env->defineType('complex64', new TypeValue(NamedType::Complex64));
+        $env->defineType('complex128', new TypeValue(NamedType::Complex128));
 
-        $this->env->defineTypeAlias('byte', $uint8);
-        $this->env->defineTypeAlias('rune', $int32);
+        $env->defineTypeAlias('byte', $uint8);
+        $env->defineTypeAlias('rune', $int32);
     }
 }
