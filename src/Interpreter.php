@@ -140,19 +140,19 @@ use GoPhp\Stream\StreamProvider;
 final class Interpreter
 {
     private Ast $ast;
-    private Environment $env;
     private Iota $iota;
+    private Environment $env;
     private JumpStack $jumpStack;
     private DeferStack $deferStack;
     private string $currentPackage;
     private bool $packageScope = false;
-    private ?FuncValue $entryPoint = null;
     private bool $constContext = false;
     private int $switchContext = 0;
     /** @var array<callable(): GoValue> */
     private array $initializers = [];
     private readonly Argv $argv;
     private readonly ErrorHandler $errorHandler;
+    private ?FuncValue $entryPoint = null;
 
     /**
      * @param list<GoValue> $argv
@@ -208,7 +208,7 @@ final class Interpreter
             throw $error;
         } catch (\Throwable $error) {
             if (!$error instanceof AbortExecutionError) {
-                $this->onError($error->getMessage());
+                $this->errorHandler->onError($error);
             }
 
             return ExitCode::Failure;
@@ -273,6 +273,7 @@ final class Interpreter
             $path = \trim(\trim($spec->path->str, '"'), '"');
             $path = $this->resolveImportPath($path);
             $source = \file_get_contents($path);
+
             $ast = $this->parseSourceToAst($source);
             $this->setAst($ast);
 
@@ -1632,11 +1633,5 @@ final class Interpreter
     private function resolveDefinitionScope(): string
     {
         return $this->packageScope ? $this->currentPackage : EnvMap::NAMESPACE_TOP;
-    }
-
-    private function onError(string $error): void
-    {
-        // fixme add error handler
-        $this->streams->stderr()->writeln($error);
     }
 }
