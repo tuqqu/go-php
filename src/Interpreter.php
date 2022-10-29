@@ -74,7 +74,6 @@ use GoParser\Ast\StmtList;
 use GoParser\Ast\TypeDef;
 use GoParser\Ast\TypeSpec;
 use GoParser\Ast\VarSpec;
-use GoParser\Error;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
 use GoPhp\Builtin\BuiltinProvider;
@@ -223,37 +222,41 @@ final class Interpreter
             $this->evalImportDeclStmt($import);
         }
 
-        $types = [];
-        $vars = [];
-        $funcs = [];
-        $consts = [];
+        $mapping = [
+            ConstDecl::class => [],
+            VarDecl::class => [],
+            TypeDecl::class => [],
+            FuncDecl::class => [],
+        ];
 
         foreach ($this->ast->decls as $i => $decl) {
-            match (true) {
-                $decl instanceof ConstDecl => $consts[] = $i,
-                $decl instanceof VarDecl => $vars[] = $i,
-                $decl instanceof TypeDecl => $types[] = $i,
-                $decl instanceof FuncDecl => $funcs[] = $i,
+            $key = match (true) {
+                $decl instanceof ConstDecl,
+                $decl instanceof VarDecl,
+                $decl instanceof TypeDecl,
+                $decl instanceof FuncDecl => $decl::class,
                 default => throw ProgramError::nonDeclarationOnTopLevel(),
             };
+
+            $mapping[$key][]= $decl;
         }
 
         $this->packageScope = true;
 
-        foreach ($types as $i) {
-            $this->evalTypeDeclStmt($this->ast->decls[$i]);
+        foreach ($mapping[TypeDecl::class] as $decl) {
+            $this->evalTypeDeclStmt($decl);
         }
 
-        foreach ($consts as $i) {
-            $this->evalConstDeclStmt($this->ast->decls[$i]);
+        foreach ($mapping[ConstDecl::class] as $decl) {
+            $this->evalConstDeclStmt($decl);
         }
 
-        foreach ($vars as $i) {
-            $this->evalVarDeclStmt($this->ast->decls[$i]);
+        foreach ($mapping[VarDecl::class] as $decl) {
+            $this->evalVarDeclStmt($decl);
         }
 
-        foreach ($funcs as $i) {
-            $this->evalFuncDeclStmt($this->ast->decls[$i]);
+        foreach ($mapping[FuncDecl::class] as $decl) {
+            $this->evalFuncDeclStmt($decl);
         }
 
         foreach ($this->initializers as $initializer) {
@@ -879,10 +882,7 @@ final class Interpreter
                     throw throw InternalError::unreachable($stmt->iteration);
             }
 
-            while (
-                $condition === null
-                || self::isTrue($this->evalExpr($condition))
-            ) {
+            while ($condition === null || self::isTrue($this->evalExpr($condition))) {
                 $stmtJump = $this->evalBlockStmt($stmt->body);
 
                 switch (true) {
@@ -895,8 +895,7 @@ final class Interpreter
                         continue 2;
                     case $stmtJump instanceof BreakJump:
                         return None::None;
-                    case $stmtJump instanceof ReturnJump
-                        || $stmtJump instanceof GotoJump:
+                    case $stmtJump instanceof ReturnJump || $stmtJump instanceof GotoJump:
                         return $stmtJump;
                     default:
                         throw InternalError::unreachable($stmtJump);
@@ -1062,8 +1061,7 @@ final class Interpreter
                     continue 2;
                 case $stmtJump instanceof BreakJump:
                     return None::None;
-                case $stmtJump instanceof ReturnJump
-                    || $stmtJump instanceof GotoJump:
+                case $stmtJump instanceof ReturnJump || $stmtJump instanceof GotoJump:
                     return $stmtJump;
                 default:
                     throw InternalError::unreachable($stmtJump);
@@ -1621,12 +1619,13 @@ final class Interpreter
 
     private function checkNonDeclarableNames(string $name): void
     {
-        if ($this->entryPointValidator->supports($name, $this->currentPackage)) {
-            throw ProgramError::nameMustBeFunc($name);
-        }
+        /** @var list<FuncTypeValidator> $validators */
+        $validators = [$this->entryPointValidator, $this->initValidator];
 
-        if ($this->initValidator->supports($name, $this->currentPackage)) {
-            throw ProgramError::nameMustBeFunc($name);
+        foreach ($validators as $validator) {
+            if ($validator->supports($name, $this->currentPackage)) {
+                throw ProgramError::nameMustBeFunc($name);
+            }
         }
     }
 
