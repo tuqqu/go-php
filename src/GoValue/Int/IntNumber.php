@@ -18,9 +18,6 @@ use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
-/**
- * @psalm-suppress ImplementedParamTypeMismatch
- */
 abstract class IntNumber extends SimpleNumber
 {
     public const NAME = 'int';

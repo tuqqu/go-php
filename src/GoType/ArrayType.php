@@ -27,7 +27,7 @@ final class ArrayType implements GoType
 
     public function name(): string
     {
-        if ($this->isUnfinished()) {
+        if (!$this->isFinished()) {
             throw new InternalError('array type must be complete prior to usage');
         }
 
@@ -46,7 +46,7 @@ final class ArrayType implements GoType
         return $this->equals($other);
     }
 
-    public function reify(): static
+    public function reify(): self
     {
         return $this;
     }
@@ -66,25 +66,22 @@ final class ArrayType implements GoType
      */
     public function finish(int $len): void
     {
-        if (!$this->isUnfinished()) {
+        if ($this->isFinished()) {
             return;
         }
 
         $this->len = $len;
 
-        if (
-            $this->elemType instanceof self
-            && $this->elemType->isUnfinished()
-        ) {
+        if ($this->elemType instanceof self && !$this->elemType->isFinished()) {
             throw DefinitionError::unfinishedArrayTypeUse();
         }
 
         $this->name = \sprintf('[%d]%s', $this->len, $this->elemType->name());
     }
 
-    private function isUnfinished(): bool
+    private function isFinished(): bool
     {
-        return !isset($this->len, $this->name);
+        return isset($this->len, $this->name);
     }
 
     public function convert(GoValue $value): GoValue

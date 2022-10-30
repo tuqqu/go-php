@@ -7,7 +7,7 @@ namespace GoPhp\GoType;
 use GoPhp\Error\InternalError;
 use GoPhp\GoValue\GoValue;
 
-use function GoPhp\normalize_type;
+use function GoPhp\normalize_unwindable;
 
 enum UntypedType implements BasicType
 {
@@ -49,7 +49,7 @@ enum UntypedType implements BasicType
 
     public function isCompatible(GoType $other): bool
     {
-        $other = normalize_type($other);
+        $other = normalize_unwindable($other);
 
         if (!$other instanceof BasicType) {
             return false;

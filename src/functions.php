@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
-use GoPhp\Error\InternalError;
-use GoPhp\GoType\BasicType;
-use GoPhp\GoType\GoType;
-use GoPhp\GoType\NamedType;
-use GoPhp\GoType\UntypedType;
-use GoPhp\GoType\WrappedType;
-use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\WrappedValue;
+use GoPhp\GoValue\Unwindable;
 
 /**
  * Alias for `null` in place of `nil` value in reference types.
@@ -21,43 +14,21 @@ use GoPhp\GoValue\WrappedValue;
 const NIL = null;
 
 /**
- * Value normalization for wrapped values.
+ * Unwindable object normalization.
  *
  * @internal
- */
-function normalize_value(GoValue $value): GoValue
-{
-    if ($value instanceof WrappedValue) {
-        $value = $value->unwind();
-    }
-
-    return $value;
-}
-
-/**
- * Type normalization for wrapped types.
  *
- * @internal
+ * @template T of object
+ * @template O as Unwindable<T>|object
+ *
+ * @param O $object
+ * @psalm-return (O is Unwindable<T> ? T : object)
  */
-function normalize_type(GoType $type): GoType
+function normalize_unwindable(object $object): object
 {
-    if ($type instanceof WrappedType) {
-        $type = $type->unwind();
+    if ($object instanceof Unwindable) {
+        $object = $object->unwind();
     }
 
-    return $type;
-}
-
-/**
- * fixme: move to class
- * @internal
- */
-function float_type_from_complex(BasicType $complexType): NamedType
-{
-    return match ($complexType) {
-        NamedType::Complex64 => NamedType::Float32,
-        NamedType::Complex128,
-        UntypedType::UntypedComplex => NamedType::Float64,
-        default => throw InternalError::unreachable($complexType),
-    };
+    return $object;
 }

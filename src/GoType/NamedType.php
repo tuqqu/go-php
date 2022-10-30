@@ -27,7 +27,7 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\StringValue;
 
-use function GoPhp\normalize_type;
+use function GoPhp\normalize_unwindable;
 
 enum NamedType: string implements BasicType
 {
@@ -100,7 +100,7 @@ enum NamedType: string implements BasicType
 
     public function isCompatible(GoType $other): bool
     {
-        $other = normalize_type($other);
+        $other = normalize_unwindable($other);
 
         if (!$other instanceof BasicType) {
             return false;

@@ -9,7 +9,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Struct\StructBuilder;
 use GoPhp\GoValue\Struct\StructValue;
 
-use function GoPhp\normalize_type;
+use function GoPhp\normalize_unwindable;
 
 final class StructType implements GoType
 {
@@ -35,7 +35,7 @@ final class StructType implements GoType
 
     public function equals(GoType $other): bool
     {
-        $other = normalize_type($other);
+        $other = normalize_unwindable($other);
 
         if (!$other instanceof self) {
             return false;

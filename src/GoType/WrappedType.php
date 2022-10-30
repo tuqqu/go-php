@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Unwindable;
 use GoPhp\GoValue\WrappedValue;
 
-final class WrappedType implements GoType
+/**
+ * @template-implements Unwindable<GoType>
+ */
+final class WrappedType implements Unwindable, GoType
 {
     public function __construct(
         public readonly string $name,

@@ -9,6 +9,7 @@ use GoPhp\Error\OperationError;
 use GoPhp\Error\TypeError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
@@ -23,8 +24,7 @@ use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
-use function GoPhp\float_type_from_complex;
-use function GoPhp\normalize_value;
+use function GoPhp\normalize_unwindable;
 
 abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 {
@@ -92,7 +92,7 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
     {
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_value($rhs);
+        $rhs = normalize_unwindable($rhs);
 
         if ($rhs instanceof SimpleNumber && $rhs->type() instanceof UntypedType) {
             $rhs = static::fromSimpleNumber($rhs);
@@ -115,7 +115,7 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_value($rhs);
+        $rhs = normalize_unwindable($rhs);
 
         if ($rhs instanceof SimpleNumber && $rhs->type() instanceof UntypedType) {
             $rhs = static::fromSimpleNumber($rhs);
@@ -154,12 +154,16 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 
     abstract public function type(): BasicType;
 
-    /**
-     * @psalm-suppress
-     */
     final protected function createFloat(float $float): FloatNumber
     {
-        return float_type_from_complex($this->type())->defaultValue()::create($float);
+        $floatType = match ($this->type()) {
+            NamedType::Complex64 => NamedType::Float32,
+            NamedType::Complex128,
+            UntypedType::UntypedComplex => NamedType::Float64,
+            default => throw InternalError::unreachable($this),
+        };
+
+        return $floatType->defaultValue()::create($float);
     }
 
     final protected function noop(): static

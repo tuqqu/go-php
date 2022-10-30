@@ -14,8 +14,10 @@ use GoPhp\Operator;
  * type myInt int
  * var x myInt = 42
  *     ^ x is a wrapped value
+ *
+ * @template-implements Unwindable<GoValue>
  */
-final class WrappedValue implements AddressableValue
+final class WrappedValue implements Unwindable, AddressableValue
 {
     use AddressableTrait;
 

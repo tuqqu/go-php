@@ -12,9 +12,6 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\SimpleNumber;
 
-/**
- * @psalm-suppress ImplementedParamTypeMismatch
- */
 abstract class FloatNumber extends SimpleNumber
 {
     public const NAME = 'float';

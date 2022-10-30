@@ -28,7 +28,7 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
-use function GoPhp\normalize_value;
+use function GoPhp\normalize_unwindable;
 
 abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 {
@@ -117,7 +117,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
     {
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_value($rhs);
+        $rhs = normalize_unwindable($rhs);
 
         if ($rhs instanceof ComplexNumber && $this->type() instanceof UntypedType) {
             return $rhs::fromSimpleNumber($this)->operateOn($op, $rhs);
@@ -145,7 +145,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_value($rhs);
+        $rhs = normalize_unwindable($rhs);
 
         match ($op) {
             Operator::Eq => $this->assign($rhs),

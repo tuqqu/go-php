@@ -9,13 +9,13 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
 
-use function GoPhp\normalize_value;
+use function GoPhp\normalize_unwindable;
 
 final class DefaultConverter
 {
     public static function convert(GoValue $value, GoType $type): AddressableValue
     {
-        $value = normalize_value($value);
+        $value = normalize_unwindable($value);
 
         return $type->equals($value->type()) ?
             $value :

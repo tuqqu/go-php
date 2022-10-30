@@ -15,7 +15,7 @@ use GoPhp\GoValue\PointerValue;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
-use function GoPhp\normalize_value;
+use function GoPhp\normalize_unwindable;
 
 final class StructValue implements AddressableValue
 {
@@ -51,7 +51,7 @@ final class StructValue implements AddressableValue
     {
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_value($rhs);
+        $rhs = normalize_unwindable($rhs);
 
         return match ($op) {
             Operator::EqEq => $this->equals($rhs),
@@ -66,7 +66,7 @@ final class StructValue implements AddressableValue
             assert_values_compatible($this, $rhs);
 
             /** @var self $rhs */
-            $rhs = normalize_value($rhs);
+            $rhs = normalize_unwindable($rhs);
 
             $this->fields = $rhs->fields->copy();
 

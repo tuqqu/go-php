@@ -630,7 +630,7 @@ final class Interpreter
     private function evalIndexExpr(IndexExpr $expr): GoValue
     {
         $sequence = $this->evalExpr($expr->expr);
-        $sequence = normalize_value($sequence);
+        $sequence = normalize_unwindable($sequence);
 
         if (!$sequence instanceof Sequence) {
             throw OperationError::cannotIndex($sequence->type());
@@ -1385,7 +1385,7 @@ final class Interpreter
 
         do {
             $check = false;
-            $value = normalize_value($value);
+            $value = normalize_unwindable($value);
 
             if ($value instanceof PointerValue) {
                 $value = $value->getPointsTo();
@@ -1441,13 +1441,12 @@ final class Interpreter
 
     /**
      * @return iterable<Spec>
-     * @psalm-suppress InvalidReturnStatement
      */
     private static function wrapSpecs(Spec $spec): iterable
     {
-        return $spec instanceof GroupSpec ?
-            yield from $spec->specs :
-            yield $spec;
+        $spec instanceof GroupSpec
+            ? yield from $spec->specs
+            : yield $spec;
     }
 
     private function resolveType(AstType $type, bool $composite = false): GoType

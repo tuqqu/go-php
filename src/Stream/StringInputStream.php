@@ -4,23 +4,30 @@ declare(strict_types=1);
 
 namespace GoPhp\Stream;
 
+use GoPhp\Error\InternalError;
+
 class StringInputStream implements InputStream
 {
-    private readonly mixed $handle;
+    /** @var resource */
+    private mixed $handle;
     private readonly ResourceInputStream $resourceStream;
 
     public function __construct(string $input)
     {
-        $this->handle = \fopen('php://memory', 'rb+');
+        $handle = \fopen('php://memory', 'rb+');
+
+        if ($handle === false) {
+            throw new InternalError('cannot open in memory stream');
+        }
+
+        $this->handle = $handle;
+
         \fwrite($this->handle, $input);
         \rewind($this->handle);
 
         $this->resourceStream = new ResourceInputStream($this->handle);
     }
 
-    /**
-     * @psalm-suppress InaccessibleProperty
-     */
     public function __destruct()
     {
         \fclose($this->handle);
