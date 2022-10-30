@@ -31,6 +31,7 @@ final class FuncValue implements Invokable, AddressableValue
 {
     use AddressableTrait;
     use SealableTrait;
+
     public const NAME = 'func'; //fixme move to types
 
     private function __construct(
@@ -67,8 +68,7 @@ final class FuncValue implements Invokable, AddressableValue
 
     public function toString(): string
     {
-        //fixme
-        throw OperationError::unsupportedOperation(__METHOD__, $this);
+        return \sprintf('0x%x', $this->getAddress());
     }
 
     public function unwrap(): callable
@@ -124,5 +124,14 @@ final class FuncValue implements Invokable, AddressableValue
         }
 
         throw OperationError::undefinedOperator($op, $this);
+    }
+
+    private function getAddress(): int
+    {
+        if ($this->innerFunc === NIL) {
+            return 0;
+        }
+
+        return \spl_object_id($this);
     }
 }

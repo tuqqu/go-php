@@ -23,6 +23,7 @@ use GoPhp\GoValue\UntypedNilValue;
  * i.e. values of those types can be used in an operation.
  *
  * @internal
+ *
  * @template T of GoType
  * @param T $a
  * @psalm-assert T $b
@@ -39,6 +40,7 @@ function assert_types_compatible(GoType $a, GoType $b): void
  * Shorthand for `assert_types_compatible`, but with values.
  *
  * @internal
+ *
  * @template V of GoValue
  * @param V $a
  * @psalm-assert V $b
@@ -52,6 +54,7 @@ function assert_values_compatible(GoValue $a, GoValue $b): void
  * Assertion for operations with `nil`
  *
  * @internal
+ *
  * @psalm-assert !UntypedNilValue $b
  */
 function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
@@ -97,6 +100,7 @@ function assert_argc(Func|BuiltinFunc $context, Argv $argv, int $expectedArgc, b
 
 /**
  * @internal
+ *
  * @template C
  * @psalm-param class-string<C> $value
  * @psalm-assert Arg<C> $arg
@@ -110,6 +114,7 @@ function assert_arg_value(Arg $arg, string $value, string $name): void
 
 /**
  * @internal
+ *
  * @psalm-assert Arg<IntNumber|FloatNumber> $arg
  */
 function assert_arg_int(Arg $arg): void
@@ -124,6 +129,7 @@ function assert_arg_int(Arg $arg): void
 
 /**
  * @internal
+ *
  * @psalm-assert Arg<IntNumber|FloatNumber> $arg
  */
 function assert_arg_float(Arg $arg): void
@@ -160,6 +166,7 @@ function assert_index_exists(int $index, int $max): void
 
 /**
  * @internal
+ *
  * @psalm-assert positive-int $index
  */
 function assert_index_positive(int $index): void
@@ -191,6 +198,7 @@ function assert_index_sliceable(int $cap, int $low, int $high, ?int $max = null)
 
 /**
  * @internal
+ *
  * @psalm-assert IntNumber|FloatNumber $index
  */
 function assert_index_int(GoValue $index, string $context): void
