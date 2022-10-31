@@ -50,13 +50,21 @@ final class ProgramError extends \LogicException
         return new self(\sprintf('%s redeclared', $name));
     }
 
-    public static function redeclaredNameInBlock(string $name): self
+    public static function redeclaredNameInBlock(string $name, ?string $selector = null): self
     {
+        if ($selector !== null) {
+            $name = DefinitionError::fullName($name, $selector);
+        }
+
         return new self(\sprintf('%s redeclared in this block', $name));
     }
 
-    public static function undefinedName(string $name): self
+    public static function undefinedName(string $name, ?string $selector = null): self
     {
+        if ($selector !== null) {
+            $name = DefinitionError::fullName($name, $selector);
+        }
+
         return new self(\sprintf('undefined: %s', $name));
     }
 
@@ -83,6 +91,11 @@ final class ProgramError extends \LogicException
     public static function nameMustBeFunc(string $name): self
     {
         return new self(\sprintf('cannot declare %s - must be func', $name));
+    }
+
+    public static function multipleReceivers(): self
+    {
+        return new self('method has multiple receivers');
     }
 
     public static function extraInitExpr(): self

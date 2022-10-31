@@ -29,4 +29,9 @@ final class InternalError extends \LogicException
     {
         return new self('jump stack underflow');
     }
+
+    public static function unimplemented(): self
+    {
+        return new self('not yet implemented');
+    }
 }

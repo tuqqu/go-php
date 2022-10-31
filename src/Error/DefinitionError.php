@@ -45,12 +45,11 @@ final class DefinitionError extends \LogicException
         ));
     }
 
-    public static function undefinedFieldAccess(?string $valueName, string $field, GoType $type): self
+    public static function undefinedFieldAccess(string $valueName, string $field, GoType $type): self
     {
         return new self(\sprintf(
-            '%s.%s undefined (type %s has no field or method %s)',
-            $valueName,
-            $field,
+            '%s undefined (type %s has no field or method %s)',
+            self::fullName($valueName, $field),
             $type->name(),
             $field,
         ));
@@ -95,5 +94,11 @@ final class DefinitionError extends \LogicException
     public static function unfinishedArrayTypeUse(): self
     {
         return new self('invalid use of [...] array (outside a composite literal)');
+    }
+
+    // fixme move from here
+    public static function fullName(string $name, string $selector): string
+    {
+        return \sprintf('%s.%s', $name, $selector);
     }
 }

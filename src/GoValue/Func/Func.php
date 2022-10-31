@@ -10,6 +10,7 @@ use GoPhp\Error\InternalError;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Slice\SliceBuilder;
@@ -34,6 +35,10 @@ final class Func implements Invokable
     public readonly Environment $enclosure;
     public readonly string $namespace;
 
+    // fixme maybe move
+    public readonly ?Param $receiver;
+    public ?\Closure $bind = null;
+
     /**
      * @param FuncBody $body
      */
@@ -42,11 +47,37 @@ final class Func implements Invokable
         FuncType $type,
         Environment $enclosure,
         string $namespace,
+        ?Param $receiver = null,
     ) {
         $this->body = $body;
         $this->namespace = $namespace;
         $this->type = $type;
+        $this->receiver = $receiver;
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
+    }
+
+    public function withReceiver(Param $receiver): self
+    {
+        return new self(
+            $this->body,
+            $this->type,
+            $this->enclosure,
+            $this->namespace,
+            $receiver,
+        );
+    }
+
+    public function bind(AddressableValue $instance): void
+    {
+        $this->bind = function (Environment $env) use ($instance): void {
+            assert_types_compatible($instance->type(), $this->receiver->type);
+
+            $env->defineVar(
+                $this->receiver->name,
+                $instance,
+                $this->receiver->type,
+            );
+        };
     }
 
     public function __invoke(Argv $argv): GoValue
@@ -68,6 +99,14 @@ final class Func implements Invokable
                     $param->type,
                 );
             }
+        }
+
+        if ($this->receiver !== null) {
+            if ($this->bind === null) {
+                throw InternalError::unreachable($this->receiver);
+            }
+
+            ($this->bind)($env);
         }
 
         foreach ($this->type->params->iter() as $i => $param) {

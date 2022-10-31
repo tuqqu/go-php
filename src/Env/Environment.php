@@ -20,12 +20,15 @@ final class Environment
     public const BLANK_IDENT = '_';
 
     private readonly EnvMap $envMap;
+    private readonly MethodSet $registeredMethods;
     private readonly ?self $enclosing;
     private readonly string $blankIdent;
 
     public function __construct(?self $enclosing = null, string $blankIdent = self::BLANK_IDENT)
     {
         $this->envMap = new EnvMap();
+        $this->registeredMethods = new MethodSet();
+
         $this->enclosing = $enclosing;
         $this->blankIdent = $blankIdent;
 
@@ -51,6 +54,17 @@ final class Environment
     {
         $value->seal();
         $this->defineAddressableValue($name, $value, $value->type, $namespace);
+    }
+
+    public function registerMethod(string $name, FuncValue $value, GoType $receiver): void
+    {
+        $this->registeredMethods->add($receiver, $name, $value);
+    }
+
+    public function getMethod(string $name, GoType $receiver): ?FuncValue
+    {
+        return $this->registeredMethods->tryGet($receiver, $name)
+            ?? $this->enclosing?->getMethod($name, $receiver, );
     }
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void

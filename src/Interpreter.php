@@ -64,6 +64,7 @@ use GoParser\Ast\Stmt\IfStmt;
 use GoParser\Ast\Stmt\ImportDecl;
 use GoParser\Ast\Stmt\IncDecStmt;
 use GoParser\Ast\Stmt\LabeledStmt;
+use GoParser\Ast\Stmt\MethodDecl;
 use GoParser\Ast\Stmt\ReturnStmt;
 use GoParser\Ast\Stmt\ShortVarDecl;
 use GoParser\Ast\Stmt\Stmt;
@@ -227,6 +228,7 @@ final class Interpreter
             VarDecl::class => [],
             TypeDecl::class => [],
             FuncDecl::class => [],
+            MethodDecl::class => [],
         ];
 
         foreach ($this->ast->decls as $i => $decl) {
@@ -234,11 +236,12 @@ final class Interpreter
                 $decl instanceof ConstDecl,
                 $decl instanceof VarDecl,
                 $decl instanceof TypeDecl,
-                $decl instanceof FuncDecl => $decl::class,
+                $decl instanceof FuncDecl,
+                $decl instanceof MethodDecl, => $decl::class,
                 default => throw ProgramError::nonDeclarationOnTopLevel(),
             };
 
-            $mapping[$key][]= $decl;
+            $mapping[$key][] = $decl;
         }
 
         $this->packageScope = true;
@@ -257,6 +260,10 @@ final class Interpreter
 
         foreach ($mapping[FuncDecl::class] as $decl) {
             $this->evalFuncDeclStmt($decl);
+        }
+
+        foreach ($mapping[MethodDecl::class] as $decl) {
+            $this->evalMethodDeclStmt($decl);
         }
 
         foreach ($this->initializers as $initializer) {
@@ -478,11 +485,32 @@ final class Interpreter
         );
     }
 
+    private function evalMethodDeclStmt(MethodDecl $decl): void
+    {
+        if ($decl->body === null) {
+            throw InternalError::unimplemented();
+        }
+
+        $receiverParam = $this->resolveParamsFromAstParams($decl->receiver);
+
+        if ($receiverParam->len !== 1) {
+            throw ProgramError::multipleReceivers();
+        }
+
+        $receiver = $receiverParam[0];
+        $funcValue = $this->constructFuncValue($decl->signature, $decl->body);
+        $funcValue->setReceiver($receiver);
+
+        // fixme
+        // this->currentPackage
+
+        $this->env->registerMethod($decl->name->name, $funcValue, $receiver->type);
+    }
+
     private function evalFuncDeclStmt(FuncDecl $decl): void
     {
         if ($decl->body === null) {
-            // fixme
-            throw new InternalError('not implemented');
+            throw InternalError::unimplemented();
         }
 
         $funcValue = $this->constructFuncValue($decl->signature, $decl->body);
@@ -1382,6 +1410,13 @@ final class Interpreter
 
         // struct access
         $value = $this->evalExpr($expr->expr);
+        $method = $this->env->getMethod($expr->selector->name, $value->type());
+
+        if ($method !== null) {
+            $method->bind($value);
+
+            return $method;
+        }
 
         do {
             $check = false;

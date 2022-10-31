@@ -56,6 +56,16 @@ final class FuncValue implements Invokable, AddressableValue
         return new self(new Func($body, $type, $enclosure, $namespace), $type);
     }
 
+    public function setReceiver(Param $param): void
+    {
+        $this->innerFunc = $this->innerFunc->withReceiver($param);
+    }
+
+    public function bind(AddressableValue $instance): void
+    {
+        $this->innerFunc->bind($instance);
+    }
+
     public static function nil(FuncType $type): self
     {
         return new self(NIL, $type);
