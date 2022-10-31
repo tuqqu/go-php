@@ -9,6 +9,7 @@ use GoPhp\Env\Environment;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\ProgramError;
 use GoPhp\GoType\FuncType;
+use GoPhp\GoType\PointerType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
@@ -125,9 +126,9 @@ final class Func implements Invokable
         $stmtJump = ($this->body)($env, $this->namespace);
 
         if ($stmtJump instanceof None) {
-            return $this->type->returnArity === 0 ?
-                new VoidValue() :
-                throw ProgramError::wrongReturnValueNumber([], $this->type->returns);
+            return $this->type->returnArity === 0
+                ? new VoidValue()
+                : throw ProgramError::wrongReturnValueNumber([], $this->type->returns);
         }
 
         if (!$stmtJump instanceof ReturnJump) {
@@ -161,12 +162,21 @@ final class Func implements Invokable
             throw InternalError::unreachable($this->receiver);
         }
 
-        assert_types_compatible($this->boundInstance->type(), $this->receiver->type);
+        $boundInstance = $this->boundInstance;
+        $receiverType = $this->receiver->type;
+
+        if ($receiverType instanceof PointerType) {
+            $receiverType = $receiverType->pointsTo;
+        } else {
+            $boundInstance = $boundInstance->copy();
+        }
+
+        assert_types_compatible($boundInstance->type(), $receiverType);
 
         $env->defineVar(
             $this->receiver->name,
-            $this->boundInstance,
-            $this->receiver->type,
+            $boundInstance,
+            $receiverType,
         );
     }
 }

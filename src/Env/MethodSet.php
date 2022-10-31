@@ -22,6 +22,7 @@ final class MethodSet
         return $this->methods[$type][$name] ?? null;
     }
 
+    // fixme remove
     public function get(GoType $type, string $name): FuncValue
     {
         return $this->tryGet($type, $name)

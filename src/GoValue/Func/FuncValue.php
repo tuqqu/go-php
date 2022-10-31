@@ -22,7 +22,8 @@ use GoPhp\Operator;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_values_compatible;
 
-use const GoPhp\{NIL, ZERO_ADDRESS};
+use const GoPhp\NIL;
+use const GoPhp\ZERO_ADDRESS;
 
 /**
  * @psalm-import-type FuncBody from Func
@@ -56,21 +57,21 @@ final class FuncValue implements Invokable, AddressableValue
         FuncType $type,
         Environment $enclosure,
         ?Param $receiver,
-        string $namespace
+        string $namespace,
     ): self {
         $innerFunc = new Func($body, $type, $enclosure, $receiver, $namespace);
 
         return new self($innerFunc, $type);
     }
 
-    public function bind(AddressableValue $instance): void
-    {
-        $this->innerFunc->bind($instance);
-    }
-
     public static function nil(FuncType $type): self
     {
         return new self(NIL, $type);
+    }
+
+    public function bind(AddressableValue $instance): void
+    {
+        $this->innerFunc->bind($instance);
     }
 
     public function copy(): self

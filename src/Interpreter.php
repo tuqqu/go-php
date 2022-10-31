@@ -498,12 +498,22 @@ final class Interpreter
         }
 
         $receiver = $receiverParam[0];
+        $receiverType = $receiver->type;
+
+        if ($receiverType instanceof PointerType) {
+            if ($receiverType->pointsTo instanceof PointerType) {
+                throw ProgramError::invalidReceiverType($receiverType);
+            }
+
+            $receiverType = $receiverType->pointsTo;
+        }
+
         $funcValue = $this->constructFuncValue($decl->signature, $decl->body, $receiver);
 
         // fixme
         // this->currentPackage
 
-        $this->env->registerMethod($decl->name->name, $funcValue, $receiver->type);
+        $this->env->registerMethod($decl->name->name, $funcValue, $receiverType);
     }
 
     private function evalFuncDeclStmt(FuncDecl $decl): void
@@ -531,7 +541,7 @@ final class Interpreter
         $this->env->defineFunc($decl->name->name, $funcValue, $this->currentPackage);
     }
 
-    private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt, Param $receiver = null): FuncValue
+    private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt, ?Param $receiver = null): FuncValue
     {
         $type = $this->resolveTypeFromAstSignature($signature);
 

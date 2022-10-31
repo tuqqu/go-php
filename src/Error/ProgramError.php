@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Error;
 
 use GoPhp\Argv;
+use GoPhp\GoType\GoType;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 
@@ -66,6 +67,11 @@ final class ProgramError extends \LogicException
         }
 
         return new self(\sprintf('undefined: %s', $name));
+    }
+
+    public static function invalidReceiverType(GoType $type): self
+    {
+        return new self(\sprintf('invalid receiver type %s', $type->name()));
     }
 
     public static function mixedStructLiteralFields(): self

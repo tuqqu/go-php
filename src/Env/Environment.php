@@ -64,7 +64,7 @@ final class Environment
     public function getMethod(string $name, GoType $receiver): ?FuncValue
     {
         return $this->registeredMethods->tryGet($receiver, $name)
-            ?? $this->enclosing?->getMethod($name, $receiver, );
+            ?? $this->enclosing?->getMethod($name, $receiver);
     }
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void
