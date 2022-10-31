@@ -34,10 +34,8 @@ final class Func implements Invokable
     public readonly FuncType $type;
     public readonly Environment $enclosure;
     public readonly string $namespace;
-
-    // fixme maybe move
     public readonly ?Param $receiver;
-    public ?\Closure $bind = null;
+    public ?AddressableValue $boundInstance = null;
 
     /**
      * @param FuncBody $body
@@ -46,8 +44,8 @@ final class Func implements Invokable
         \Closure $body,
         FuncType $type,
         Environment $enclosure,
+        ?Param $receiver,
         string $namespace,
-        ?Param $receiver = null,
     ) {
         $this->body = $body;
         $this->namespace = $namespace;
@@ -56,28 +54,9 @@ final class Func implements Invokable
         $this->enclosure = new Environment(enclosing: $enclosure); // remove?
     }
 
-    public function withReceiver(Param $receiver): self
-    {
-        return new self(
-            $this->body,
-            $this->type,
-            $this->enclosure,
-            $this->namespace,
-            $receiver,
-        );
-    }
-
     public function bind(AddressableValue $instance): void
     {
-        $this->bind = function (Environment $env) use ($instance): void {
-            assert_types_compatible($instance->type(), $this->receiver->type);
-
-            $env->defineVar(
-                $this->receiver->name,
-                $instance,
-                $this->receiver->type,
-            );
-        };
+        $this->boundInstance = $instance;
     }
 
     public function __invoke(Argv $argv): GoValue
@@ -102,11 +81,7 @@ final class Func implements Invokable
         }
 
         if ($this->receiver !== null) {
-            if ($this->bind === null) {
-                throw InternalError::unreachable($this->receiver);
-            }
-
-            ($this->bind)($env);
+            $this->doBind($env);
         }
 
         foreach ($this->type->params->iter() as $i => $param) {
@@ -178,5 +153,20 @@ final class Func implements Invokable
         }
 
         return $stmtJump->value;
+    }
+
+    private function doBind(Environment $env): void
+    {
+        if ($this->boundInstance === null) {
+            throw InternalError::unreachable($this->receiver);
+        }
+
+        assert_types_compatible($this->boundInstance->type(), $this->receiver->type);
+
+        $env->defineVar(
+            $this->receiver->name,
+            $this->boundInstance,
+            $this->receiver->type,
+        );
     }
 }

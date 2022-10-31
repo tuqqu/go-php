@@ -14,6 +14,13 @@ use GoPhp\GoValue\Unwindable;
 const NIL = null;
 
 /**
+ * Default address for values of reference types
+ *
+ * @internal
+ */
+const ZERO_ADDRESS = 0;
+
+/**
  * Unwindable object normalization.
  *
  * @internal

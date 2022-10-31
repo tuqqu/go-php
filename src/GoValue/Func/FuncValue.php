@@ -22,7 +22,7 @@ use GoPhp\Operator;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_values_compatible;
 
-use const GoPhp\NIL;
+use const GoPhp\{NIL, ZERO_ADDRESS};
 
 /**
  * @psalm-import-type FuncBody from Func
@@ -51,14 +51,16 @@ final class FuncValue implements Invokable, AddressableValue
     /**
      * @param FuncBody $body
      */
-    public static function fromBody(\Closure $body, FuncType $type, Environment $enclosure, string $namespace): self
-    {
-        return new self(new Func($body, $type, $enclosure, $namespace), $type);
-    }
+    public static function fromBody(
+        \Closure $body,
+        FuncType $type,
+        Environment $enclosure,
+        ?Param $receiver,
+        string $namespace
+    ): self {
+        $innerFunc = new Func($body, $type, $enclosure, $receiver, $namespace);
 
-    public function setReceiver(Param $param): void
-    {
-        $this->innerFunc = $this->innerFunc->withReceiver($param);
+        return new self($innerFunc, $type);
     }
 
     public function bind(AddressableValue $instance): void
@@ -139,7 +141,7 @@ final class FuncValue implements Invokable, AddressableValue
     private function getAddress(): int
     {
         if ($this->innerFunc === NIL) {
-            return 0;
+            return ZERO_ADDRESS;
         }
 
         return \spl_object_id($this);

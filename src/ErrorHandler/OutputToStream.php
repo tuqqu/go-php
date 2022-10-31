@@ -15,8 +15,8 @@ final class OutputToStream implements ErrorHandler
         private readonly OutputStream $stream
     ) {}
 
-    public function onError(string|\Stringable $error): void
+    public function onError(string $error): void
     {
-        $this->stream->writeln((string) $error);
+        $this->stream->writeln($error);
     }
 }

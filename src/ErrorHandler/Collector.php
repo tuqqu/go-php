@@ -12,9 +12,9 @@ final class Collector implements ErrorHandler
     /** @var list<string> */
     private array $errors = [];
 
-    public function onError(string|\Stringable $error): void
+    public function onError(string $error): void
     {
-        $this->errors[] = (string) $error;
+        $this->errors[] = $error;
     }
 
     public function getErrors(): array

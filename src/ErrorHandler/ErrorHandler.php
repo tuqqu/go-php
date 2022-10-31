@@ -6,5 +6,6 @@ namespace GoPhp\ErrorHandler;
 
 interface ErrorHandler
 {
-    public function onError(string|\Stringable $error): void;
+    // fixme change to interface
+    public function onError(string $error): void;
 }

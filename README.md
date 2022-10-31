@@ -44,7 +44,6 @@ Already implemented:
 To be implemented:
 
 * channels and select statements
-* methods
 * type assertions
 * interfaces
 * panic recovering

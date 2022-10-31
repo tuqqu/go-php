@@ -208,7 +208,7 @@ final class Interpreter
             throw $error;
         } catch (\Throwable $error) {
             if (!$error instanceof AbortExecutionError) {
-                $this->errorHandler->onError($error);
+                $this->errorHandler->onError($error->getMessage());
             }
 
             return ExitCode::Failure;
@@ -317,7 +317,7 @@ final class Interpreter
 
         if ($parser->hasErrors()) {
             foreach ($parser->getErrors() as $error) {
-                $this->errorHandler->onError($error);
+                $this->errorHandler->onError((string) $error);
             }
 
             throw new AbortExecutionError();
@@ -498,8 +498,7 @@ final class Interpreter
         }
 
         $receiver = $receiverParam[0];
-        $funcValue = $this->constructFuncValue($decl->signature, $decl->body);
-        $funcValue->setReceiver($receiver);
+        $funcValue = $this->constructFuncValue($decl->signature, $decl->body, $receiver);
 
         // fixme
         // this->currentPackage
@@ -532,21 +531,22 @@ final class Interpreter
         $this->env->defineFunc($decl->name->name, $funcValue, $this->currentPackage);
     }
 
-    private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt): FuncValue
+    private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt, Param $receiver = null): FuncValue
     {
         $type = $this->resolveTypeFromAstSignature($signature);
 
         return FuncValue::fromBody(
-            function (Environment $env, string $withPackage) use ($blockStmt): StmtJump {
+            body: function (Environment $env, string $withPackage) use ($blockStmt): StmtJump {
                 [$this->currentPackage, $withPackage] = [$withPackage, $this->currentPackage];
                 $jump = $this->evalBlockStmt($blockStmt, $env);
                 $this->currentPackage = $withPackage;
 
                 return $jump;
             },
-            $type,
-            $this->env,
-            $this->currentPackage,
+            type: $type,
+            enclosure: $this->env,
+            receiver: $receiver,
+            namespace: $this->currentPackage,
         );
     }
 
