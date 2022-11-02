@@ -31,24 +31,5 @@
         "psr-4": {
             "GoPhp\\Tests\\": "src/"
         }
-    },
-    "scripts": {
-        "fix-cs": "vendor/bin/php-cs-fixer fix --diff --allow-risky=yes",
-        "check-cs": "vendor/bin/php-cs-fixer fix --dry-run --verbose --diff --using-cache=no --allow-risky=yes",
-        "analyse": "vendor/bin/psalm --config=psalm.xml --no-cache",
-        "lint": [
-            "@check-cs",
-            "@analyse"
-        ],
-        "test-unit": "vendor/bin/phpunit --testsuite=unit",
-        "test-functional": "vendor/bin/phpunit --testsuite=functional",
-        "test": [
-            "@test-unit",
-            "@test-functional"
-        ],
-        "all-checks": [
-            "@lint",
-            "@test"
-        ]
     }
 }

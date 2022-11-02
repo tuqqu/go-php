@@ -26,7 +26,7 @@ jobs:
               run: composer install
 
             - name: Analyse
-              run: composer lint
+              run: make lint
 
     test:
         name: Test
@@ -44,5 +44,8 @@ jobs:
             - name: Composer install
               run: composer install
 
-            - name: Test
-              run: composer test
+            - name: Unit Tests
+              run: make test-unit
+
+            - name: Functional Tests
+              run: make test-functional

@@ -48,3 +48,19 @@ To be implemented:
 * interfaces
 * panic recovering
 * generics
+
+## Development
+
+install dependencies:
+
+```bash
+composer install
+```
+
+run tests:
+
+```bash
+make test
+```
+
+run `make help` for more commands.

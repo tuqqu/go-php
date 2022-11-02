@@ -24,4 +24,4 @@ class StdIota extends IntNumber implements Iota
     {
         $this->value = $value;
     }
-};
+}

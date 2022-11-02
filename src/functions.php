@@ -18,7 +18,7 @@ const NIL = null;
  *
  * @internal
  */
-const ZERO_ADDRESS = 0;
+const ZERO_ADDRESS = 0x0;
 
 /**
  * Unwindable object normalization.
