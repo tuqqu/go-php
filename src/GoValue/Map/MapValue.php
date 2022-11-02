@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\Error\PanicError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\AddressableValue;
@@ -121,7 +121,7 @@ final class MapValue implements Map, AddressableValue
             return PointerValue::fromValue($this);
         }
 
-        throw OperationError::undefinedOperator($op, $this, true);
+        throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
@@ -131,7 +131,7 @@ final class MapValue implements Map, AddressableValue
         return match ($op) {
             Operator::EqEq => new BoolValue($this->innerMap === NIL),
             Operator::NotEq => new BoolValue($this->innerMap !== NIL),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -152,7 +152,7 @@ final class MapValue implements Map, AddressableValue
             return;
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 
     public function unwrap(): self

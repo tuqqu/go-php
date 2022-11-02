@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
@@ -33,7 +33,7 @@ final class MapLookupValue implements GoValue
     public function operate(Operator $op): GoValue
     {
        if ($op === Operator::BitAnd) {
-            throw OperationError::cannotTakeAddressOfMapValue($this->value->type());
+            throw RuntimeError::cannotTakeAddressOfMapValue($this->value->type());
        }
 
        return $this->value->operate($op);

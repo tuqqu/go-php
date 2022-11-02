@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Slice;
 
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Unpackable;
@@ -173,7 +173,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
             return PointerValue::fromValue($this);
         }
 
-        throw OperationError::undefinedOperator($op, $this, true);
+        throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
@@ -183,7 +183,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
         return match ($op) {
             Operator::EqEq => new BoolValue($this->values === NIL),
             Operator::NotEq => new BoolValue($this->values !== NIL),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -206,7 +206,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
             return;
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 
     /**

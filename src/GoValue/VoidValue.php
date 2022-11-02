@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\Operator;
 
 /**
@@ -14,36 +14,36 @@ final class VoidValue implements GoValue
 {
     public function unwrap(): never
     {
-        throw TypeError::noValueUsedAsValue();
+        throw RuntimeError::noValueUsedAsValue();
     }
 
     public function type(): never
     {
-        throw TypeError::noValueUsedAsValue();
+        throw RuntimeError::noValueUsedAsValue();
     }
 
     public function operate(Operator $op): never
     {
-        throw TypeError::noValueUsedAsValue();
+        throw RuntimeError::noValueUsedAsValue();
     }
 
     public function operateOn(Operator $op, GoValue $rhs): never
     {
-        throw TypeError::noValueUsedAsValue();
+        throw RuntimeError::noValueUsedAsValue();
     }
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        throw TypeError::noValueUsedAsValue();
+        throw RuntimeError::noValueUsedAsValue();
     }
 
     public function toString(): never
     {
-        throw TypeError::noValueUsedAsValue();
+        throw RuntimeError::noValueUsedAsValue();
     }
 
     public function copy(): never
     {
-        throw TypeError::noValueUsedAsValue();
+        throw RuntimeError::noValueUsedAsValue();
     }
 }

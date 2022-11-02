@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-use GoPhp\Error\DefinitionError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\Error\InternalError;
 use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\Array\ArrayValue;
@@ -73,7 +73,7 @@ final class ArrayType implements GoType
         $this->len = $len;
 
         if ($this->elemType instanceof self && !$this->elemType->isFinished()) {
-            throw DefinitionError::unfinishedArrayTypeUse();
+            throw RuntimeError::unfinishedArrayTypeUse();
         }
 
         $this->name = \sprintf('[%d]%s', $this->len, $this->elemType->name());

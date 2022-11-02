@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\InternalError;
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\Operator;
 
 /**
@@ -36,7 +36,7 @@ final class BlankValue implements AddressableValue
             return;
         }
 
-        throw ProgramError::cannotUseBlankIdent($this->getName());
+        throw RuntimeError::cannotUseBlankIdent($this->getName());
     }
 
     public function copy(): never
@@ -46,7 +46,7 @@ final class BlankValue implements AddressableValue
 
     public function unwrap(): array
     {
-        throw ProgramError::cannotUseBlankIdent($this->getName());
+        throw RuntimeError::cannotUseBlankIdent($this->getName());
     }
 
     public function type(): never

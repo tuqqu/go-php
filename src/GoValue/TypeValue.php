@@ -6,7 +6,7 @@ namespace GoPhp\GoValue;
 
 use GoPhp\Argv;
 use GoPhp\Error\InternalError;
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
@@ -30,8 +30,8 @@ final class TypeValue implements ConstInvokable, AddressableValue
         //fixme move
         $value = match ($argv->argc) {
             1 => $argv[0]->value,
-            0 => throw new OperationError(\sprintf('missing argument in conversion to %s', $this->type->name())),
-            default => throw new OperationError(\sprintf('too many arguments in conversion to %s', $this->type->name())),
+            0 => throw new RuntimeError(\sprintf('missing argument in conversion to %s', $this->type->name())),
+            default => throw new RuntimeError(\sprintf('too many arguments in conversion to %s', $this->type->name())),
         };
 
         return $this->type->convert($value);

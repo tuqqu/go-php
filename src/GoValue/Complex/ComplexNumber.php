@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Complex;
 
 use GoPhp\Error\InternalError;
-use GoPhp\Error\OperationError;
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
@@ -81,10 +80,10 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
         return match ($op) {
             Operator::BitAnd => $this->isAddressable()
                 ? PointerValue::fromValue($this)
-                : throw TypeError::cannotTakeAddressOfValue($this),
+                : throw RuntimeError::cannotTakeAddressOfValue($this),
             Operator::Plus => $this->noop(),
             Operator::Minus => $this->negate(),
-            default => throw OperationError::undefinedOperator($op, $this, true),
+            default => throw RuntimeError::undefinedOperator($op, $this, true),
         };
     }
 
@@ -105,7 +104,7 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
             Operator::Div => $this->div($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -127,7 +126,7 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
             Operator::MinusEq, Operator::Dec => $this->mutSub($rhs),
             Operator::MulEq => $this->mutMul($rhs),
             Operator::DivEq => $this->mutDiv($rhs),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 

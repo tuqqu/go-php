@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Tests\Unit;
 
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Func\Param;
@@ -42,7 +42,7 @@ final class VoidFunctionValidatorTest extends TestCase
             Params::fromParam(new Param(NamedType::Int)),
         );
 
-        $this->expectException(ProgramError::class);
+        $this->expectException(RuntimeError::class);
 
         $this->validator->validate($type);
     }

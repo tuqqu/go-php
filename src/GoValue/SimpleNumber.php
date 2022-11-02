@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\OperationError;
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
@@ -75,7 +74,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
             NamedType::Float64 => new Float64Value((float) $number),
             NamedType::Complex64 => Complex64Value::fromSimpleNumber($this),
             NamedType::Complex128 => Complex128Value::fromSimpleNumber($this),
-            default => throw TypeError::implicitConversionError($this, $type),
+            default => throw RuntimeError::implicitConversionError($this, $type),
         };
     }
 
@@ -108,7 +107,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
             Operator::Minus => $this->negate(),
             Operator::BitAnd => $this->isAddressable()
                 ? PointerValue::fromValue($this)
-                : throw TypeError::cannotTakeAddressOfValue($this),
+                : throw RuntimeError::cannotTakeAddressOfValue($this),
             default => static::completeOperate($op),
         };
     }
@@ -219,16 +218,16 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 
     protected function completeOperate(Operator $op): self|PointerValue
     {
-        throw OperationError::undefinedOperator($op, $this, true);
+        throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
     protected function completeOperateOn(Operator $op, GoValue $rhs): NonRefValue
     {
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 
     protected function completeMutate(Operator $op, GoValue $rhs): void
     {
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 }

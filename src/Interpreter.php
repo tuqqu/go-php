@@ -83,11 +83,8 @@ use GoPhp\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
 use GoPhp\Env\EnvMap;
 use GoPhp\Error\AbortExecutionError;
-use GoPhp\Error\DefinitionError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\Error\InternalError;
-use GoPhp\Error\OperationError;
-use GoPhp\Error\ProgramError;
-use GoPhp\Error\TypeError;
 use GoPhp\ErrorHandler\ErrorHandler;
 use GoPhp\ErrorHandler\OutputToStream;
 use GoPhp\GoType\ArrayType;
@@ -200,7 +197,7 @@ final class Interpreter
             $this->evalDeclsInOrder();
 
             if ($this->entryPoint === null) {
-                throw ProgramError::noEntryPoint($this->entryPointValidator->targets());
+                throw RuntimeError::noEntryPoint($this->entryPointValidator->targets());
             }
 
             $this->callFunc(fn (): GoValue => ($this->entryPoint)($this->argv));
@@ -238,7 +235,7 @@ final class Interpreter
                 $decl instanceof TypeDecl,
                 $decl instanceof FuncDecl,
                 $decl instanceof MethodDecl, => $decl::class,
-                default => throw ProgramError::nonDeclarationOnTopLevel(),
+                default => throw RuntimeError::nonDeclarationOnTopLevel(),
             };
 
             $mapping[$key][] = $decl;
@@ -349,7 +346,7 @@ final class Interpreter
             $stmt instanceof ConstDecl => $this->evalConstDeclStmt($stmt),
             $stmt instanceof VarDecl => $this->evalVarDeclStmt($stmt),
             $stmt instanceof TypeDecl => $this->evalTypeDeclStmt($stmt),
-            $stmt instanceof FuncDecl => throw ProgramError::nestedFunction(),
+            $stmt instanceof FuncDecl => throw RuntimeError::nestedFunction(),
             default => throw InternalError::unreachable($stmt),
         };
     }
@@ -370,7 +367,7 @@ final class Interpreter
             }
 
             if ($type !== null && !$type instanceof NamedType) {
-                throw DefinitionError::constantExpectsBasicType($type);
+                throw RuntimeError::constantExpectsBasicType($type);
             }
 
             if (!empty($spec->initList->exprs)) {
@@ -378,7 +375,7 @@ final class Interpreter
             }
 
             if (\count($initExprs) > \count($spec->identList->idents)) {
-                throw ProgramError::extraInitExpr();
+                throw RuntimeError::extraInitExpr();
             }
 
             foreach ($spec->identList->idents as $i => $ident) {
@@ -387,7 +384,7 @@ final class Interpreter
                     null;
 
                 if ($value === null) {
-                    throw DefinitionError::uninitialisedConstant($ident->name);
+                    throw RuntimeError::uninitialisedConstant($ident->name);
                 }
 
                 $this->checkNonDeclarableNames($ident->name);
@@ -420,7 +417,7 @@ final class Interpreter
 
             if ($spec->initList === null) {
                 if ($type === null) {
-                    throw DefinitionError::uninitilisedVarWithNoType();
+                    throw RuntimeError::uninitilisedVarWithNoType();
                 }
 
                 for ($i = 0; $i < $identsLen; ++$i) {
@@ -494,7 +491,7 @@ final class Interpreter
         $receiverParam = $this->resolveParamsFromAstParams($decl->receiver);
 
         if ($receiverParam->len !== 1) {
-            throw ProgramError::multipleReceivers();
+            throw RuntimeError::multipleReceivers();
         }
 
         $receiver = $receiverParam[0];
@@ -502,7 +499,7 @@ final class Interpreter
 
         if ($receiverType instanceof PointerType) {
             if ($receiverType->pointsTo instanceof PointerType) {
-                throw ProgramError::invalidReceiverType($receiverType);
+                throw RuntimeError::invalidReceiverType($receiverType);
             }
 
             $receiverType = $receiverType->pointsTo;
@@ -576,11 +573,11 @@ final class Interpreter
         $func = $this->evalExpr($expr->expr);
 
         if (!$func instanceof Invokable) {
-            throw OperationError::nonFunctionCall($func);
+            throw RuntimeError::nonFunctionCall($func);
         }
 
         if ($this->constContext && !$func instanceof ConstInvokable) {
-            throw OperationError::notConstantExpr($func);
+            throw RuntimeError::notConstantExpr($func);
         }
 
         /** @var Invokable $func */
@@ -603,7 +600,7 @@ final class Interpreter
 
             if ($arg instanceof TupleValue) {
                 if ($exprLen !== 1) {
-                    throw TypeError::multipleValueInSingleContext($arg);
+                    throw RuntimeError::multipleValueInSingleContext($arg);
                 }
 
                 $nValuedContext = $arg->len;
@@ -620,7 +617,7 @@ final class Interpreter
 
         if ($expr->ellipsis !== null) {
             if ($nValuedContext > 1) {
-                throw TypeError::cannotSplatMultipleValuedReturn($nValuedContext);
+                throw RuntimeError::cannotSplatMultipleValuedReturn($nValuedContext);
             }
 
             $unpackable = $argvBuilder->lookUpLast();
@@ -635,7 +632,7 @@ final class Interpreter
 
                     break;
                 default:
-                    throw TypeError::expectedSliceInArgumentUnpacking($unpackable, $func);
+                    throw RuntimeError::expectedSliceInArgumentUnpacking($unpackable, $func);
             }
         }
 
@@ -671,7 +668,7 @@ final class Interpreter
         $sequence = normalize_unwindable($sequence);
 
         if (!$sequence instanceof Sequence) {
-            throw OperationError::cannotIndex($sequence->type());
+            throw RuntimeError::cannotIndex($sequence->type());
         }
 
         $index = $this->evalExpr($expr->index);
@@ -684,7 +681,7 @@ final class Interpreter
         $sequence = $this->evalExpr($expr->expr);
 
         if (!$sequence instanceof Sliceable) {
-            throw OperationError::cannotSlice($sequence->type());
+            throw RuntimeError::cannotSlice($sequence->type());
         }
 
         $low = $this->getSliceExprIndex($expr->low);
@@ -721,7 +718,7 @@ final class Interpreter
     private function evalFallthroughStmt(FallthroughStmt $stmt): FallthroughJump
     {
         if ($this->switchContext <= 0) {
-            throw ProgramError::misplacedFallthrough();
+            throw RuntimeError::misplacedFallthrough();
         }
 
         return new FallthroughJump();
@@ -791,12 +788,12 @@ final class Interpreter
                 }
 
                 if ($stmtJump instanceof FallthroughJump && $i + 1 < $len) {
-                    throw ProgramError::misplacedFallthrough();
+                    throw RuntimeError::misplacedFallthrough();
                 }
             }
 
             if ($stmtJump instanceof GotoJump) {
-                throw DefinitionError::undefinedLabel($jump->getLabel());
+                throw RuntimeError::undefinedLabel($jump->getLabel());
             }
 
             return $stmtJump;
@@ -829,7 +826,7 @@ final class Interpreter
 
             if ($value instanceof TupleValue) {
                 if (!empty($values)) {
-                    throw TypeError::multipleValueInSingleContext($value);
+                    throw RuntimeError::multipleValueInSingleContext($value);
                 }
 
                 return ReturnJump::fromTuple($value);
@@ -967,7 +964,7 @@ final class Interpreter
             foreach ($stmt->caseClauses as $i => $caseClause) {
                 if ($caseClause->case instanceof DefaultCase) {
                     if ($defaultCaseIndex !== null) {
-                        throw ProgramError::multipleDefaults();
+                        throw RuntimeError::multipleDefaults();
                     }
 
                     $defaultCaseIndex = $i;
@@ -1045,7 +1042,7 @@ final class Interpreter
         $range = $this->evalExpr($iteration->expr);
 
         if (!$range instanceof Sequence) {
-            throw OperationError::invalidRangeValue($range);
+            throw RuntimeError::invalidRangeValue($range);
         }
 
         /**
@@ -1062,7 +1059,7 @@ final class Interpreter
             0 => [null, null],
             1 => [$iterVars[0], null],
             2 => $iterVars,
-            default => throw ProgramError::tooManyRangeVars(),
+            default => throw RuntimeError::tooManyRangeVars(),
         };
 
         foreach ($range->iter() as $key => $value) {
@@ -1126,7 +1123,7 @@ final class Interpreter
         $op = Operator::fromAst($stmt->op);
 
         if (!$op->isAssignment()) {
-            throw OperationError::expectedAssignmentOperator($op);
+            throw RuntimeError::expectedAssignmentOperator($op);
         }
 
         $lhs = [];
@@ -1162,7 +1159,7 @@ final class Interpreter
         }
 
         if (!$hasNew) {
-            throw ProgramError::noNewVarsInShortAssignment();
+            throw RuntimeError::noNewVarsInShortAssignment();
         }
 
         return None::None;
@@ -1175,11 +1172,11 @@ final class Interpreter
 
         if ($value instanceof TupleValue) {
             if ($exprLen !== 1) {
-                throw TypeError::multipleValueInSingleContext($value);
+                throw RuntimeError::multipleValueInSingleContext($value);
             }
 
             if ($value->len !== $expectedLen) {
-                throw DefinitionError::assignmentMismatch($expectedLen, $value->len);
+                throw RuntimeError::assignmentMismatch($expectedLen, $value->len);
             }
 
             return $value->values;
@@ -1194,7 +1191,7 @@ final class Interpreter
         }
 
         if ($expectedLen !== $exprLen) {
-            throw DefinitionError::assignmentMismatch($expectedLen, $exprLen);
+            throw RuntimeError::assignmentMismatch($expectedLen, $exprLen);
         }
 
         $values = [$value];
@@ -1203,7 +1200,7 @@ final class Interpreter
             $value = $this->evalExpr($exprList->exprs[$i]);
 
             if ($value instanceof TupleValue) {
-                throw TypeError::multipleValueInSingleContext($value);
+                throw RuntimeError::multipleValueInSingleContext($value);
             }
 
             $values[] = $value;
@@ -1230,7 +1227,7 @@ final class Interpreter
         };
 
         if ($this->constContext) {
-            throw OperationError::notConstantExpr($value);
+            throw RuntimeError::notConstantExpr($value);
         }
 
         return $value;
@@ -1266,7 +1263,7 @@ final class Interpreter
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof UnaryExpr => $this->evalPointerUnaryExpr($expr),
             $expr instanceof SelectorExpr => $this->evalSelectorExpr($expr),
-            default => throw OperationError::cannotAssign($this->evalExpr($expr)),
+            default => throw RuntimeError::cannotAssign($this->evalExpr($expr)),
         };
     }
 
@@ -1320,7 +1317,7 @@ final class Interpreter
                         match (true) {
                             $element->key === null => null,
                             $element->key instanceof Ident => $element->key->name,
-                            default => throw DefinitionError::invalidFieldName(),
+                            default => throw RuntimeError::invalidFieldName(),
                         },
                         $this->evalExpr($element->element),
                     );
@@ -1443,7 +1440,7 @@ final class Interpreter
                 throw InternalError::unreachable($value);
             }
 
-            throw DefinitionError::undefinedFieldAccess(
+            throw RuntimeError::undefinedFieldAccess(
                 $value->getName(),
                 $expr->selector->name,
                 $value->type(),
@@ -1458,7 +1455,7 @@ final class Interpreter
         $value = $this->env->get($ident->name, $this->currentPackage)->unwrap();
 
         if ($value === $this->iota && !$this->constContext) {
-            throw ProgramError::iotaMisuse();
+            throw RuntimeError::iotaMisuse();
         }
 
         return $value;
@@ -1469,7 +1466,7 @@ final class Interpreter
         $value = $this->evalUnaryExpr($expr);
 
         if ($expr->op->value !== Operator::Mul->value) {
-            throw OperationError::cannotAssign($value);
+            throw RuntimeError::cannotAssign($value);
         }
 
         return $value;
@@ -1478,7 +1475,7 @@ final class Interpreter
     private static function isTrue(GoValue $value): bool
     {
         if (!$value instanceof BoolValue) {
-            throw TypeError::valueOfWrongType($value, NamedType::Bool);
+            throw RuntimeError::valueOfWrongType($value, NamedType::Bool);
         }
 
         return $value->unwrap();
@@ -1524,7 +1521,7 @@ final class Interpreter
         $value = $this->env->get($name, $namespace)->unwrap();
 
         if (!$value instanceof TypeValue) {
-            throw TypeError::valueIsNotType($value);
+            throw RuntimeError::valueIsNotType($value);
         }
 
         return $value->unwrap();
@@ -1544,10 +1541,10 @@ final class Interpreter
         ) {
             $len = null;
         } elseif ($arrayType->len instanceof Expr) {
-            $len = $this->tryEvalConstExpr($arrayType->len) ?? throw ProgramError::invalidArrayLength();
+            $len = $this->tryEvalConstExpr($arrayType->len) ?? throw RuntimeError::invalidArrayLength();
 
             if (!$len instanceof IntNumber) {
-                throw TypeError::invalidArrayLen($len);
+                throw RuntimeError::invalidArrayLen($len);
             }
         } else {
             throw InternalError::unreachable($arrayType);
@@ -1594,7 +1591,7 @@ final class Interpreter
 
             foreach ($fieldDecl->identList->idents as $ident) {
                 if (isset($fields[$ident->name])) {
-                    throw ProgramError::redeclaredName($ident->name);
+                    throw RuntimeError::redeclaredName($ident->name);
                 }
                 $fields[$ident->name] = $type;
             }
@@ -1668,7 +1665,7 @@ final class Interpreter
 
         foreach ($validators as $validator) {
             if ($validator->supports($name, $this->currentPackage)) {
-                throw ProgramError::nameMustBeFunc($name);
+                throw RuntimeError::nameMustBeFunc($name);
             }
         }
     }

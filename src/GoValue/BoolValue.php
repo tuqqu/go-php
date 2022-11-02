@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 use GoPhp\GoType\NamedType;
-use GoPhp\Error\OperationError;
 
 use function GoPhp\assert_values_compatible;
 
@@ -77,8 +76,8 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
             Operator::LogicNot => $this->invert(),
             Operator::BitAnd => $this->isAddressable()
                 ? PointerValue::fromValue($this)
-                : throw TypeError::cannotTakeAddressOfValue($this),
-            default => throw OperationError::undefinedOperator($op, $this, true),
+                : throw RuntimeError::cannotTakeAddressOfValue($this),
+            default => throw RuntimeError::undefinedOperator($op, $this, true),
         };
     }
 
@@ -91,7 +90,7 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
             Operator::LogicOr => $this->logicOr($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -107,7 +106,7 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
             return;
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 
     public function copy(): self

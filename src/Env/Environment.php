@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
-use GoPhp\Error\DefinitionError;
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
@@ -38,7 +37,7 @@ final class Environment
 
     public function defineConst(string $name, AddressableValue $value, BasicType $type, string $namespace = EnvMap::NAMESPACE_TOP): void {
         if (!$value instanceof Sealable) {
-            throw DefinitionError::valueIsNotConstant($value);
+            throw RuntimeError::valueIsNotConstant($value);
         }
 
         $value->seal();
@@ -86,7 +85,7 @@ final class Environment
     public function get(string $name, string $namespace, bool $implicit = true): EnvValue
     {
         return $this->tryGet($name, $namespace, $implicit)
-            ?? throw ProgramError::undefinedName($name);
+            ?? throw RuntimeError::undefinedName($name);
     }
 
     public function isNamespaceDefined(string $namespace): bool

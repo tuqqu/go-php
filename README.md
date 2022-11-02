@@ -2,7 +2,6 @@
 
 Golang interpreter written in PHP.
 
-
 # Example
 
 ```php
@@ -53,13 +52,13 @@ To be implemented:
 
 install dependencies:
 
-```bash
+```
 composer install
 ```
 
 run tests:
 
-```bash
+```
 make test
 ```
 

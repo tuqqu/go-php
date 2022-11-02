@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\FuncType;
 
 final class VoidFuncTypeValidator implements FuncTypeValidator
@@ -26,7 +26,7 @@ final class VoidFuncTypeValidator implements FuncTypeValidator
     public function validate(FuncType $type): void
     {
         if ($type->arity !== 0 || $type->returnArity !== 0) {
-            throw ProgramError::funcMustBeNoArgsVoid($this->funcName);
+            throw RuntimeError::funcMustBeNoArgsVoid($this->funcName);
         }
     }
 

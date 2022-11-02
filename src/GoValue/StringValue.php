@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\OperationError;
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\IntNumber;
@@ -61,7 +60,7 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
     public function slice(?int $low, ?int $high, ?int $max = null): self
     {
         if ($max !== null) {
-            throw OperationError::cannotFullSliceString();
+            throw RuntimeError::cannotFullSliceString();
         }
 
         $low ??= 0;
@@ -76,13 +75,13 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
     {
         if ($op === Operator::BitAnd) {
             if (!$this->isAddressable()) {
-                throw TypeError::cannotTakeAddressOfValue($this);
+                throw RuntimeError::cannotTakeAddressOfValue($this);
             }
 
             return PointerValue::fromValue($this);
         }
 
-        throw OperationError::undefinedOperator($op, $this, true);
+        throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): self|BoolValue
@@ -93,7 +92,7 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
             Operator::Plus => $this->add($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::undefinedOperator($op, $this, true),
+            default => throw RuntimeError::undefinedOperator($op, $this, true),
         };
     }
 
@@ -106,7 +105,7 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
         match ($op) {
             Operator::Eq => $this->value = $rhs->value,
             Operator::PlusEq => $this->mutAdd($rhs),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 

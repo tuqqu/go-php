@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType\Converter;
 
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
@@ -19,6 +19,6 @@ final class DefaultConverter
 
         return $type->equals($value->type()) ?
             $value :
-            throw TypeError::conversionError($value, $value->type());
+            throw RuntimeError::conversionError($value, $value->type());
     }
 }

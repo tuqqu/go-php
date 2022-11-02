@@ -6,8 +6,7 @@ namespace GoPhp\GoValue\Struct;
 
 use GoPhp\Env\EnvValue;
 use GoPhp\Env\EnvMap;
-use GoPhp\Error\DefinitionError;
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\StructType;
 use GoPhp\GoValue\GoValue;
 
@@ -43,7 +42,7 @@ final class StructBuilder
         $field = $this->type->fields[$name] ?? null;
 
         if ($field === null) {
-            throw DefinitionError::invalidFieldName($name);
+            throw RuntimeError::invalidFieldName($name);
         }
 
         assert_types_compatible_with_cast($field, $value);
@@ -57,14 +56,14 @@ final class StructBuilder
 
         if (!empty($this->orderedFields)) {
             if (!empty($this->namedFields)) {
-                throw ProgramError::mixedStructLiteralFields();
+                throw RuntimeError::mixedStructLiteralFields();
             }
 
             $orderedCount = \count($this->orderedFields);
             $fieldCount = \count($this->type->fields);
 
             if ($orderedCount !== $fieldCount) {
-                throw ProgramError::structLiteralTooManyValues($fieldCount, $orderedCount);
+                throw RuntimeError::structLiteralTooManyValues($fieldCount, $orderedCount);
             }
 
             $i = 0;

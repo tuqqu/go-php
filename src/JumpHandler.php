@@ -8,9 +8,8 @@ use GoParser\Ast\Stmt\Decl;
 use GoParser\Ast\Stmt\LabeledStmt;
 use GoParser\Ast\Stmt\Stmt;
 use GoParser\Ast\Stmt\TypeDecl;
-use GoPhp\Error\DefinitionError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\Error\InternalError;
-use GoPhp\Error\ProgramError;
 
 final class JumpHandler
 {
@@ -36,7 +35,7 @@ final class JumpHandler
     public function addLabel(LabeledStmt $label): void
     {
         if ($this->hasMet($label)) {
-            throw DefinitionError::labelAlreadyDefined($label->label->name);
+            throw RuntimeError::labelAlreadyDefined($label->label->name);
         }
 
         $this->metLabels[$label->label->name] = \spl_object_id($label);
@@ -59,7 +58,7 @@ final class JumpHandler
             && $stmt instanceof Decl
             && !$stmt instanceof TypeDecl
         ) {
-            throw ProgramError::jumpBeforeDecl();
+            throw RuntimeError::jumpBeforeDecl();
         }
 
         if (!$stmt instanceof LabeledStmt) {

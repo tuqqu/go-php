@@ -6,7 +6,7 @@ namespace GoPhp\Tests\Unit\Env;
 
 use GoPhp\Env\EnvMap;
 use GoPhp\Env\EnvValue;
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\NamedType;
 use PHPUnit\Framework\TestCase;
 
@@ -37,16 +37,16 @@ final class EnvMapTest extends TestCase
         self::assertSame($this->valueB, $this->map->get('b', 'B', true));
         self::assertSame($this->valueGlobal, $this->map->get('g', '', true));
 
-        $this->expectException(ProgramError::class);
+        $this->expectException(RuntimeError::class);
         $this->map->get('b', 'A', true);
 
-        $this->expectException(ProgramError::class);
+        $this->expectException(RuntimeError::class);
         $this->map->get('b', '', true);
 
-        $this->expectException(ProgramError::class);
+        $this->expectException(RuntimeError::class);
         $this->map->get('c', 'A', true);
 
-        $this->expectException(ProgramError::class);
+        $this->expectException(RuntimeError::class);
         $this->map->get('c', '', true);
     }
 
@@ -63,7 +63,7 @@ final class EnvMapTest extends TestCase
         $this->map->add(self::createEnvValue('a'), 'B');
         $this->map->add(self::createEnvValue('a'), '');
 
-        $this->expectException(ProgramError::class);
+        $this->expectException(RuntimeError::class);
         $this->map->add(self::createEnvValue('a'), 'A');
     }
 

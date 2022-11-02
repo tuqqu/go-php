@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Int;
 
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Complex\ComplexNumber;
@@ -229,7 +229,7 @@ abstract class IntNumber extends SimpleNumber
     final protected function doBecomeTyped(NamedType $type): parent|ComplexNumber
     {
         if (!$this->type() instanceof UntypedType) {
-            throw TypeError::implicitConversionError($this, $type);
+            throw RuntimeError::implicitConversionError($this, $type);
         }
 
         return match ($type) {
@@ -248,7 +248,7 @@ abstract class IntNumber extends SimpleNumber
             NamedType::Float64 => new Float64Value($this->value),
             NamedType::Complex64 => Complex64Value::fromSimpleNumber($this),
             NamedType::Complex128 => Complex128Value::fromSimpleNumber($this),
-            default => throw TypeError::implicitConversionError($this, $type),
+            default => throw RuntimeError::implicitConversionError($this, $type),
         };
     }
 }

@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoPhp\Builtin\BuiltinFunc\BuiltinFunc;
-use GoPhp\Error\DefinitionError;
-use GoPhp\Error\OperationError;
-use GoPhp\Error\ProgramError;
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Float\FloatNumber;
@@ -31,7 +28,7 @@ use GoPhp\GoValue\UntypedNilValue;
 function assert_types_compatible(GoType $a, GoType $b): void
 {
     if (!$a->isCompatible($b)) {
-        throw TypeError::mismatchedTypes($a, $b);
+        throw RuntimeError::mismatchedTypes($a, $b);
     }
 }
 
@@ -62,7 +59,7 @@ function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
     assert_values_compatible($a, $b);
 
     if (!$b instanceof UntypedNilValue) {
-        throw TypeError::onlyComparableToNil($name);
+        throw RuntimeError::onlyComparableToNil($name);
     }
 }
 
@@ -92,10 +89,10 @@ function assert_argc(Func|BuiltinFunc $context, Argv $argv, int $expectedArgc, b
     }
 
     if ($context instanceof BuiltinFunc) {
-        throw ProgramError::wrongBuiltinArgumentNumber($expectedArgc, $argv->argc, $context->name());
+        throw RuntimeError::wrongBuiltinArgumentNumber($expectedArgc, $argv->argc, $context->name());
     }
 
-    throw ProgramError::wrongFuncArgumentNumber($argv, $context->type->params);
+    throw RuntimeError::wrongFuncArgumentNumber($argv, $context->type->params);
 }
 
 /**
@@ -108,7 +105,7 @@ function assert_argc(Func|BuiltinFunc $context, Argv $argv, int $expectedArgc, b
 function assert_arg_value(Arg $arg, string $value, string $name): void
 {
     if (!$arg->value instanceof $value) {
-        throw OperationError::wrongArgumentType($arg, $name);
+        throw RuntimeError::wrongArgumentType($arg, $name);
     }
 }
 
@@ -123,7 +120,7 @@ function assert_arg_int(Arg $arg): void
         !$arg->value instanceof IntNumber
         && ($arg->value instanceof FloatNumber && $arg->value->type() !== UntypedType::UntypedRoundFloat)
     ) {
-        throw OperationError::wrongArgumentType($arg, 'int');
+        throw RuntimeError::wrongArgumentType($arg, 'int');
     }
 }
 
@@ -138,7 +135,7 @@ function assert_arg_float(Arg $arg): void
         !$arg->value instanceof FloatNumber
         && !$arg->value instanceof IntNumber
     ) {
-        throw OperationError::wrongArgumentType($arg, 'float');
+        throw RuntimeError::wrongArgumentType($arg, 'float');
     }
 }
 
@@ -148,7 +145,7 @@ function assert_arg_float(Arg $arg): void
 function assert_arg_type(Arg $arg, GoType $type): void
 {
     if (!$type->isCompatible($arg->value->type())) {
-        throw OperationError::wrongArgumentType($arg, $type->name());
+        throw RuntimeError::wrongArgumentType($arg, $type->name());
     }
 }
 
@@ -160,7 +157,7 @@ function assert_index_exists(int $index, int $max): void
     assert_index_positive($index);
 
     if ($index >= $max) {
-        throw DefinitionError::indexOutOfRange($index, $max);
+        throw RuntimeError::indexOutOfRange($index, $max);
     }
 }
 
@@ -172,7 +169,7 @@ function assert_index_exists(int $index, int $max): void
 function assert_index_positive(int $index): void
 {
     if ($index < 0) {
-        throw OperationError::indexNegative($index);
+        throw RuntimeError::indexNegative($index);
     }
 }
 
@@ -188,11 +185,11 @@ function assert_index_sliceable(int $cap, int $low, int $high, ?int $max = null)
     $max ??= $cap;
 
     if ($low > $high) {
-        throw DefinitionError::invalidSliceIndices($low, $high);
+        throw RuntimeError::invalidSliceIndices($low, $high);
     }
 
     if ($high > $max) {
-        throw DefinitionError::invalidSliceIndices($high, $max);
+        throw RuntimeError::invalidSliceIndices($high, $max);
     }
 }
 
@@ -207,7 +204,7 @@ function assert_index_int(GoValue $index, string $context): void
         !$index instanceof IntNumber
         && $index->type() !== UntypedType::UntypedRoundFloat
     ) {
-        throw DefinitionError::indexOfWrongType($index, IntNumber::NAME, $context);
+        throw RuntimeError::indexOfWrongType($index, IntNumber::NAME, $context);
     }
 }
 
@@ -217,6 +214,6 @@ function assert_index_int(GoValue $index, string $context): void
 function assert_index_type(GoValue $index, GoType $type, string $context): void
 {
     if (!$index->type()->isCompatible($type)) {
-        throw DefinitionError::indexOfWrongType($index, $type->name(), $context);
+        throw RuntimeError::indexOfWrongType($index, $type->name(), $context);
     }
 }

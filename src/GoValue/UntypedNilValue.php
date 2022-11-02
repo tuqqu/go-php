@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\InternalError;
-use GoPhp\Error\OperationError;
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\UntypedNilType;
 use GoPhp\Operator;
 
@@ -28,13 +27,13 @@ final class UntypedNilValue implements AddressableValue
 
     public function operate(Operator $op): never
     {
-        throw OperationError::undefinedOperator($op, $this, true);
+        throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): GoValue
     {
         if ($rhs instanceof self) {
-            throw OperationError::undefinedOperator($op, $this);
+            throw RuntimeError::undefinedOperator($op, $this);
         }
 
         return $rhs->operateOn($op, $this);
@@ -43,10 +42,10 @@ final class UntypedNilValue implements AddressableValue
     public function mutate(Operator $op, GoValue $rhs): never
     {
         if ($op === Operator::Eq) {
-            throw OperationError::cannotAssign($this);
+            throw RuntimeError::cannotAssign($this);
         }
 
-        throw TypeError::mismatchedTypes($this->type, $rhs->type());
+        throw RuntimeError::mismatchedTypes($this->type, $rhs->type());
     }
 
     public function copy(): self

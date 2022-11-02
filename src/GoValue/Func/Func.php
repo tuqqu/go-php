@@ -7,7 +7,7 @@ namespace GoPhp\GoValue\Func;
 use GoPhp\Argv;
 use GoPhp\Env\Environment;
 use GoPhp\Error\InternalError;
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\PointerType;
 use GoPhp\GoType\SliceType;
@@ -128,7 +128,7 @@ final class Func implements Invokable
         if ($stmtJump instanceof None) {
             return $this->type->returnArity === 0
                 ? new VoidValue()
-                : throw ProgramError::wrongReturnValueNumber([], $this->type->returns);
+                : throw RuntimeError::wrongReturnValueNumber([], $this->type->returns);
         }
 
         if (!$stmtJump instanceof ReturnJump) {
@@ -143,7 +143,7 @@ final class Func implements Invokable
                     : new TupleValue($namedReturns);
             }
 
-            throw ProgramError::wrongReturnValueNumber($stmtJump->values(), $this->type->returns);
+            throw RuntimeError::wrongReturnValueNumber($stmtJump->values(), $this->type->returns);
         }
 
         // void & single & tuple value return

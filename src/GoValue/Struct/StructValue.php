@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Struct;
 
 use GoPhp\Env\EnvMap;
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\StructType;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
@@ -44,7 +44,7 @@ final class StructValue implements AddressableValue
             return PointerValue::fromValue($this);
         }
 
-        throw OperationError::undefinedOperator($op, $this, true);
+        throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
@@ -56,7 +56,7 @@ final class StructValue implements AddressableValue
         return match ($op) {
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -73,7 +73,7 @@ final class StructValue implements AddressableValue
             return;
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 
     public function unwrap(): self

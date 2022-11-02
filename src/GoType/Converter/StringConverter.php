@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType\Converter;
 
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\IntNumber;
@@ -22,7 +22,7 @@ final class StringConverter
             $value instanceof IntNumber => new StringValue(self::char($value)),
             $value instanceof SliceValue
             && self::isSliceConvertible($value) => new StringValue(self::chars($value->unwrap())),
-            default => throw TypeError::conversionError($value, NamedType::String),
+            default => throw RuntimeError::conversionError($value, NamedType::String),
         };
     }
 

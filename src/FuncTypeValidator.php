@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\FuncType;
 
 interface FuncTypeValidator
@@ -17,7 +17,7 @@ interface FuncTypeValidator
     /**
      * Throws on validation error
      *
-     * @throws ProgramError
+     * @throws RuntimeError
      */
     public function validate(FuncType $type): void;
 

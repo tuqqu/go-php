@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Func;
 
 use GoPhp\Argv;
 use GoPhp\Env\Environment;
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\Error\PanicError;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoValue\AddressableTrait;
@@ -98,13 +98,13 @@ final class FuncValue implements Invokable, AddressableValue
     {
         if ($op === Operator::BitAnd) {
             if ($this->isSealed()) {
-                throw OperationError::cannotTakeAddressOfValue($this);
+                throw RuntimeError::cannotTakeAddressOfValue($this);
             }
 
             return PointerValue::fromValue($this);
         }
 
-        throw OperationError::undefinedOperator($op, $this, true);
+        throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
@@ -114,7 +114,7 @@ final class FuncValue implements Invokable, AddressableValue
         return match ($op) {
             Operator::EqEq => new BoolValue($this->innerFunc === NIL),
             Operator::NotEq => new BoolValue($this->innerFunc !== NIL),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -136,7 +136,7 @@ final class FuncValue implements Invokable, AddressableValue
             return;
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 
     private function getAddress(): int

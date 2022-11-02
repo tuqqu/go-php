@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Array;
 
-use GoPhp\Error\OperationError;
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
@@ -50,7 +49,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         $type->finish($this->len);
 
         if ($type->len !== $this->len) {
-            throw new TypeError(\sprintf('Expected array of length %d, got %d', $type->len, $this->len));
+            throw new RuntimeError(\sprintf('Expected array of length %d, got %d', $type->len, $this->len));
         }
 
         $this->type = $type;
@@ -105,7 +104,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
             return PointerValue::fromValue($this);
         }
 
-        throw OperationError::undefinedOperator($op, $this, true);
+        throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
     public function operateOn(Operator $op, GoValue $rhs): BoolValue
@@ -115,7 +114,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         return match ($op) {
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -129,7 +128,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
             return;
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 
     /**

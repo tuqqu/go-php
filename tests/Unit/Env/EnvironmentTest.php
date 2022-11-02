@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Tests\Unit\Env;
 
 use GoPhp\Env\Environment;
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoValue\Int\IntValue;
 use PHPUnit\Framework\TestCase;
 
@@ -24,7 +24,7 @@ final class EnvironmentTest extends TestCase
         self::assertSame($valueA, $env->get('a', 'main')->unwrap());
         self::assertSame($valueB, $env->get('b', 'main')->unwrap());
 
-        $this->expectException(ProgramError::class);
+        $this->expectException(RuntimeError::class);
         $env->get('c', 'main');
     }
 

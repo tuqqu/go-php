@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\Error\PanicError;
 use GoPhp\GoType\PointerType;
 use GoPhp\Operator;
@@ -51,7 +51,7 @@ final class PointerValue implements AddressableValue
         return match ($op) {
             Operator::Mul => $this->getPointsTo(),
             Operator::BitAnd => PointerValue::fromValue($this),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -62,7 +62,7 @@ final class PointerValue implements AddressableValue
         return match ($op) {
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
-            default => throw OperationError::undefinedOperator($op, $this),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -82,7 +82,7 @@ final class PointerValue implements AddressableValue
             return;
         }
 
-        throw OperationError::undefinedOperator($op, $this);
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 
     public function copy(): self

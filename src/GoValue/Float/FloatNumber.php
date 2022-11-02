@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Float;
 
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
@@ -107,7 +107,7 @@ abstract class FloatNumber extends SimpleNumber
         return match ($type) {
             NamedType::Float32 => new Float32Value($number),
             NamedType::Float64 => new Float64Value($number),
-            default => throw TypeError::implicitConversionError($this, $type),
+            default => throw RuntimeError::implicitConversionError($this, $type),
         };
     }
 }

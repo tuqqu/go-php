@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\Int\IntNumber;
@@ -35,7 +35,7 @@ class Make extends BaseBuiltinFunc
 
         if ($type->type instanceof SliceType) {
             if ($argv->argc > 3) {
-                throw OperationError::wrongArgumentNumber('2 or 3', $argv->argc);
+                throw RuntimeError::wrongArgumentNumber('2 or 3', $argv->argc);
             }
 
             $builder = SliceBuilder::fromType($type->type);
@@ -60,7 +60,7 @@ class Make extends BaseBuiltinFunc
                 assert_index_positive($cap);
 
                 if ($cap < ($len ?? 0)) {
-                    throw OperationError::lenAndCapSwapped();
+                    throw RuntimeError::lenAndCapSwapped();
                 }
 
                 $builder->setCap($cap);
@@ -71,7 +71,7 @@ class Make extends BaseBuiltinFunc
 
         if ($type->type instanceof MapType) {
             if ($argv->argc > 2) {
-                throw OperationError::wrongArgumentNumber(2, $argv->argc);
+                throw RuntimeError::wrongArgumentNumber(2, $argv->argc);
             }
 
             if (isset($argv[1])) {
@@ -83,7 +83,7 @@ class Make extends BaseBuiltinFunc
             return MapBuilder::fromType($type->type)->build();
         }
 
-        throw OperationError::wrongArgumentType($argv[0], 'slice, map or channel');
+        throw RuntimeError::wrongArgumentType($argv[0], 'slice, map or channel');
     }
 
     public function expectsTypeAsFirstArg(): bool

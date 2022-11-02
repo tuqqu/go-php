@@ -6,7 +6,7 @@ namespace GoPhp\GoValue;
 
 use GoPhp\Argv;
 use GoPhp\Builtin\BuiltinFunc\BuiltinFunc;
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
@@ -38,31 +38,31 @@ final class BuiltinFuncValue implements ConstInvokable, GoValue
 
     public function toString(): string
     {
-        throw TypeError::builtInMustBeCalled($this->func->name());
+        throw RuntimeError::builtInMustBeCalled($this->func->name());
     }
 
     public function unwrap(): callable
     {
-        throw TypeError::builtInMustBeCalled($this->func->name());
+        throw RuntimeError::builtInMustBeCalled($this->func->name());
     }
 
     public function operate(Operator $op): never
     {
-        throw TypeError::builtInMustBeCalled($this->func->name());
+        throw RuntimeError::builtInMustBeCalled($this->func->name());
     }
 
     public function operateOn(Operator $op, GoValue $rhs): never
     {
-        throw TypeError::builtInMustBeCalled($this->func->name());
+        throw RuntimeError::builtInMustBeCalled($this->func->name());
     }
 
     public function mutate(Operator $op, GoValue $rhs): never
     {
-        throw TypeError::builtInMustBeCalled($this->func->name());
+        throw RuntimeError::builtInMustBeCalled($this->func->name());
     }
 
     public function copy(): never
     {
-        throw TypeError::builtInMustBeCalled($this->func->name());
+        throw RuntimeError::builtInMustBeCalled($this->func->name());
     }
 }

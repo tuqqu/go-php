@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Int;
 
-use GoPhp\Error\ProgramError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\UntypedType;
 
 final class UntypedIntValue extends IntNumber
@@ -46,7 +46,7 @@ final class UntypedIntValue extends IntNumber
         $digits = \substr($number, $start);
 
         if (empty($digits)) {
-            throw new ProgramError(\sprintf('%s literal has no digits', $type));
+            throw new RuntimeError(\sprintf('%s literal has no digits', $type));
         }
 
         return $digits;

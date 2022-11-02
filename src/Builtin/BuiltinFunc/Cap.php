@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Slice\SliceValue;
@@ -31,6 +31,6 @@ class Cap extends BaseBuiltinFunc
             return new IntValue($capable->value->cap());
         }
 
-        throw OperationError::wrongArgumentType($capable, 'slice, array');
+        throw RuntimeError::wrongArgumentType($capable, 'slice, array');
     }
 }

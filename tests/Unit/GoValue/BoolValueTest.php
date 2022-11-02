@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Tests\Unit\GoValue;
 
-use GoPhp\Error\OperationError;
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Int\UintValue;
 use GoPhp\GoValue\StringValue;
@@ -37,22 +36,22 @@ final class BoolValueTest extends TestCase
 
     public function testInvalidOperation(): void
     {
-        $this->expectException(OperationError::class);
+        $this->expectException(RuntimeError::class);
 
         BoolValue::true()->operate(Operator::Plus);
 
-        $this->expectException(OperationError::class);
+        $this->expectException(RuntimeError::class);
 
         BoolValue::true()->operateOn(Operator::Minus, BoolValue::true());
     }
 
     public function testIncompatibleValues(): void
     {
-        $this->expectException(TypeError::class);
+        $this->expectException(RuntimeError::class);
 
         BoolValue::true()->operateOn(Operator::LogicAnd, new UintValue(1));
 
-        $this->expectException(TypeError::class);
+        $this->expectException(RuntimeError::class);
 
         BoolValue::true()->operateOn(Operator::LogicOr, new StringValue("str"));
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\Error\OperationError;
+use GoPhp\Error\RuntimeError;
 
 trait SealableTrait
 {
@@ -23,7 +23,7 @@ trait SealableTrait
     final protected function onMutate(): void
     {
         if ($this->sealed) {
-            throw OperationError::cannotAssign($this);
+            throw RuntimeError::cannotAssign($this);
         }
     }
 }

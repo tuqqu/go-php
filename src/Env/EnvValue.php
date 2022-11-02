@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
-use GoPhp\Error\TypeError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedNilType;
@@ -33,7 +33,7 @@ final class EnvValue
             $value = self::convertIfNeeded($value, $type);
 
             if ($type instanceof UntypedNilType) {
-                throw TypeError::untypedNilInVarDecl();
+                throw RuntimeError::untypedNilInVarDecl();
             }
 
             assert_types_compatible($type, $value->type());
