@@ -39,7 +39,7 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 
     public static function create(mixed $value): NonRefValue
     {
-        // reverse Cantor Pairing Function
+        // reverse Cantor Pairing
         $w = \floor(0.5 * (-1 + \sqrt(1 + 8 * $value)));
         $real = 0.5 * $w * ($w + 3) - $value;
         $imag = $value - $w * 0.5 * ($w + 1);
@@ -149,7 +149,6 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 
     public function copy(): static
     {
-        //fixme check
         return clone $this;
     }
 

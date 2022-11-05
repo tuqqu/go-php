@@ -501,6 +501,16 @@ class RuntimeError extends \RuntimeException
         return new self('goto jumps over declaration');
     }
 
+    public static function missingConversionArg(GoType $type): self
+    {
+        return new self(\sprintf('missing argument in conversion to %s', $type->name()));
+    }
+
+    public static function tooManyConversionArgs(GoType $type): self
+    {
+        return new self(\sprintf('too many arguments in conversion to %s', $type->name()));
+    }
+
     final protected static function fullName(string $name, string $selector): string
     {
         return \sprintf('%s.%s', $name, $selector);

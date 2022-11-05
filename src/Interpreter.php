@@ -179,6 +179,7 @@ final class Interpreter
         $this->env = new Environment($builtin->env());
 
         $argvBuilder = new ArgvBuilder();
+
         foreach ($argv as $arg) {
             $argvBuilder->add($arg);
         }
@@ -620,20 +621,7 @@ final class Interpreter
                 throw RuntimeError::cannotSplatMultipleValuedReturn($nValuedContext);
             }
 
-            $unpackable = $argvBuilder->lookUpLast();
-
-            //fixme move to builder
-            switch (true) {
-                case $unpackable instanceof SliceValue:
-                case $unpackable instanceof StringValue
-                    && $func instanceof BuiltinFuncValue
-                    && $func->func->permitsStringUnpacking():
-                    $argvBuilder->markUnpacked();
-
-                    break;
-                default:
-                    throw RuntimeError::expectedSliceInArgumentUnpacking($unpackable, $func);
-            }
+            $argvBuilder->markUnpacked($func);
         }
 
         return static fn (): mixed => $func($argvBuilder->build());

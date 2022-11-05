@@ -29,14 +29,13 @@ final class TypeValue implements ConstInvokable, AddressableValue
 
     public function __invoke(Argv $argv): GoValue
     {
-        //fixme move
-        $value = match ($argv->argc) {
-            1 => $argv[0]->value,
-            0 => throw new RuntimeError(\sprintf('missing argument in conversion to %s', $this->type->name())),
-            default => throw new RuntimeError(\sprintf('too many arguments in conversion to %s', $this->type->name())),
-        };
+        if ($argv->argc === 0) {
+            throw RuntimeError::missingConversionArg($this->type);
+        } elseif ($argv->argc > 1) {
+            throw RuntimeError::tooManyConversionArgs($this->type);
+        }
 
-        return $this->type->convert($value);
+        return $this->type->convert($argv[0]->value);
     }
 
     public function unwrap(): GoType

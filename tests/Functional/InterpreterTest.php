@@ -41,11 +41,6 @@ final class InterpreterTest extends TestCase
 
     public function sourceFileProvider(): iterable
     {
-//        'array', //fixme fmt
-//        'slice', //fixme fmt, copy, :1
-//        'type_conversion', //fixme fmt float
-//        'slicing', //fixme fmt float
-
         $files = \glob(\sprintf('%s/*.go', self::SRC_FILES_PATH));
 
         foreach ($files as $file) {

@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Invokable;
+use GoPhp\GoValue\Slice\SliceValue;
+use GoPhp\GoValue\StringValue;
 use GoPhp\GoValue\Unpackable;
 
 final class ArgvBuilder
@@ -21,14 +26,17 @@ final class ArgvBuilder
         ++$this->argc;
     }
 
-    public function markUnpacked(): void
+    public function markUnpacked(Invokable $func): void
     {
-        $this->unpacked = true;
-    }
+        $unpackable = $this->values[$this->argc - 1];
 
-    public function lookUpLast(): GoValue
-    {
-        return $this->values[$this->argc - 1];
+        $this->unpacked = match (true) {
+            $unpackable instanceof SliceValue,
+            $unpackable instanceof StringValue
+            && $func instanceof BuiltinFuncValue
+            && $func->func->permitsStringUnpacking() => true,
+            default => throw RuntimeError::expectedSliceInArgumentUnpacking($unpackable, $func),
+        };
     }
 
     public function build(): Argv

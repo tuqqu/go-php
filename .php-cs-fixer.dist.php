@@ -17,7 +17,9 @@ const RULES = [
 
 CONFIG->setRules(RULES);
 CONFIG->setFinder(PhpCsFixer\Finder::create()
+    ->in(__DIR__ . '/bin')
     ->in(__DIR__ . '/src')
+    ->in(__DIR__ . '/tests')
 );
 
 return CONFIG;

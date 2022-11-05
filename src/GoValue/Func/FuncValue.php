@@ -34,7 +34,7 @@ final class FuncValue implements Invokable, AddressableValue
     use AddressableTrait;
     use SealableTrait;
 
-    public const NAME = 'func'; //fixme move to types
+    public const NAME = 'func';
 
     private function __construct(
         public ?Func $innerFunc,

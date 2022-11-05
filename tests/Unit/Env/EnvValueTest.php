@@ -17,7 +17,7 @@ final class EnvValueTest extends TestCase
     public function testCreation(): void
     {
         $valueA = new IntValue(1);
-        $envValue = new EnvValue('a',$valueA);
+        $envValue = new EnvValue('a', $valueA);
 
         self::assertSame($valueA, $envValue->unwrap());
         self::assertSame('a', $envValue->name);

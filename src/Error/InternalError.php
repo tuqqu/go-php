@@ -15,9 +15,15 @@ final class InternalError extends \LogicException
         return new self('unreachable method call');
     }
 
-    public static function unreachable(object $context): self
+    public static function unreachable(object|string|null $context): self
     {
-        return new self(\sprintf('unreachable: %s', $context::class));
+        $context = match (true) {
+            \is_object($context) => $context::class,
+            \is_string($context) => $context,
+            $context === null => '',
+        };
+
+        return new self('unreachable' . $context ? \sprintf(': %s', $context) : '');
     }
 
     public static function unexpectedValue(mixed $value, string $expected): self
