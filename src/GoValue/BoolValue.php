@@ -11,6 +11,10 @@ use GoPhp\GoType\NamedType;
 
 use function GoPhp\assert_values_compatible;
 
+/**
+ * @template-implements NonRefValue<bool, bool>
+ * @template-implements AddressableValue<bool>
+ */
 final class BoolValue implements NonRefValue, Sealable, AddressableValue
 {
     use SealableTrait;
@@ -19,6 +23,11 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
     public function __construct(
         private bool $value,
     ) {}
+
+    public static function create(mixed $value): self
+    {
+        return new self($value);
+    }
 
     public static function true(): self
     {
@@ -48,11 +57,6 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
     public function toString(): string
     {
         return $this->value ? 'true' : 'false';
-    }
-
-    public static function create(mixed $value): self
-    {
-        return new self($value);
     }
 
     public function type(): NamedType
@@ -130,5 +134,10 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
     private function logicAnd(self $other): self
     {
         return new self($this->value && $other->value);
+    }
+
+    public function hash(): bool
+    {
+        return $this->unwrap();
     }
 }

@@ -10,13 +10,16 @@ use GoPhp\Operator;
 /**
  * Not a real Go value, but an internal representation
  * of a set of values returned from a function call with multiple return values.
+ *
+ * @psalm-type Tuple = list<GoValue>
+ * @template-implements GoValue<Tuple>
  */
 final class TupleValue implements GoValue
 {
     public readonly int $len;
 
     /**
-     * @param GoValue[] $values
+     * @param Tuple $values
      */
     public function __construct(
         public readonly array $values,
@@ -50,7 +53,7 @@ final class TupleValue implements GoValue
     }
 
     /**
-     * @return GoValue[]
+     * @return Tuple
      */
     public function unwrap(): array
     {

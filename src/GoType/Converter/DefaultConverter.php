@@ -17,8 +17,8 @@ final class DefaultConverter
     {
         $value = normalize_unwindable($value);
 
-        return $type->equals($value->type()) ?
-            $value :
-            throw RuntimeError::conversionError($value, $value->type());
+        return $type->equals($value->type())
+            ? $value
+            : throw RuntimeError::conversionError($value, $value->type());
     }
 }

@@ -6,9 +6,19 @@ namespace GoPhp\GoValue;
 
 use GoPhp\GoType\GoType;
 
+/**
+ * @template T backed PHP value
+ * @template H hash of a backed value
+ * @template-extends GoValue<T>
+ */
 interface NonRefValue extends GoValue
 {
     public static function create(mixed $value): self;
+
+    /**
+     * @return H
+     */
+    public function hash(): mixed;
 
     // fixme revisit arg
     public function reify(?GoType $with = null): self;

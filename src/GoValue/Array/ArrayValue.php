@@ -27,6 +27,7 @@ use function GoPhp\assert_values_compatible;
 /**
  * @template V of GoValue
  * @template-implements Sequence<IntNumber, V>
+ * @template-implements AddressableValue<list<V>>
  */
 final class ArrayValue implements Sliceable, Sequence, AddressableValue
 {
@@ -131,9 +132,6 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         throw RuntimeError::undefinedOperator($op, $this);
     }
 
-    /**
-     * @return V[]
-     */
     public function unwrap(): array
     {
         return $this->values->values();

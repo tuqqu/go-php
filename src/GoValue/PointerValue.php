@@ -13,6 +13,10 @@ use function GoPhp\assert_values_compatible;
 
 use const GoPhp\NIL;
 
+/**
+ * @psalm-type Address = int
+ * @template-implements AddressableValue<Address>
+ */
 final class PointerValue implements AddressableValue
 {
     use AddressableTrait;

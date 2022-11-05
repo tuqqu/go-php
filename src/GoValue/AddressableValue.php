@@ -6,6 +6,9 @@ namespace GoPhp\GoValue;
 
 /**
  * Value that is stored and can be addressed either by name or, sometimes, by reference.
+ *
+ * @template T
+ * @template-extends GoValue<T>
  */
 interface AddressableValue extends GoValue
 {

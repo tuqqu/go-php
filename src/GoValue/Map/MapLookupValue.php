@@ -11,13 +11,15 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
 
 /**
+ * @psalm-type Mutator = \Closure(): void
  * @template V of GoValue
+ * @template-implements GoValue<V>
  */
 final class MapLookupValue implements GoValue
 {
     /**
      * @param V $value
-     * @param (\Closure(): void)|null $mutationCallback
+     * @param Mutator|null $mutationCallback
      */
     public function __construct(
         public readonly GoValue $value,

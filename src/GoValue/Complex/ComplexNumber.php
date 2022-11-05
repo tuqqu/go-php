@@ -25,6 +25,11 @@ use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\normalize_unwindable;
 
+/**
+ * @psalm-type ComplexTuple = array{float, float}
+ * @template-implements NonRefValue<ComplexTuple, float>
+ * @template-implements AddressableValue<ComplexTuple>
+ */
 abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 {
     use SealableTrait;
@@ -34,8 +39,12 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 
     public static function create(mixed $value): NonRefValue
     {
-        // fixme check
-        throw new InternalError();
+        // reverse Cantor Pairing Function
+        $w = \floor(0.5 * (-1 + \sqrt(1 + 8 * $value)));
+        $real = 0.5 * $w * ($w + 3) - $value;
+        $imag = $value - $w * 0.5 * ($w + 1);
+
+        return new static($real, $imag);
     }
 
     public static function fromSimpleNumber(SimpleNumber $number): static
@@ -48,10 +57,12 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
         protected float $imag,
     ) {}
 
-    public function unwrap(): mixed
+    /**
+     * @return ComplexTuple
+     */
+    public function unwrap(): array
     {
-        // fixme check
-        throw new InternalError();
+        return [$this->real, $this->imag];
     }
 
     final public function reify(?GoType $with = null): self
@@ -73,6 +84,12 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
             $this->imag >= 0 ? '+' : '',
             $this->imag,
         );
+    }
+
+    final public function hash(): float
+    {
+        // Cantor Pairing Hash
+        return 0.5 * ($this->real + $this->imag) * ($this->real + $this->imag + 1) + $this->imag;
     }
 
     final public function operate(Operator $op): self|PointerValue
@@ -230,7 +247,7 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
     }
 
     /**
-     * @return array{float, float}
+     * @return ComplexTuple
      */
     private static function computeForMul(self $lhs, self $rhs): array
     {
@@ -241,7 +258,7 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
     }
 
     /**
-     * @return array{float, float}
+     * @return ComplexTuple
      */
     private static function computeForDiv(self $lhs, self $rhs): array
     {

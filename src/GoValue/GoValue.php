@@ -7,6 +7,9 @@ namespace GoPhp\GoValue;
 use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 
+/**
+ * @template T
+ */
 interface GoValue
 {
     public function operate(Operator $op): self;
@@ -15,6 +18,9 @@ interface GoValue
 
     public function mutate(Operator $op, self $rhs): void;
 
+    /**
+     * @return T
+     */
     public function unwrap(): mixed;
 
     public function copy(): self;

@@ -27,6 +27,7 @@ use const GoPhp\ZERO_ADDRESS;
 
 /**
  * @psalm-import-type FuncBody from Func
+ * @template-implements AddressableValue<self>
  */
 final class FuncValue implements Invokable, AddressableValue
 {

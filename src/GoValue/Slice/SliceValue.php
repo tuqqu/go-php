@@ -33,6 +33,7 @@ use const GoPhp\NIL;
  * @template V of GoValue
  * @template-implements Sequence<IntNumber, V>
  * @template-implements Unpackable<V>
+ * @template-implements AddressableValue<list<V>>
  */
 final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableValue
 {
@@ -209,9 +210,6 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
         throw RuntimeError::undefinedOperator($op, $this);
     }
 
-    /**
-     * @return V[]
-     */
     public function unwrap(): array
     {
         return $this->values?->values() ?? [];

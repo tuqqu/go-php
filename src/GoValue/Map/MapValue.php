@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
+use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\Error\PanicError;
 use GoPhp\GoType\MapType;
@@ -25,6 +26,7 @@ use const GoPhp\NIL;
  * @template K of GoValue
  * @template V of GoValue
  * @template-implements Map<K, V|MapLookupValue<V>>
+ * @template-implements AddressableValue<never>
  */
 final class MapValue implements Map, AddressableValue
 {
@@ -155,9 +157,9 @@ final class MapValue implements Map, AddressableValue
         throw RuntimeError::undefinedOperator($op, $this);
     }
 
-    public function unwrap(): self
+    public function unwrap(): never
     {
-        return $this;
+        throw InternalError::unreachable($this);
     }
 
     public function type(): MapType

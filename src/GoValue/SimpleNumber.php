@@ -29,6 +29,11 @@ use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\normalize_unwindable;
 
+/**
+ * @template N = int|float
+ * @template-implements NonRefValue<N, N>
+ * @template-implements AddressableValue<N>
+ */
 abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
 {
     use SealableTrait;
@@ -155,6 +160,11 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
             Operator::ModEq => $this->mutMod($rhs),
             default => static::completeMutate($op, $rhs),
         };
+    }
+
+    final public function hash(): int
+    {
+        return $this->unwrap();
     }
 
     public function copy(): static

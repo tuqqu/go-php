@@ -9,6 +9,9 @@ use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\UntypedNilType;
 use GoPhp\Operator;
 
+/**
+ * @template-implements AddressableValue<never>
+ */
 final class UntypedNilValue implements AddressableValue
 {
     use AddressableTrait;

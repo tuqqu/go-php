@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Struct;
 
 use GoPhp\Env\EnvMap;
+use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\StructType;
 use GoPhp\GoValue\AddressableTrait;
@@ -17,6 +18,9 @@ use GoPhp\Operator;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\normalize_unwindable;
 
+/**
+ * @template-implements AddressableValue<never>
+ */
 final class StructValue implements AddressableValue
 {
     use AddressableTrait;
@@ -76,9 +80,9 @@ final class StructValue implements AddressableValue
         throw RuntimeError::undefinedOperator($op, $this);
     }
 
-    public function unwrap(): self
+    public function unwrap(): never
     {
-        return $this;
+        throw InternalError::unreachable($this);
     }
 
     public function type(): StructType

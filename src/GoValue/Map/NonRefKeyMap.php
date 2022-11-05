@@ -27,12 +27,12 @@ final class NonRefKeyMap implements Map
 
     public function has(GoValue $at): bool
     {
-        return isset($this->values[$at->unwrap()]);
+        return isset($this->values[$at->hash()]);
     }
 
     public function get(GoValue $at): GoValue
     {
-        return $this->values[$at->unwrap()];
+        return $this->values[$at->hash()];
     }
 
     public function set(GoValue $value, GoValue $at): void
@@ -41,7 +41,7 @@ final class NonRefKeyMap implements Map
             ++$this->len;
         }
 
-        $this->values[$at->unwrap()] = $value;
+        $this->values[$at->hash()] = $value;
     }
 
     public function len(): int
@@ -51,7 +51,7 @@ final class NonRefKeyMap implements Map
 
     public function delete(GoValue $at): void
     {
-        unset($this->values[$at->unwrap()]);
+        unset($this->values[$at->hash()]);
     }
 
     public function iter(): iterable

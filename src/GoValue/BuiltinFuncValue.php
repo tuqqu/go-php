@@ -10,6 +10,9 @@ use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\BuiltinFuncType;
 use GoPhp\Operator;
 
+/**
+ * @template-implements GoValue<never>
+ */
 final class BuiltinFuncValue implements ConstInvokable, GoValue
 {
     public readonly BuiltinFuncType $type;
@@ -36,12 +39,12 @@ final class BuiltinFuncValue implements ConstInvokable, GoValue
         return $this->type;
     }
 
-    public function toString(): string
+    public function toString(): never
     {
         throw RuntimeError::builtInMustBeCalled($this->func->name());
     }
 
-    public function unwrap(): callable
+    public function unwrap(): never
     {
         throw RuntimeError::builtInMustBeCalled($this->func->name());
     }

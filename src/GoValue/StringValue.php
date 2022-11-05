@@ -20,6 +20,8 @@ use function GoPhp\assert_values_compatible;
 /**
  * @template-implements Sequence<IntNumber, UntypedIntValue|Uint8Value>
  * @template-implements Unpackable<UntypedIntValue>
+ * @template-implements NonRefValue<string, string>
+ * @template-implements AddressableValue<string>
  */
 final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, NonRefValue, AddressableValue
 {
@@ -193,5 +195,10 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
     private function chars(): iterable
     {
         yield from \mb_str_split($this->value);
+    }
+
+    public function hash(): string
+    {
+        return $this->unwrap();
     }
 }

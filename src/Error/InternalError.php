@@ -20,6 +20,11 @@ final class InternalError extends \LogicException
         return new self(\sprintf('unreachable: %s', $context::class));
     }
 
+    public static function unexpectedValue(mixed $value, string $expected): self
+    {
+        return new self(\sprintf('unexpected value: %s, expected: %s', \get_debug_type($value), $expected));
+    }
+
     public static function unknownOperator(string $operator): self
     {
         return new self(\sprintf('unknown operator: %s', $operator));

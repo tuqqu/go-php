@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
+use GoPhp\Error\InternalError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\Operator;
@@ -15,6 +16,7 @@ use GoPhp\Operator;
  * var x myInt = 42
  *     ^ x is a wrapped value
  *
+ * @template-implements AddressableValue<never>
  * @template-implements Unwindable<GoValue>
  */
 final class WrappedValue implements Unwindable, AddressableValue
@@ -26,9 +28,9 @@ final class WrappedValue implements Unwindable, AddressableValue
         public readonly WrappedType $wrappedType,
     ) {}
 
-    public function unwrap(): GoType
+    public function unwrap(): never
     {
-        return $this->underlyingValue->unwrap();
+        throw InternalError::unreachable($this);
     }
 
     public function unwind(): GoValue

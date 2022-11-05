@@ -10,6 +10,8 @@ use GoPhp\Operator;
 
 /**
  * Represents runtime value of a blank identifier ("_" by default)
+ *
+ * @template-implements AddressableValue<never>
  */
 final class BlankValue implements AddressableValue
 {
@@ -44,7 +46,7 @@ final class BlankValue implements AddressableValue
         throw InternalError::unreachableMethodCall();
     }
 
-    public function unwrap(): array
+    public function unwrap(): never
     {
         throw RuntimeError::cannotUseBlankIdent($this->getName());
     }

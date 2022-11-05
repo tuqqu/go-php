@@ -9,6 +9,8 @@ use GoPhp\Operator;
 
 /**
  * Represents a value returned from a function with no return values.
+ *
+ * @template-implements GoValue<never>
  */
 final class VoidValue implements GoValue
 {
