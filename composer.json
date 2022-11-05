@@ -18,6 +18,9 @@
         "phpunit/phpunit": "^9",
         "vimeo/psalm": "5.0.0-beta1"
     },
+    "bin": [
+        "bin/go-php"
+    ],
     "autoload": {
         "psr-4": {
             "GoPhp\\": "src/"

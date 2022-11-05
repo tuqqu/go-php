@@ -1,0 +1,116 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use GoPhp\ErrorHandler\OutputToStream;
+use GoPhp\Interpreter;
+use GoPhp\Stream\ResourceOutputStream;
+use const GoPhp\VERSION;
+
+const AUTOLOAD_PATHS = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+function require_autoload(array $paths): void
+{
+    foreach ($paths as $path) {
+        if (file_exists($path)) {
+            require $path;
+
+            return;
+        }
+    }
+
+    exit_with_error('install dependencies using Composer.');
+}
+
+function exit_with_error(string $msg): never
+{
+    fwrite(STDERR, sprintf("Error: %s\n", $msg));
+
+    exit(1);
+}
+
+function print_help(): void
+{
+    fwrite(STDOUT, <<<HELP
+    USAGE: 
+        go-php [FLAGS] file.go
+        go-php [FLAGS]
+    
+    FLAGS:
+        -h, --help          Print help message
+        -v, --version       Print version
+
+    HELP);
+}
+
+function print_version(): void
+{
+    fwrite(STDOUT, sprintf("go-php %s\n", VERSION));
+}
+
+enum Flag
+{
+    case HELP;
+    case VERSION;
+
+    public static function fromString(string $str): ?self
+    {
+        return match ($str) {
+            '-h', '--help' => self::HELP,
+            '-v', '--version' => self::VERSION,
+            default => null,
+        };
+    }
+}
+
+/**
+ * @param list<string> $argv
+ */
+function main(array $argv): never
+{
+    unset($argv[0]);
+    $file = null;
+
+    foreach ($argv as $arg) {
+        switch (Flag::fromString($arg)) {
+            case Flag::HELP:
+                print_help();
+                exit(0);
+            case Flag::VERSION:
+                print_version();
+                exit(0);
+            case null:
+                if (str_starts_with($arg, '-')) {
+                    exit_with_error(sprintf('unrecognised option "%s"', $arg));
+                }
+
+                $file = $arg;
+                break 2;
+        }
+    }
+
+    if ($file === null) {
+        exit_with_error('no input file');
+    }
+
+    $src = file_get_contents($file);
+    $stderr = new ResourceOutputStream(STDERR);
+    $errorHandler = new OutputToStream($stderr);
+
+    $runtime = new Interpreter(
+        source: $src,
+        errorHandler: $errorHandler,
+    );
+
+    $result = $runtime->run();
+
+    exit($result->value);
+}
+
+error_reporting(E_ALL);
+require_autoload(AUTOLOAD_PATHS);
+main($argv);

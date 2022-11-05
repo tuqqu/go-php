@@ -21,6 +21,11 @@ const NIL = null;
 const ZERO_ADDRESS = 0x0;
 
 /**
+ * Version of the Runtime
+ */
+const VERSION = '0.1.0';
+
+/**
  * Unwindable object normalization.
  *
  * @internal

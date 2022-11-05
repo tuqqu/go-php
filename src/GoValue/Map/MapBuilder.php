@@ -45,7 +45,6 @@ final class MapBuilder
     private function internalMapByType(): Map
     {
         switch (true) {
-            // fixme add types
             // fixme make sure if the check $this->type->keyType instanceof ArrayType is more correct here
             case $this->type->keyType instanceof BasicType:
                 /** @var NonRefValue $default */
