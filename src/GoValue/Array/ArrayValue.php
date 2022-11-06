@@ -50,7 +50,7 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
         $type->finish($this->len);
 
         if ($type->len !== $this->len) {
-            throw new RuntimeError(\sprintf('Expected array of length %d, got %d', $type->len, $this->len));
+            throw RuntimeError::indexOutOfBounds($this->len - 1, $type->len);
         }
 
         $this->type = $type;

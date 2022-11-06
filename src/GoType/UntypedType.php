@@ -11,12 +11,12 @@ use function GoPhp\normalize_unwindable;
 
 enum UntypedType implements BasicType
 {
-    case UntypedInt;
-    case UntypedRune; // bare rune 'c' literals
-    case UntypedFloat;
-    case UntypedRoundFloat;
-    case UntypedBool;
-    case UntypedComplex;
+    case UntypedInt;        // bare int literals
+    case UntypedRune;       // bare rune 'c' literals
+    case UntypedFloat;      // bare float literals
+    case UntypedRoundFloat; // bare float literals with a trailing .0
+    case UntypedBool;       // bare bool literals
+    case UntypedComplex;    // bare complex literals
 
     public function name(): string
     {

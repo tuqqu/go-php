@@ -32,7 +32,8 @@ abstract class IntNumber extends SimpleNumber
 
     public function __construct(int $value)
     {
-        self::assertInBounds($value);
+        $this->assertInBounds($value);
+
         $this->value = $value;
     }
 
@@ -213,10 +214,10 @@ abstract class IntNumber extends SimpleNumber
         return new static(self::wrap($value));
     }
 
-    final protected static function assertInBounds(int|float $value): void
+    final protected function assertInBounds(int $value): void
     {
         if ($value > static::MAX || $value < static::MIN) {
-            throw new \Exception('outofbounds');
+            throw RuntimeError::numberOverflow(new UntypedIntValue($value), $this->type());
         }
     }
 

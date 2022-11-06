@@ -20,15 +20,14 @@ use GoPhp\Operator;
 
 class RuntimeError extends \RuntimeException
 {
+    public static function numberOverflow(GoValue $value, GoType $type): self
+    {
+        return self::cannotUseValue($value, $type, '(overflows)');
+    }
+
     public static function implicitConversionError(GoValue $value, GoType $type): self
     {
-        return new self(
-            \sprintf(
-                'cannot use %s as %s value',
-                self::valueToString($value),
-                $type->name(),
-            )
-        );
+        return self::cannotUseValue($value, $type);
     }
 
     public static function expectedSliceInArgumentUnpacking(GoValue $value, FuncValue|BuiltinFuncValue $funcValue): self
@@ -55,6 +54,18 @@ class RuntimeError extends \RuntimeException
                 self::valueToString($value),
                 $type->name(),
             ),
+        );
+    }
+
+    public static function cannotUseValue(GoValue $value, GoType $type, ?string $context = null): self
+    {
+        return new self(
+            \sprintf(
+                'cannot use %s as %s value%s',
+                self::valueToString($value),
+                $type->name(),
+                $context === null ? '' : ' ' . $context,
+            )
         );
     }
 
@@ -425,6 +436,18 @@ class RuntimeError extends \RuntimeException
         }
 
         return new self(\sprintf('undefined: %s', $name));
+    }
+
+    public static function invalidMapKeyType(GoType $type): self
+    {
+        return new self(\sprintf('invalid map key type %s', $type->name()));
+    }
+
+    public static function indexOutOfBounds(int $index, int $len): self
+    {
+        $op = $index >= $len ? '>=' : '<=';
+
+        return new self(\sprintf('index %d is out of bounds (%s %d)', $index, $op, $len));
     }
 
     public static function invalidReceiverType(GoType $type): self

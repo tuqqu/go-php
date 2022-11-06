@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\MapType;
+use GoPhp\GoType\RefType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\NonRefValue;
 
@@ -44,16 +46,18 @@ final class MapBuilder
 
     private function internalMapByType(): Map
     {
-        switch (true) {
-            // fixme make sure if the check $this->type->keyType instanceof ArrayType is more correct here
-            case $this->type->keyType instanceof BasicType:
-                /** @var NonRefValue $default */
-                $default = $this->type->keyType->defaultValue();
-
-                return new NonRefKeyMap($default::create(...));
-            // fixme add ref
-            default:
-                throw new \Exception(\sprintf('invalid map key type %s', $this->type->keyType->name()));
+        if ($this->type->keyType instanceof RefType) {
+            throw RuntimeError::invalidMapKeyType($this->type->keyType);
         }
+
+        if ($this->type->keyType instanceof BasicType) {
+            /** @var NonRefValue $default */
+            $default = $this->type->keyType->defaultValue();
+
+            return new NonRefKeyMap($default::create(...));
+        }
+
+        // fixme
+        return new RefKeyMap();
     }
 }
