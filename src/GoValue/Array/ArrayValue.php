@@ -172,4 +172,14 @@ final class ArrayValue implements Sliceable, Sequence, AddressableValue
 
         return BoolValue::true();
     }
+
+    public function hash(): string
+    {
+        $hash = '';
+        foreach ($this->values as $value) {
+            $hash .= $value->hash();
+        }
+
+        return $hash;
+    }
 }

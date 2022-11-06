@@ -12,18 +12,11 @@ use GoPhp\GoValue\NonRefValue;
  * @template V of GoValue
  * @template-implements Map<K, V>
  */
-final class NonRefKeyMap implements Map
+final class KeyValueTupleMap implements Map
 {
-    /** @var V[] */
+    /** @var array<array-key, array{key: K, value: V}> */
     private array $values = [];
     private int $len = 0;
-
-    /**
-     * @param \Closure(mixed): K $wrapper
-     */
-    public function __construct(
-        private readonly \Closure $wrapper,
-    ) {}
 
     public function has(GoValue $at): bool
     {
@@ -32,7 +25,7 @@ final class NonRefKeyMap implements Map
 
     public function get(GoValue $at): GoValue
     {
-        return $this->values[$at->hash()];
+        return $this->values[$at->hash()]['value'];
     }
 
     public function set(GoValue $value, GoValue $at): void
@@ -41,7 +34,8 @@ final class NonRefKeyMap implements Map
             ++$this->len;
         }
 
-        $this->values[$at->hash()] = $value;
+        // fixme check isAddressable here
+        $this->values[$at->hash()] = ['key' => $at->copy(), 'value' => $value];
     }
 
     public function len(): int
@@ -56,8 +50,8 @@ final class NonRefKeyMap implements Map
 
     public function iter(): iterable
     {
-        foreach ($this->values as $key => $value) {
-            yield ($this->wrapper)($key) => $value;
+        foreach ($this->values as ['key' => $key, 'value' => $value]) {
+            yield $key->copy() => $value;
         }
     }
 }

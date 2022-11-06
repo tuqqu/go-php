@@ -7,6 +7,8 @@ namespace GoPhp\GoValue;
 use GoPhp\GoType\GoType;
 
 /**
+ * fixme: merge with addressable
+ *
  * @template T backed PHP value
  * @template H hash of a backed value
  * @template-extends GoValue<T>
