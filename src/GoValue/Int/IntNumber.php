@@ -14,7 +14,6 @@ use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
@@ -50,7 +49,7 @@ abstract class IntNumber extends SimpleNumber
         };
     }
 
-    protected function completeOperateOn(Operator $op, GoValue $rhs): NonRefValue
+    protected function completeOperateOn(Operator $op, GoValue $rhs): static
     {
         /** @var self $rhs */
         return match ($op) {

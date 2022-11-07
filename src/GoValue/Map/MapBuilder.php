@@ -14,16 +14,13 @@ use function GoPhp\assert_types_compatible_with_cast;
 
 final class MapBuilder
 {
-    private readonly Map $innerMap;
-
     private function __construct(
         private readonly MapType $type,
+        private readonly Map $innerMap = new KeyValueTupleMap(),
     ) {
         if ($this->type->keyType instanceof RefType) {
             throw RuntimeError::invalidMapKeyType($this->type->keyType);
         }
-
-        $this->innerMap = new KeyValueTupleMap();
     }
 
     public static function fromType(MapType $type): self

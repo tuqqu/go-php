@@ -9,5 +9,8 @@ namespace GoPhp\GoValue;
  */
 interface Sliceable
 {
+    /**
+     * Get slice of the value from the given start index ($low) to the given end index ($high).
+     */
     public function slice(?int $low, ?int $high, ?int $max = null): self;
 }

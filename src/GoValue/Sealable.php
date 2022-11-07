@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 /**
- * Value gets sealed when it is assigned to a constant.
+ * Value that can be assigned to a constant, upon which it becomes selaed.
  */
 interface Sealable
 {

@@ -24,11 +24,6 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
         private bool $value,
     ) {}
 
-    public static function create(mixed $value): self
-    {
-        return new self($value);
-    }
-
     public static function true(): self
     {
         return new self(true);

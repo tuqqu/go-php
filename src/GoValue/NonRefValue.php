@@ -15,8 +15,6 @@ use GoPhp\GoType\GoType;
  */
 interface NonRefValue extends GoValue
 {
-    public static function create(mixed $value): self;
-
     /**
      * @return H
      */

@@ -37,16 +37,6 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
 
     public const NAME = 'complex';
 
-    public static function create(mixed $value): NonRefValue
-    {
-        // reverse Cantor Pairing
-        $w = \floor(0.5 * (-1 + \sqrt(1 + 8 * $value)));
-        $real = 0.5 * $w * ($w + 3) - $value;
-        $imag = $value - $w * 0.5 * ($w + 1);
-
-        return new static($real, $imag);
-    }
-
     public static function fromSimpleNumber(SimpleNumber $number): static
     {
         return new static((float) $number->unwrap(), 0.0);
@@ -104,7 +94,7 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
         };
     }
 
-    final public function operateOn(Operator $op, GoValue $rhs): NonRefValue
+    final public function operateOn(Operator $op, GoValue $rhs): self|BoolValue
     {
         assert_values_compatible($this, $rhs);
 
@@ -178,7 +168,9 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
             default => throw InternalError::unreachable($this),
         };
 
-        return $floatType->defaultValue()::create($float);
+        $floatValue = $floatType->defaultValue();
+
+        return new ($floatValue::class)($float);
     }
 
     final protected function noop(): static

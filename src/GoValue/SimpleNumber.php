@@ -8,9 +8,9 @@ use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
-use GoPhp\GoValue\Complex\ComplexNumber;
 use GoPhp\GoValue\Complex\Complex128Value;
 use GoPhp\GoValue\Complex\Complex64Value;
+use GoPhp\GoValue\Complex\ComplexNumber;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
 use GoPhp\GoValue\Int\Int16Value;
@@ -42,11 +42,6 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
     public function __construct($value)
     {
         // intentionally left empty
-    }
-
-    final public static function create(mixed $value): static
-    {
-        return new static($value);
     }
 
     final public function reify(?GoType $with = null): self|ComplexNumber
@@ -117,7 +112,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
         };
     }
 
-    final public function operateOn(Operator $op, GoValue $rhs): NonRefValue
+    final public function operateOn(Operator $op, GoValue $rhs): self|ComplexNumber|BoolValue
     {
         assert_values_compatible($this, $rhs);
 
@@ -231,7 +226,7 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
         throw RuntimeError::undefinedOperator($op, $this, true);
     }
 
-    protected function completeOperateOn(Operator $op, GoValue $rhs): NonRefValue
+    protected function completeOperateOn(Operator $op, GoValue $rhs): static
     {
         throw RuntimeError::undefinedOperator($op, $this);
     }

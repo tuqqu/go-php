@@ -24,7 +24,6 @@ use GoPhp\GoValue\Int\Uint64Value;
 use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UintptrValue;
 use GoPhp\GoValue\Int\UintValue;
-use GoPhp\GoValue\NonRefValue;
 use GoPhp\GoValue\StringValue;
 
 use function GoPhp\normalize_unwindable;
@@ -75,7 +74,7 @@ enum NamedType: string implements BasicType
         return $this;
     }
 
-    public function defaultValue(): NonRefValue
+    public function defaultValue(): GoValue
     {
         return match ($this) {
             self::Int => new IntValue(0),

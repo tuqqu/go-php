@@ -39,11 +39,6 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
         $this->byteLen = \strlen($this->value);
     }
 
-    public static function create(mixed $value): self
-    {
-        return new self($value);
-    }
-
     public function reify(?GoType $with = null): self
     {
         return $this;
