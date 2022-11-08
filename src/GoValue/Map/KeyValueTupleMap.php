@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Map;
 
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NonRefValue;
+use GoPhp\GoValue\Hashable;
 
 /**
- * @template K of NonRefValue
+ * @template K of Hashable&GoValue
  * @template V of GoValue
  * @template-implements Map<K, V>
  */
 final class KeyValueTupleMap implements Map
 {
-    /** @var array<array-key, array{key: K, value: V}> */
+    /** @var array<scalar|null, array{key: K, value: V}> */
     private array $values = [];
     private int $len = 0;
 
-    public function has(GoValue $at): bool
+    public function has(Hashable&GoValue $at): bool
     {
         return isset($this->values[$at->hash()]);
     }
@@ -48,6 +48,9 @@ final class KeyValueTupleMap implements Map
         unset($this->values[$at->hash()]);
     }
 
+    /**
+     * @psalm-suppress InvalidReturnType
+     */
     public function iter(): iterable
     {
         foreach ($this->values as ['key' => $key, 'value' => $value]) {

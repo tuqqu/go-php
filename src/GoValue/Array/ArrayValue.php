@@ -8,6 +8,7 @@ use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
@@ -28,8 +29,9 @@ use function GoPhp\assert_values_compatible;
  * @template V of GoValue
  * @template-implements Sequence<IntNumber, V>
  * @template-implements AddressableValue<list<V>>
+ * @template-implements Hashable<string>
  */
-final class ArrayValue implements Sliceable, Sequence, AddressableValue
+final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValue
 {
     use AddressableTrait;
 

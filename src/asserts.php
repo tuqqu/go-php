@@ -12,7 +12,7 @@ use GoPhp\GoValue\Float\FloatNumber;
 use GoPhp\GoValue\Func\Func;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\IntNumber;
-use GoPhp\GoValue\NonRefValue;
+use GoPhp\GoValue\Castable;
 use GoPhp\GoValue\UntypedNilValue;
 
 /**
@@ -70,8 +70,8 @@ function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
 {
     assert_types_compatible($a, $b->type());
 
-    if ($b instanceof NonRefValue) {
-        $b = $b->reify($a);
+    if ($b instanceof Castable) {
+        $b = $b->cast($a);
     }
 }
 

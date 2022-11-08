@@ -20,10 +20,10 @@ use function GoPhp\assert_values_compatible;
 /**
  * @template-implements Sequence<IntNumber, UntypedIntValue|Uint8Value>
  * @template-implements Unpackable<UntypedIntValue>
- * @template-implements NonRefValue<string, string>
+ * @template-implements Hashable<string>
  * @template-implements AddressableValue<string>
  */
-final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, NonRefValue, AddressableValue
+final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Hashable, Castable, AddressableValue
 {
     use SealableTrait;
     use AddressableTrait;
@@ -37,11 +37,6 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
     {
         $this->value = $value;
         $this->byteLen = \strlen($this->value);
-    }
-
-    public function reify(?GoType $with = null): self
-    {
-        return $this;
     }
 
     public function type(): NamedType
@@ -195,5 +190,10 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, No
     public function hash(): string
     {
         return $this->unwrap();
+    }
+
+    public function cast(GoType $to): self
+    {
+        return $this;
     }
 }

@@ -9,6 +9,8 @@ use GoPhp\GoType\MapType;
 use GoPhp\GoType\RefType;
 use GoPhp\GoValue\GoValue;
 
+use GoPhp\GoValue\Hashable;
+
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_types_compatible_with_cast;
 
@@ -28,7 +30,7 @@ final class MapBuilder
         return new self($type);
     }
 
-    public function set(GoValue $value, GoValue $at): void
+    public function set(GoValue $value, Hashable&GoValue $at): void
     {
         $value = $value->copy();
 

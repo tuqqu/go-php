@@ -12,10 +12,10 @@ use GoPhp\GoType\NamedType;
 use function GoPhp\assert_values_compatible;
 
 /**
- * @template-implements NonRefValue<bool, bool>
+ * @template-implements Hashable<bool>
  * @template-implements AddressableValue<bool>
  */
-final class BoolValue implements NonRefValue, Sealable, AddressableValue
+final class BoolValue implements Hashable, Castable, Sealable, AddressableValue
 {
     use SealableTrait;
     use AddressableTrait;
@@ -42,11 +42,6 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
     public function isFalse(): bool
     {
         return !$this->value;
-    }
-
-    public function reify(?GoType $with = null): NonRefValue
-    {
-        return $this;
     }
 
     public function toString(): string
@@ -134,5 +129,10 @@ final class BoolValue implements NonRefValue, Sealable, AddressableValue
     public function hash(): bool
     {
         return $this->unwrap();
+    }
+
+    public function cast(GoType $to): self
+    {
+        return $this;
     }
 }

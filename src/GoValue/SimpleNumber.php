@@ -31,10 +31,10 @@ use function GoPhp\normalize_unwindable;
 
 /**
  * @template N = int|float
- * @template-implements NonRefValue<N, N>
+ * @template-implements Hashable<N>
  * @template-implements AddressableValue<N>
  */
-abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
+abstract class SimpleNumber implements Hashable, Castable, Sealable, AddressableValue
 {
     use SealableTrait;
     use AddressableTrait;
@@ -42,15 +42,6 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
     public function __construct($value)
     {
         // intentionally left empty
-    }
-
-    final public function reify(?GoType $with = null): self|ComplexNumber
-    {
-        if ($this->type() instanceof UntypedType) {
-            return $this->convertTo($with);
-        }
-
-        return $this;
     }
 
     // fixme move this to child classes
@@ -160,6 +151,15 @@ abstract class SimpleNumber implements NonRefValue, Sealable, AddressableValue
     final public function hash(): int
     {
         return $this->unwrap();
+    }
+
+    public function cast(GoType $to): self|ComplexNumber
+    {
+        if ($this->type() instanceof UntypedType) {
+            return $this->convertTo($to);
+        }
+
+        return $this;
     }
 
     public function copy(): static

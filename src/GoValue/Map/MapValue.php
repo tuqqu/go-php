@@ -9,6 +9,7 @@ use GoPhp\Error\RuntimeError;
 use GoPhp\Error\PanicError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
@@ -23,7 +24,7 @@ use function GoPhp\assert_types_compatible;
 use const GoPhp\NIL;
 
 /**
- * @template K of GoValue
+ * @template K of Hashable&GoValue
  * @template V of GoValue
  * @template-implements Map<K, V|MapLookupValue<V>>
  * @template-implements AddressableValue<never>

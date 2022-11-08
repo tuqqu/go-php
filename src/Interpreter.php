@@ -108,6 +108,7 @@ use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Invokable;
@@ -1289,10 +1290,9 @@ final class Interpreter
                 $builder = MapBuilder::fromType($type);
 
                 foreach ($lit->elementList->elements ?? [] as $element) {
-                    $builder->set(
-                        $this->evalExpr($element->element),
-                        $this->evalExpr($element->key ?? throw InternalError::unreachable($element)),
-                    );
+                    /** @var Hashable&GoValue $position */
+                    $position = $this->evalExpr($element->key ?? throw InternalError::unreachable($element));
+                    $builder->set($this->evalExpr($element->element), $position);
                 }
                 $builtValue = $builder->build();
 

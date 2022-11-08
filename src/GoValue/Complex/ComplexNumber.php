@@ -13,9 +13,10 @@ use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
+use GoPhp\GoValue\Castable;
 use GoPhp\GoValue\Float\FloatNumber;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\NonRefValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\SealableTrait;
@@ -27,10 +28,10 @@ use function GoPhp\normalize_unwindable;
 
 /**
  * @psalm-type ComplexTuple = array{float, float}
- * @template-implements NonRefValue<ComplexTuple, float>
+ * @template-implements Hashable<float>
  * @template-implements AddressableValue<ComplexTuple>
  */
-abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
+abstract class ComplexNumber implements Hashable, Castable, Sealable, AddressableValue
 {
     use SealableTrait;
     use AddressableTrait;
@@ -55,16 +56,6 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
         return [$this->real, $this->imag];
     }
 
-    final public function reify(?GoType $with = null): self
-    {
-        //fixme
-//        if ($this->type() instanceof UntypedType) {
-//            return $this->convertTo($with);
-//        }
-
-        return $this;
-    }
-
     public function toString(): string
     {
         return \sprintf(
@@ -80,6 +71,11 @@ abstract class ComplexNumber implements NonRefValue, Sealable, AddressableValue
     {
         // Cantor Pairing Hash
         return 0.5 * ($this->real + $this->imag) * ($this->real + $this->imag + 1) + $this->imag;
+    }
+
+    final public function cast(GoType $to): self
+    {
+        return $this;
     }
 
     final public function operate(Operator $op): self|PointerValue
