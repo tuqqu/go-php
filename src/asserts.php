@@ -11,6 +11,7 @@ use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Float\FloatNumber;
 use GoPhp\GoValue\Func\Func;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Castable;
 use GoPhp\GoValue\UntypedNilValue;
@@ -215,5 +216,17 @@ function assert_index_type(GoValue $index, GoType $type, string $context): void
 {
     if (!$index->type()->isCompatible($type)) {
         throw RuntimeError::indexOfWrongType($index, $type->name(), $context);
+    }
+}
+
+/**
+ * @internal
+ *
+ * @psalm-assert Hashable $index
+ */
+function assert_map_key(GoValue $index): void
+{
+    if (!$index instanceof Hashable) {
+        throw RuntimeError::invalidMapKeyType($index->type());
     }
 }

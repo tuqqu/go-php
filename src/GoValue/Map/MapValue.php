@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Map;
 
 use GoPhp\Error\InternalError;
-use GoPhp\Error\RuntimeError;
 use GoPhp\Error\PanicError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\MapType;
+use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Hashable;
-use GoPhp\GoValue\UntypedNilValue;
-use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\AddressableTrait;
+use GoPhp\GoValue\PointerValue;
+use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Operator;
 
+use function GoPhp\assert_map_key;
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
@@ -41,7 +42,9 @@ final class MapValue implements Map, AddressableValue
     public function __construct(
         private ?Map $innerMap,
         private readonly MapType $type,
-    ) {}
+    ) {
+        assert_map_key($type->keyType->defaultValue());
+    }
 
     public static function nil(MapType $type): self
     {

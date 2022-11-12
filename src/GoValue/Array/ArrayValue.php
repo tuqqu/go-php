@@ -22,6 +22,7 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_int;
+use function GoPhp\assert_map_key;
 use function GoPhp\assert_index_sliceable;
 use function GoPhp\assert_values_compatible;
 
@@ -177,9 +178,12 @@ final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValu
 
     public function hash(): string
     {
-        $hash = '';
+        $hash = self::NAME;
+
         foreach ($this->values as $value) {
-            $hash .= $value->hash();
+            assert_map_key($value);
+
+            $hash .= \sprintf(':%s', $value->hash());
         }
 
         return $hash;

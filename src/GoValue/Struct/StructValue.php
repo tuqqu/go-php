@@ -12,16 +12,19 @@ use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\Operator;
 
+use function GoPhp\assert_map_key;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\normalize_unwindable;
 
 /**
+ * @template-implements Hashable<string>
  * @template-implements AddressableValue<never>
  */
-final class StructValue implements AddressableValue
+final class StructValue implements Hashable, AddressableValue
 {
     use AddressableTrait;
 
@@ -116,5 +119,19 @@ final class StructValue implements AddressableValue
         }
 
         return BoolValue::true();
+    }
+
+    public function hash(): string
+    {
+        $hash = self::NAME;
+
+        foreach ($this->fields->iter() as $field => $envValue) {
+            $value = $envValue->unwrap();
+            assert_map_key($value);
+
+            $hash .= \sprintf(':%s:%s', $field, $value->hash());
+        }
+
+        return $hash;
     }
 }
