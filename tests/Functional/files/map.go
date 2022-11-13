@@ -8,7 +8,7 @@ func main() {
 }
 
 func test_1() {
-    println("test_1")
+	println("test_1")
 
 	m := make(map[string]int)
 
@@ -42,7 +42,7 @@ func test_1() {
 }
 
 func test_2() {
-    println("test_2")
+	println("test_2")
 
 	n := map[string]uint{"foo": 1, "bar": 2}
 	println("map:", n["foo"], n["bar"])
@@ -64,80 +64,80 @@ func setFooHundred(m map[string]uint) {
 }
 
 func test_3() {
-    // map with array key
-    println("test_3")
+	// map with array key
+	println("test_3")
 
-    type TestMap = map[[2]int]string
-    type TestArray = [2]int
+	type TestMap = map[[2]int]string
+	type TestArray = [2]int
 
-    var m TestMap = make(TestMap)
-    m[[2]int{1,2}] = "string1"
+	var m TestMap = make(TestMap)
+	m[[2]int{1, 2}] = "string1"
 
-    println(m[[2]int{1,2}])
+	println(m[[2]int{1, 2}])
 
-    var a TestArray = [2]int{5,6}
+	var a TestArray = [2]int{5, 6}
 
-    m = TestMap{
-        [2]int{1,2}: "string2",
-        TestArray{3,4}: "string3",
-        a: "string4",
-    }
+	m = TestMap{
+		[2]int{1, 2}:    "string2",
+		TestArray{3, 4}: "string3",
+		a:               "string4",
+	}
 
-    println(m[TestArray{1,2}])
-    println(m[[2]int{3,4}])
-    println(m[a])
-    println("len:", len(m))
+	println(m[TestArray{1, 2}])
+	println(m[[2]int{3, 4}])
+	println(m[a])
+	println("len:", len(m))
 
-    a[0] = 1
-    a[1] = 2
-    println(m[a])
+	a[0] = 1
+	a[1] = 2
+	println(m[a])
 
-    unknown, notSet := m[[2]int{99,99}]
-    println("unknown: ", len(unknown))
-    println("notSet: ", notSet)
+	unknown, notSet := m[[2]int{99, 99}]
+	println("unknown: ", len(unknown))
+	println("notSet: ", notSet)
 
-    for k, v := range m {
-        println("k: ", k[0], " ", k[1])
-        println("v: ", v)
-    }
+	for k, v := range m {
+		println("k: ", k[0], " ", k[1])
+		println("v: ", v)
+	}
 }
 
 func test_4() {
-    // map with struct key
-    println("test_4")
+	// map with struct key
+	println("test_4")
 
-    type TestMap = map[struct{a, b int}]string
-    type TestStruct = struct{a, b int}
+	type TestMap = map[struct{ a, b int }]string
+	type TestStruct = struct{ a, b int }
 
-    var m TestMap = make(TestMap)
-    m[struct{a, b int}{1,2}] = "string1"
+	var m TestMap = make(TestMap)
+	m[struct{ a, b int }{1, 2}] = "string1"
 
-    println(m[struct{a, b int}{1,2}])
+	println(m[struct{ a, b int }{1, 2}])
 
-    var a struct{a, b int} = struct{a, b int}{5,6}
-    var b TestStruct = TestStruct{3,4}
+	var a struct{ a, b int } = struct{ a, b int }{5, 6}
+	var b TestStruct = TestStruct{3, 4}
 
-    m = TestMap{
-        struct{a, b int}{1,2}: "string2",
-        a: "string3",
-        b: "string4",
-    }
+	m = TestMap{
+		struct{ a, b int }{1, 2}: "string2",
+		a:                        "string3",
+		b:                        "string4",
+	}
 
-    println(m[struct{a, b int}{1,2}])
-    println(m[a])
-    println(m[b])
-    println("len:", len(m))
+	println(m[struct{ a, b int }{1, 2}])
+	println(m[a])
+	println(m[b])
+	println("len:", len(m))
 
-    a.a = 1
-    a.b = 2
-    println(m[a])
+	a.a = 1
+	a.b = 2
+	println(m[a])
 
-    unknown, notSet := m[struct{a, b int}{99,99}]
-    println("unknown: ", len(unknown))
-    println("notSet: ", notSet)
+	unknown, notSet := m[struct{ a, b int }{99, 99}]
+	println("unknown: ", len(unknown))
+	println("notSet: ", notSet)
 
-    for k, v := range m {
-        println("k: ", k.a, " ", k.b)
-        println("v: ", v)
-    }
+	for k, v := range m {
+		println("k: ", k.a, " ", k.b)
+		println("v: ", v)
+	}
 }

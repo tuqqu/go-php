@@ -14,6 +14,7 @@ use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Invokable;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\VoidValue;
@@ -162,16 +163,21 @@ final class Func implements Invokable
             throw InternalError::unreachable($this->receiver);
         }
 
-        $boundInstance = $this->boundInstance;
+        $boundInstance = $this->boundInstance instanceof PointerValue
+            ? $this->boundInstance->getPointsTo()
+            : $this->boundInstance;
+
         $receiverType = $this->receiver->type;
+
+        if ($boundInstance instanceof PointerValue) {
+            $boundInstance = $boundInstance->getPointsTo();
+        }
 
         if ($receiverType instanceof PointerType) {
             $receiverType = $receiverType->pointsTo;
         } else {
             $boundInstance = $boundInstance->copy();
         }
-
-        assert_types_compatible($boundInstance->type(), $receiverType);
 
         $env->defineVar(
             $this->receiver->name,

@@ -6,6 +6,7 @@ namespace GoPhp\Env;
 
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\PointerType;
 use GoPhp\GoValue\Func\FuncValue;
 
 final class MethodSet
@@ -19,18 +20,15 @@ final class MethodSet
 
     public function tryGet(GoType $type, string $name): ?FuncValue
     {
-        return $this->methods[$type][$name] ?? null;
-    }
+        $type = self::normalizeType($type);
 
-    // fixme remove
-    public function get(GoType $type, string $name): FuncValue
-    {
-        return $this->tryGet($type, $name)
-            ?? throw RuntimeError::undefinedName($type->name(), $name);
+        return $this->methods[$type][$name] ?? null;
     }
 
     public function add(GoType $type, string $name, FuncValue $method): void
     {
+        $type = self::normalizeType($type);
+
         if ($this->has($type, $name)) {
             throw RuntimeError::redeclaredNameInBlock($type->name(), $name);
         }
@@ -42,5 +40,12 @@ final class MethodSet
     private function has(GoType $type, string $name): bool
     {
         return isset($this->methods[$type][$name]);
+    }
+
+    private static function normalizeType(GoType $type): GoType
+    {
+        return $type instanceof PointerType
+            ? $type->pointsTo
+            : $type;
     }
 }
