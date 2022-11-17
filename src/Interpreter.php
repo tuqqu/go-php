@@ -83,8 +83,8 @@ use GoPhp\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
 use GoPhp\Env\EnvMap;
 use GoPhp\Error\AbortExecutionError;
-use GoPhp\Error\RuntimeError;
 use GoPhp\Error\InternalError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\ErrorHandler\ErrorHandler;
 use GoPhp\ErrorHandler\OutputToStream;
 use GoPhp\GoType\ArrayType;
@@ -381,9 +381,9 @@ final class Interpreter
             }
 
             foreach ($spec->identList->idents as $i => $ident) {
-                $value = isset($initExprs[$i]) ?
-                    $this->tryEvalConstExpr($initExprs[$i]) :
-                    null;
+                $value = isset($initExprs[$i])
+                    ? $this->tryEvalConstExpr($initExprs[$i])
+                    : null;
 
                 if ($value === null) {
                     throw RuntimeError::uninitialisedConstant($ident->name);
@@ -675,9 +675,9 @@ final class Interpreter
 
         $low = $this->getSliceExprIndex($expr->low);
         $high = $this->getSliceExprIndex($expr->high);
-        $max = $expr instanceof FullSliceExpr ?
-            $this->getSliceExprIndex($expr->max) :
-            null;
+        $max = $expr instanceof FullSliceExpr
+            ? $this->getSliceExprIndex($expr->max)
+            : null;
 
         return $sequence->slice($low, $high, $max);
     }
@@ -943,9 +943,9 @@ final class Interpreter
                 $this->evalStmt($stmt->init);
             }
 
-            $condition = $stmt->condition === null ?
-                BoolValue::true() :
-                $this->evalExpr($stmt->condition);
+            $condition = $stmt->condition === null
+                ? BoolValue::true()
+                : $this->evalExpr($stmt->condition);
 
             $stmtJump = None::None;
             $defaultCaseIndex = null;
@@ -965,8 +965,6 @@ final class Interpreter
                     $equal = $caseCondition->operateOn(Operator::EqEq, $condition);
 
                     if ($equal instanceof BoolValue && $equal->isTrue()) {
-                        // todo check for fall last
-                        // todo and not the last case
                         $stmtJump = $this->evalExprCaseClause($caseClause, $i, $stmt);
 
                         goto end_switch;
@@ -1014,7 +1012,12 @@ final class Interpreter
             $stmtJump = $this->evalStmtList($stmt->caseClauses[$i]->stmtList);
 
             if ($stmtJump instanceof FallthroughJump) {
+                if ($i === $caseClausesLen - 1) {
+                    throw RuntimeError::fallthroughFinalCase();
+                }
+
                 $stmtJump = None::None;
+
                 continue;
             }
 

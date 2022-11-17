@@ -410,6 +410,11 @@ class RuntimeError extends \RuntimeException
         return new self('fallthrough statement out of place');
     }
 
+    public static function fallthroughFinalCase(): self
+    {
+        return new self('cannot fallthrough final case in switch');
+    }
+
     public static function tooManyRangeVars(): self
     {
         return new self('range clause permits at most two iteration variables');
