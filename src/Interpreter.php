@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoParser\Ast\AliasDecl;
-use GoParser\Ast\ConstSpec;
 use GoParser\Ast\DefaultCase;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
 use GoParser\Ast\Expr\BinaryExpr;
@@ -38,14 +37,11 @@ use GoParser\Ast\ExprCaseClause;
 use GoParser\Ast\ExprList;
 use GoParser\Ast\File as Ast;
 use GoParser\Ast\ForClause;
-use GoParser\Ast\GroupSpec;
 use GoParser\Ast\IdentList;
-use GoParser\Ast\ImportSpec;
 use GoParser\Ast\Params as AstParams;
 use GoParser\Ast\Punctuation;
 use GoParser\Ast\RangeClause;
 use GoParser\Ast\Signature as AstSignature;
-use GoParser\Ast\Spec;
 use GoParser\Ast\Stmt\AssignmentStmt;
 use GoParser\Ast\Stmt\BlockStmt;
 use GoParser\Ast\Stmt\BreakStmt;
@@ -73,15 +69,12 @@ use GoParser\Ast\Stmt\TypeSwitchStmt;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\StmtList;
 use GoParser\Ast\TypeDef;
-use GoParser\Ast\TypeSpec;
-use GoParser\Ast\VarSpec;
 use GoParser\Lexer\Token;
 use GoParser\Parser;
 use GoPhp\Builtin\BuiltinProvider;
 use GoPhp\Builtin\Iota;
 use GoPhp\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
-use GoPhp\Env\EnvMap;
 use GoPhp\Error\AbortExecutionError;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
@@ -142,8 +135,7 @@ final class Interpreter
     private Environment $env;
     private JumpStack $jumpStack;
     private DeferStack $deferStack;
-    private string $currentPackage;
-    private bool $packageScope = false;
+    private ScopeResolver $scopeResolver;
     private bool $constContext = false;
     private int $switchContext = 0;
     /** @var array<callable(): GoValue> */
@@ -167,6 +159,7 @@ final class Interpreter
     ) {
         $this->jumpStack = new JumpStack();
         $this->deferStack = new DeferStack();
+        $this->scopeResolver = new ScopeResolver();
 
         $this->errorHandler = $errorHandler === null
             ? new OutputToStream($this->streams->stderr())
@@ -243,7 +236,7 @@ final class Interpreter
             $mapping[$key][] = $decl;
         }
 
-        $this->packageScope = true;
+        $this->scopeResolver->enterPackageScope();
 
         foreach ($mapping[TypeDecl::class] as $decl) {
             $this->evalTypeDeclStmt($decl);
@@ -270,15 +263,14 @@ final class Interpreter
         }
 
         $this->initializers = [];
-        $this->packageScope = false;
+        $this->scopeResolver->exitPackageScope();
     }
 
     private function evalImportDeclStmt(ImportDecl $decl): void
     {
         $mainAst = $this->ast;
 
-        foreach (self::wrapSpecs($decl->spec) as $spec) {
-            /** @var ImportSpec $spec */
+        foreach (iter_spec($decl->spec) as $spec) {
             $path = \trim(\trim($spec->path->str, '"'), '"');
             $path = $this->resolveImportPath($path);
             $source = \file_get_contents($path);
@@ -295,7 +287,7 @@ final class Interpreter
     private function setAst(Ast $ast): void
     {
         $this->ast = $ast;
-        $this->currentPackage = $ast->package->identifier->name;
+        $this->scopeResolver->setCurrentPackage($ast->package->identifier->name);
     }
 
     private function resolveImportPath(string $path): string
@@ -358,10 +350,8 @@ final class Interpreter
         $this->constContext = true;
         $initExprs = [];
 
-        foreach (self::wrapSpecs($decl->spec) as $j => $spec) {
+        foreach (iter_spec($decl->spec) as $j => $spec) {
             $this->iota->set($j);
-
-            /** @var ConstSpec $spec */
             $type = null;
 
             if ($spec->type !== null) {
@@ -395,7 +385,7 @@ final class Interpreter
                     $ident->name,
                     $value->copy(),
                     $type?->reify() ?? $value->type(),
-                    $this->resolveDefinitionScope(),
+                    $this->scopeResolver->resolveDefinitionScope(),
                 );
             }
         }
@@ -407,8 +397,7 @@ final class Interpreter
 
     private function evalVarDeclStmt(VarDecl $decl): None
     {
-        foreach (self::wrapSpecs($decl->spec) as $spec) {
-            /** @var VarSpec $spec */
+        foreach (iter_spec($decl->spec) as $spec) {
             $type = null;
             if ($spec->type !== null) {
                 $type = $this->resolveType($spec->type);
@@ -443,8 +432,7 @@ final class Interpreter
 
     private function evalTypeDeclStmt(TypeDecl $decl): None
     {
-        foreach (self::wrapSpecs($decl->spec) as $spec) {
-            /** @var TypeSpec $spec */
+        foreach (iter_spec($decl->spec) as $spec) {
             match (true) {
                 $spec->value instanceof AliasDecl => $this->evalAliasDeclStmt($spec->value),
                 $spec->value instanceof TypeDef => $this->evalTypeDefStmt($spec->value),
@@ -464,7 +452,7 @@ final class Interpreter
         $this->env->defineTypeAlias(
             $alias,
             $typeValue,
-            $this->resolveDefinitionScope(),
+            $this->scopeResolver->resolveDefinitionScope(),
         );
     }
 
@@ -480,7 +468,7 @@ final class Interpreter
         $this->env->defineType(
             $name,
             $typeValue,
-            $this->resolveDefinitionScope(),
+            $this->scopeResolver->resolveDefinitionScope(),
         );
     }
 
@@ -522,13 +510,14 @@ final class Interpreter
         }
 
         $funcValue = $this->constructFuncValue($decl->signature, $decl->body);
+        $currentPackage = $this->scopeResolver->getCurrentPackage();
 
-        if ($this->entryPointValidator->supports($decl->name->name, $this->currentPackage)) {
+        if ($this->entryPointValidator->supports($decl->name->name, $currentPackage)) {
             $this->entryPointValidator->validate($funcValue->type);
             $this->entryPoint = $funcValue;
         }
 
-        if ($this->initValidator->supports($decl->name->name, $this->currentPackage)) {
+        if ($this->initValidator->supports($decl->name->name, $currentPackage)) {
             $this->initValidator->validate($funcValue->type);
             // the identifier itself is not declared
             // init functions cannot be referred to from anywhere in a program
@@ -537,7 +526,7 @@ final class Interpreter
             return;
         }
 
-        $this->env->defineFunc($decl->name->name, $funcValue, $this->currentPackage);
+        $this->env->defineFunc($decl->name->name, $funcValue, $currentPackage);
     }
 
     private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt, ?Param $receiver = null): FuncValue
@@ -546,16 +535,18 @@ final class Interpreter
 
         return FuncValue::fromBody(
             body: function (Environment $env, string $withPackage) use ($blockStmt): StmtJump {
-                [$this->currentPackage, $withPackage] = [$withPackage, $this->currentPackage];
+                $currentPackage = $withPackage;
+                $prevPackage = $this->scopeResolver->getCurrentPackage();
+                $this->scopeResolver->setCurrentPackage($currentPackage);
                 $jump = $this->evalBlockStmt($blockStmt, $env);
-                $this->currentPackage = $withPackage;
+                $this->scopeResolver->setCurrentPackage($prevPackage);
 
                 return $jump;
             },
             type: $type,
             enclosure: $this->env,
             receiver: $receiver,
-            namespace: $this->currentPackage,
+            namespace: $this->scopeResolver->getCurrentPackage(),
         );
     }
 
@@ -1443,7 +1434,7 @@ final class Interpreter
 
     private function evalIdent(Ident $ident): GoValue
     {
-        $value = $this->env->get($ident->name, $this->currentPackage)->unwrap();
+        $value = $this->env->get($ident->name, $this->scopeResolver->getCurrentPackage())->unwrap();
 
         if ($value === $this->iota && !$this->constContext) {
             throw RuntimeError::iotaMisuse();
@@ -1469,17 +1460,7 @@ final class Interpreter
             throw RuntimeError::valueOfWrongType($value, NamedType::Bool);
         }
 
-        return $value->unwrap();
-    }
-
-    /**
-     * @return iterable<Spec>
-     */
-    private static function wrapSpecs(Spec $spec): iterable
-    {
-        $spec instanceof GroupSpec
-            ? yield from $spec->specs
-            : yield $spec;
+        return $value->isTrue();
     }
 
     private function resolveType(AstType $type, bool $composite = false): GoType
@@ -1499,7 +1480,7 @@ final class Interpreter
 
     private function resolveTypeFromSingleName(SingleTypeName $type): GoType
     {
-        return $this->getTypeFromEnv($type->name->name, $this->currentPackage);
+        return $this->getTypeFromEnv($type->name->name, $this->scopeResolver->getCurrentPackage());
     }
 
     private function resolveTypeFromQualifiedName(QualifiedTypeName $type): GoType
@@ -1645,7 +1626,7 @@ final class Interpreter
             $name,
             $value,
             ($type ?? $value->type())->reify(),
-            $this->resolveDefinitionScope(),
+            $this->scopeResolver->resolveDefinitionScope(),
         );
     }
 
@@ -1655,14 +1636,9 @@ final class Interpreter
         $validators = [$this->entryPointValidator, $this->initValidator];
 
         foreach ($validators as $validator) {
-            if ($validator->supports($name, $this->currentPackage)) {
+            if ($validator->supports($name, $this->scopeResolver->getCurrentPackage())) {
                 throw RuntimeError::nameMustBeFunc($name);
             }
         }
-    }
-
-    private function resolveDefinitionScope(): string
-    {
-        return $this->packageScope ? $this->currentPackage : EnvMap::NAMESPACE_TOP;
     }
 }

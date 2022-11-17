@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use GoParser\Ast\GroupSpec;
+use GoParser\Ast\Spec;
 use GoPhp\GoValue\Unwindable;
 
 /**
@@ -43,4 +45,19 @@ function normalize_unwindable(object $object): object
     }
 
     return $object;
+}
+
+/**
+ * Iterate over Spec or GroupSpec.
+ *
+ * @internal
+ *
+ * @template S of Spec
+ *
+ * @param S|GroupSpec $spec
+ * @return iterable<S>
+ */
+function iter_spec(Spec $spec): iterable
+{
+    $spec instanceof GroupSpec ? yield from $spec->specs : yield $spec;
 }
