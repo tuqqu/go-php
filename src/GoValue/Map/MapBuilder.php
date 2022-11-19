@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
+use GoParser\Ast\KeyedElement;
+use GoPhp\CompositeValueBuilder;
 use GoPhp\GoType\MapType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Hashable;
@@ -11,7 +13,7 @@ use GoPhp\GoValue\Hashable;
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_types_compatible_with_cast;
 
-final class MapBuilder
+final class MapBuilder implements CompositeValueBuilder
 {
     private function __construct(
         private readonly MapType $type,
@@ -24,14 +26,16 @@ final class MapBuilder
         return new self($type);
     }
 
-    public function set(GoValue $value, Hashable&GoValue $at): void
+    public function push(KeyedElement $element, callable $evaluator): void
     {
-        $value = $value->copy();
+        /** @var Hashable&GoValue $pos */
+        $pos = $evaluator($element->key);
+        $value = $evaluator($element->element)->copy();
 
-        assert_index_type($at, $this->type->keyType, MapValue::NAME);
+        assert_index_type($pos, $this->type->keyType, MapValue::NAME);
         assert_types_compatible_with_cast($this->type->elemType, $value);
 
-        $this->innerMap->set($value, $at);
+        $this->innerMap->set($value, $pos);
     }
 
     public function build(): MapValue

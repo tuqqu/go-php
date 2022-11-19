@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Struct;
 
+use GoParser\Ast\Expr\Ident;
+use GoParser\Ast\KeyedElement;
+use GoPhp\CompositeValueBuilder;
 use GoPhp\Env\EnvValue;
 use GoPhp\Env\EnvMap;
 use GoPhp\Error\RuntimeError;
@@ -12,7 +15,7 @@ use GoPhp\GoValue\GoValue;
 
 use function GoPhp\assert_types_compatible_with_cast;
 
-final class StructBuilder
+final class StructBuilder implements CompositeValueBuilder
 {
     public const NAME = 'struct';
 
@@ -31,8 +34,16 @@ final class StructBuilder
         return new self($type);
     }
 
-    public function addField(?string $name, GoValue $value): void
+    public function push(KeyedElement $element, callable $evaluator): void
     {
+        $name = match (true) {
+            $element->key === null => null,
+            $element->key instanceof Ident => $element->key->name,
+            default => throw RuntimeError::invalidFieldName(),
+        };
+
+        $value = $evaluator($element->element);
+
         if ($name === null) {
             $this->orderedFields[] = $value;
 

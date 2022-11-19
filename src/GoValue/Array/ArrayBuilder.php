@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Array;
 
+use GoParser\Ast\KeyedElement;
+use GoPhp\CompositeValueBuilder;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoValue\GoValue;
 
 use function GoPhp\assert_types_compatible_with_cast;
 
-final class ArrayBuilder
+final class ArrayBuilder implements CompositeValueBuilder
 {
     /** @var GoValue[] */
     private array $values = [];
@@ -23,8 +25,10 @@ final class ArrayBuilder
         return new self($type);
     }
 
-    public function push(GoValue $value): void
+    public function push(KeyedElement $element, callable $evaluator): void
     {
+        $value = $evaluator($element->element);
+
         assert_types_compatible_with_cast($this->type->elemType, $value);
 
         $this->values[] = $value;

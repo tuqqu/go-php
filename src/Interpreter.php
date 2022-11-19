@@ -101,7 +101,6 @@ use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Invokable;
@@ -1257,64 +1256,28 @@ final class Interpreter
         return $this->resolveCompositeLitWithType($lit, $type);
     }
 
-    private function resolveCompositeLitWithType(CompositeLit $lit, GoType $type, ?callable $wrapper = null): GoValue
+    private function resolveCompositeLitWithType(CompositeLit $lit, GoType $type): GoValue
     {
-        $builtValue = null;
+        $wrapper = null;
 
-        switch (true) {
-            case $type instanceof ArrayType:
-                $builder = ArrayBuilder::fromType($type);
-
-                foreach ($lit->elementList->elements ?? [] as $element) {
-                    $builder->push($this->evalExpr($element->element));
-                }
-                $builtValue = $builder->build();
-
-                break;
-            case $type instanceof SliceType:
-                $builder = SliceBuilder::fromType($type);
-
-                foreach ($lit->elementList->elements ?? [] as $element) {
-                    $builder->push($this->evalExpr($element->element));
-                }
-                $builtValue = $builder->build();
-
-                break;
-            case $type instanceof MapType:
-                $builder = MapBuilder::fromType($type);
-
-                foreach ($lit->elementList->elements ?? [] as $element) {
-                    /** @var Hashable&GoValue $position */
-                    $position = $this->evalExpr($element->key ?? throw InternalError::unreachable($element));
-                    $builder->set($this->evalExpr($element->element), $position);
-                }
-                $builtValue = $builder->build();
-
-                break;
-            case $type instanceof StructType:
-                $builder = StructBuilder::fromType($type);
-
-                foreach ($lit->elementList->elements ?? [] as $element) {
-                    $builder->addField(
-                        match (true) {
-                            $element->key === null => null,
-                            $element->key instanceof Ident => $element->key->name,
-                            default => throw RuntimeError::invalidFieldName(),
-                        },
-                        $this->evalExpr($element->element),
-                    );
-                }
-
-                $builtValue = $builder->build();
-
-                break;
-            case $type instanceof WrappedType:
-                $builtValue = $this->resolveCompositeLitWithType($lit, $type->unwind(), $type->valueCallback());
-
-                break;
-            default:
-                throw InternalError::unreachable($lit);
+        if ($type instanceof WrappedType) {
+            $wrapper = $type->valueCallback();
+            $type = $type->unwind();
         }
+
+        $builder = match (true) {
+            $type instanceof ArrayType => ArrayBuilder::fromType($type),
+            $type instanceof SliceType => SliceBuilder::fromType($type),
+            $type instanceof MapType => MapBuilder::fromType($type),
+            $type instanceof StructType => StructBuilder::fromType($type),
+            default => throw InternalError::unreachable($type),
+        };
+
+        foreach ($lit->elementList->elements ?? [] as $element) {
+            $builder->push($element, $this->evalExpr(...));
+        }
+
+        $builtValue = $builder->build();
 
         if ($wrapper !== null) {
             $builtValue = $wrapper($builtValue);
