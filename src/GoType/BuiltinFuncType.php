@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\Error\InternalError;
-use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\AddressableValue;
 
 final class BuiltinFuncType implements GoType
 {
@@ -38,7 +38,7 @@ final class BuiltinFuncType implements GoType
         throw InternalError::unreachableMethodCall();
     }
 
-    public function convert(GoValue $value): GoValue
+    public function convert(AddressableValue $value): never
     {
         throw InternalError::unreachableMethodCall();
     }

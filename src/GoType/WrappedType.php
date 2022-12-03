@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Unwindable;
 use GoPhp\GoValue\WrappedValue;
@@ -68,7 +69,7 @@ final class WrappedType implements Unwindable, GoType
         return fn (GoValue $value): WrappedValue => new WrappedValue($value, $this);
     }
 
-    public function convert(GoValue $value): WrappedValue
+    public function convert(AddressableValue $value): WrappedValue
     {
         return new WrappedValue(
             $this->underlyingType->convert($value),

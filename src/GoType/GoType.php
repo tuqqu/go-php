@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
-use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\AddressableValue;
 
 interface GoType
 {
@@ -16,7 +16,7 @@ interface GoType
 
     public function reify(): self;
 
-    public function defaultValue(): GoValue;
+    public function defaultValue(): AddressableValue;
 
-    public function convert(GoValue $value): GoValue;
+    public function convert(AddressableValue $value): AddressableValue;
 }

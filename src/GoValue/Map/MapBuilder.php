@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
+use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\KeyedElement;
 use GoPhp\CompositeValueBuilder;
 use GoPhp\GoType\MapType;
@@ -28,7 +29,10 @@ final class MapBuilder implements CompositeValueBuilder
 
     public function push(KeyedElement $element, callable $evaluator): void
     {
-        /** @var Hashable&GoValue $pos */
+        /**
+         * @var Hashable&GoValue $pos
+         * @var Expr $element->key
+         */
         $pos = $evaluator($element->key);
         $value = $evaluator($element->element)->copy();
 

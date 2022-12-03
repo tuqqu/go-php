@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoPhp\Builtin\BuiltinFunc\BuiltinFunc;
+use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Float\FloatNumber;
 use GoPhp\GoValue\Func\Func;
 use GoPhp\GoValue\GoValue;
@@ -66,13 +69,18 @@ function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
 
 /**
  * @internal
+ * @psalm-assert AddressableValue $b
  */
 function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
 {
     assert_types_compatible($a, $b->type());
 
-    if ($b instanceof Castable) {
+    if ($b instanceof Castable && $a instanceof NamedType) {
         $b = $b->cast($a);
+    }
+
+    if (!$b instanceof AddressableValue) {
+        throw InternalError::unexpectedValue($b);
     }
 }
 

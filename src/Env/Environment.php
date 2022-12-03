@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\Env;
 
 use GoPhp\Error\RuntimeError;
-use GoPhp\GoType\BasicType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BlankValue;
@@ -35,7 +34,7 @@ final class Environment
         $this->envMap->add($blankValue);
     }
 
-    public function defineConst(string $name, AddressableValue $value, BasicType $type, string $namespace = EnvMap::NAMESPACE_TOP): void {
+    public function defineConst(string $name, AddressableValue $value, GoType $type, string $namespace = EnvMap::NAMESPACE_TOP): void {
         if (!$value instanceof Sealable) {
             throw RuntimeError::valueIsNotConstant($value);
         }
@@ -68,7 +67,7 @@ final class Environment
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void
     {
-        $func = new EnvValue($value->name(), $value);
+        $func = new EnvValue($value->getName(), $value);
         $this->envMap->add($func);
     }
 

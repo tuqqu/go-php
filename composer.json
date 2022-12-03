@@ -14,9 +14,9 @@
     },
     "require-dev": {
         "symfony/var-dumper": "^6.0",
-        "friendsofphp/php-cs-fixer": "^3.8",
+        "friendsofphp/php-cs-fixer": "^3.13",
         "phpunit/phpunit": "^9",
-        "vimeo/psalm": "5.0.0-beta1"
+        "vimeo/psalm": "dev-master as 5.0"
     },
     "bin": [
         "bin/go-php"
@@ -27,7 +27,7 @@
         },
         "files": [
             "src/asserts.php",
-            "src/functions.php"
+            "src/utils.php"
         ]
     },
     "autoload-dev": {

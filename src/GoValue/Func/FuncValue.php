@@ -6,6 +6,7 @@ namespace GoPhp\GoValue\Func;
 
 use GoPhp\Argv;
 use GoPhp\Env\Environment;
+use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\Error\PanicError;
 use GoPhp\GoType\FuncType;
@@ -72,10 +73,14 @@ final class FuncValue implements Invokable, AddressableValue
 
     public function bind(AddressableValue $instance): void
     {
+        if ($this->innerFunc === NIL) {
+            throw InternalError::unexpectedValue(NIL);
+        }
+
         $this->innerFunc->bind($instance);
     }
 
-    public function copy(): self
+    public function copy(): static
     {
         return $this;
     }

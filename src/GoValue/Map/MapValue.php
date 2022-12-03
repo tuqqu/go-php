@@ -27,8 +27,12 @@ use const GoPhp\NIL;
 /**
  * @template K of Hashable&GoValue
  * @template V of GoValue
+ *
  * @template-implements Map<K, V|MapLookupValue<V>>
  * @template-implements AddressableValue<never>
+ *
+ * psalm bug with Intersection types in generics
+ * @psalm-suppress PossiblyUndefinedMethod
  */
 final class MapValue implements Map, AddressableValue
 {
@@ -94,6 +98,7 @@ final class MapValue implements Map, AddressableValue
             throw PanicError::nilMapAssignment();
         }
 
+        /** @var V $value */
         $this->innerMap->set($value, $at);
     }
 

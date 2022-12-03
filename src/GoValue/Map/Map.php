@@ -11,6 +11,7 @@ use GoPhp\GoValue\Sequence;
 /**
  * @template K of Hashable&GoValue
  * @template V of GoValue
+ *
  * @template-extends Sequence<K, V>
  */
 interface Map extends Sequence

@@ -27,7 +27,8 @@ use function GoPhp\assert_index_sliceable;
 use function GoPhp\assert_values_compatible;
 
 /**
- * @template V of GoValue
+ * @template V of AddressableValue
+ *
  * @template-implements Sequence<IntNumber, V>
  * @template-implements AddressableValue<list<V>>
  * @template-implements Hashable<string>
@@ -126,7 +127,6 @@ final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValu
     {
         if ($op === Operator::Eq) {
             assert_values_compatible($this, $rhs);
-
             $this->values = $rhs->copy()->values;
 
             return;
@@ -146,9 +146,9 @@ final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValu
     }
 
     /**
-     * @return self<V>
+     * @return static<V>
      */
-    public function copy(): self
+    public function copy(): static
     {
         $self = new self(
             $this->values->copyItems(),

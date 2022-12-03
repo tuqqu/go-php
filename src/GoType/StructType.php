@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\GoType\Converter\DefaultConverter;
-use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Struct\StructBuilder;
 use GoPhp\GoValue\Struct\StructValue;
 
@@ -72,7 +72,7 @@ final class StructType implements GoType
         return StructBuilder::fromType($this)->build();
     }
 
-    public function convert(GoValue $value): GoValue
+    public function convert(AddressableValue $value): AddressableValue
     {
         return DefaultConverter::convert($value, $this);
     }

@@ -43,7 +43,7 @@ class Make extends BaseBuiltinFunc
             if (isset($argv[1])) {
                 assert_arg_int($argv[1]);
 
-                $len = $argv[1]->value->unwrap();
+                $len = (int) $argv[1]->value->unwrap();
 
                 assert_index_positive($len);
 
@@ -55,7 +55,7 @@ class Make extends BaseBuiltinFunc
             if (isset($argv[2])) {
                 assert_arg_int($argv[2]);
 
-                $cap = $argv[2]->value->unwrap();
+                $cap = (int) $argv[2]->value->unwrap();
 
                 assert_index_positive($cap);
 

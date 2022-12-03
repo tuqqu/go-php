@@ -7,12 +7,12 @@ namespace GoPhp\GoType;
 use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoType\Converter\NumberConverter;
 use GoPhp\GoType\Converter\StringConverter;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Complex\Complex128Value;
 use GoPhp\GoValue\Complex\Complex64Value;
 use GoPhp\GoValue\Float\Float32Value;
 use GoPhp\GoValue\Float\Float64Value;
-use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\Int16Value;
 use GoPhp\GoValue\Int\Int32Value;
 use GoPhp\GoValue\Int\Int64Value;
@@ -74,7 +74,7 @@ enum NamedType: string implements BasicType
         return $this;
     }
 
-    public function defaultValue(): GoValue
+    public function defaultValue(): AddressableValue
     {
         return match ($this) {
             self::Int => new IntValue(0),
@@ -142,7 +142,7 @@ enum NamedType: string implements BasicType
         };
     }
 
-    public function convert(GoValue $value): GoValue
+    public function convert(AddressableValue $value): AddressableValue
     {
         return match ($this) {
             self::Int,

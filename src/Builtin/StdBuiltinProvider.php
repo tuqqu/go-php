@@ -28,9 +28,11 @@ use GoPhp\Stream\OutputStream;
 
 class StdBuiltinProvider implements BuiltinProvider
 {
+    protected const IOTA_START = 0;
+
     public function __construct(
         private readonly OutputStream $stderr,
-        private readonly IntNumber&Iota $iota = new StdIota(),
+        private readonly IntNumber&Iota $iota = new StdIota(self::IOTA_START),
     ) {}
 
     public function iota(): Iota

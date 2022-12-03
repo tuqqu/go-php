@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 /**
- * Value that is stored and can be addressed either by name or, sometimes, by reference.
+ * Value that is stored and can be addressed either by name or by reference.
  *
  * @template T
  * @template-extends GoValue<T>
@@ -32,4 +32,10 @@ interface AddressableValue extends GoValue
      * Sets the name with which current value has been addressed.
      */
     public function addressedWithName(string $name): void;
+
+
+    /**
+     * Copying an addressable value results in an addressable value.
+     */
+    public function copy(): self;
 }

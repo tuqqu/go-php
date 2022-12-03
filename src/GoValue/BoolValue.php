@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\RuntimeError;
-use GoPhp\GoType\GoType;
 use GoPhp\Operator;
 use GoPhp\GoType\NamedType;
 
@@ -103,7 +102,7 @@ final class BoolValue implements Hashable, Castable, Sealable, AddressableValue
         throw RuntimeError::undefinedOperator($op, $this);
     }
 
-    public function copy(): self
+    public function copy(): static
     {
         $cloned = clone $this;
         $cloned->sealed = false;
@@ -131,7 +130,7 @@ final class BoolValue implements Hashable, Castable, Sealable, AddressableValue
         return $this->unwrap();
     }
 
-    public function cast(GoType $to): self
+    public function cast(NamedType $to): self
     {
         return $this;
     }

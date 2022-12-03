@@ -6,8 +6,14 @@ namespace GoPhp\GoValue\Func;
 
 use GoPhp\GoType\GoType;
 
+/**
+ * @template T = string|null
+ */
 final class Param
 {
+    /**
+     * @param T $name
+     */
     public function __construct(
         public readonly GoType $type,
         public readonly ?string $name = null,

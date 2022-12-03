@@ -22,11 +22,11 @@ final class PointerValue implements AddressableValue
     use AddressableTrait;
 
     private function __construct(
-        private ?GoValue $pointsTo,
+        private ?AddressableValue $pointsTo,
         private readonly PointerType $type,
     ) {}
 
-    public static function fromValue(GoValue $value): self
+    public static function fromValue(AddressableValue $value): self
     {
         return new self($value, new PointerType($value->type()));
     }
@@ -36,7 +36,7 @@ final class PointerValue implements AddressableValue
         return new self(NIL, $type);
     }
 
-    public function getPointsTo(): GoValue
+    public function getPointsTo(): AddressableValue
     {
         if ($this->pointsTo === NIL) {
             throw PanicError::nilDereference();
@@ -50,7 +50,7 @@ final class PointerValue implements AddressableValue
         return $this->getAddress();
     }
 
-    public function operate(Operator $op): GoValue
+    public function operate(Operator $op): AddressableValue
     {
         return match ($op) {
             Operator::Mul => $this->getPointsTo(),

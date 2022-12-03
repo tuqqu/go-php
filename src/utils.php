@@ -33,10 +33,10 @@ const VERSION = '0.1.0';
  * @internal
  *
  * @template T of object
- * @template O as Unwindable<T>|object
+ * @template V of object
  *
- * @param O $object
- * @psalm-return (O is Unwindable<T> ? T : object)
+ * @param T $object
+ * @psalm-return ($object is Unwindable<V> ? V : T)
  */
 function normalize_unwindable(object $object): object
 {

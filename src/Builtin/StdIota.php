@@ -10,11 +10,6 @@ use GoPhp\GoValue\Int\IntNumber;
 
 class StdIota extends IntNumber implements Iota
 {
-    public function __construct(int $value = 0)
-    {
-        parent::__construct($value);
-    }
-
     public function type(): GoType
     {
         return UntypedType::UntypedInt;

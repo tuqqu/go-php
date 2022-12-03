@@ -18,7 +18,7 @@ final class JumpStack
 
     public function peek(): JumpHandler
     {
-        return $this->stack[\array_key_last($this->stack)] ?? throw InternalError::jumpStackUnderflow();
+        return $this->stack[\array_key_last($this->stack) ?? throw InternalError::jumpStackUnderflow()];
     }
 
     public function pop(): JumpHandler

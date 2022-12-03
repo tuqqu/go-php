@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\GoType\Converter\DefaultConverter;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Params;
-use GoPhp\GoValue\GoValue;
 
 final class FuncType implements RefType
 {
@@ -75,7 +75,7 @@ final class FuncType implements RefType
         return FuncValue::nil($this);
     }
 
-    public function convert(GoValue $value): GoValue
+    public function convert(AddressableValue $value): AddressableValue
     {
         return DefaultConverter::convert($value, $this);
     }

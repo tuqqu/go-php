@@ -29,7 +29,7 @@ final class BuiltinFuncValue implements ConstInvokable, GoValue
         return ($this->func)($argv);
     }
 
-    public function name(): string
+    public function getName(): string
     {
         return $this->func->name();
     }

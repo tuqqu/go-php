@@ -12,6 +12,7 @@ use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\TupleValue;
@@ -30,18 +31,26 @@ class RuntimeError extends \RuntimeException
         return self::cannotUseValue($value, $type);
     }
 
-    public static function expectedSliceInArgumentUnpacking(GoValue $value, FuncValue|BuiltinFuncValue $funcValue): self
+    public static function expectedSliceInArgumentUnpacking(GoValue $value, Invokable $funcValue): self
     {
+        [$name, $type] = match (true) {
+            $funcValue instanceof FuncValue => [
+                $funcValue->getName(),
+                $funcValue->type->params[$funcValue->type->params->len - 1]->type->name(),
+            ],
+            $funcValue instanceof BuiltinFuncValue => [
+                $funcValue->getName(),
+                '[]T (slice)',
+            ],
+            default => throw InternalError::unreachable($funcValue),
+        };
+
         return new self(
             \sprintf(
                 'cannot use %s as type %s in argument to %s',
                 self::valueToString($value),
-                $funcValue instanceof BuiltinFuncValue
-                    ? '[]T (slice)'
-                    : $funcValue->type->params[$funcValue->type->params->len - 1]->type->name(),
-                $funcValue instanceof BuiltinFuncValue
-                    ? $funcValue->name()
-                    : $funcValue->getName(),
+                $type,
+                $name,
             ),
         );
     }

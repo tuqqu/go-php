@@ -7,13 +7,12 @@ namespace GoPhp\GoType\Converter;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\GoValue;
 
 use function GoPhp\normalize_unwindable;
 
 final class DefaultConverter
 {
-    public static function convert(GoValue $value, GoType $type): AddressableValue
+    public static function convert(AddressableValue $value, GoType $type): AddressableValue
     {
         $value = normalize_unwindable($value);
 

@@ -81,6 +81,7 @@ final class EnvValue
         if (
             $type instanceof WrappedType
             && !$value instanceof TypeValue
+            && $value instanceof AddressableValue
         ) {
             return $type->convert($value);
         }

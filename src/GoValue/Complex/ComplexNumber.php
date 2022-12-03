@@ -7,7 +7,6 @@ namespace GoPhp\GoValue\Complex;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\BasicType;
-use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\AddressableTrait;
@@ -43,7 +42,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
         return new static((float) $number->unwrap(), 0.0);
     }
 
-    public function __construct(
+    final public function __construct(
         protected float $real,
         protected float $imag,
     ) {}
@@ -73,7 +72,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
         return 0.5 * ($this->real + $this->imag) * ($this->real + $this->imag + 1) + $this->imag;
     }
 
-    final public function cast(GoType $to): self
+    final public function cast(NamedType $to): self
     {
         return $this;
     }
@@ -164,6 +163,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
             default => throw InternalError::unreachable($this),
         };
 
+        /** @var FloatNumber $floatValue */
         $floatValue = $floatType->defaultValue();
 
         return new ($floatValue::class)($float);

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue;
 
-use GoPhp\GoType\GoType;
+use GoPhp\GoType\NamedType;
 
 interface Castable
 {
-    public function cast(GoType $to): self;
+    public function cast(NamedType $to): self;
 }

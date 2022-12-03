@@ -30,7 +30,8 @@ use function GoPhp\assert_values_compatible;
 use const GoPhp\NIL;
 
 /**
- * @template V of GoValue
+ * @template V of AddressableValue
+ *
  * @template-implements Sequence<IntNumber, V>
  * @template-implements Unpackable<V>
  * @template-implements AddressableValue<list<V>>
@@ -65,7 +66,8 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
     }
 
     /**
-     * @template T of GoValue
+     * @template T of AddressableValue
+     *
      * @param T[] $values
      * @return self<T>
      */
@@ -80,8 +82,9 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
     }
 
     /**
-     * @template T of GoValue
-     * @param UnderlyingArray<T> $array
+     * @template T of AddressableValue
+     *
+     * @param UnderlyingArray<T>|null $array
      * @return self<T>
      */
     public static function fromUnderlyingArray(
@@ -158,6 +161,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
         assert_types_compatible($value->type(), $this->type->elemType);
 
         if ($this->values === NIL) {
+            /** @var UnderlyingArray<V> $this->values */
             $this->values = UnderlyingArray::fromEmpty();
         }
 
@@ -165,6 +169,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
             $this->grow();
         }
 
+        /** @psalm-suppress PossiblyNullReference */
         $this->values[$this->len++] = $value; // fixme maybe pos?
     }
 
@@ -243,6 +248,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
      */
     public function setBlindly(GoValue $value, int $at): void
     {
+        /** @psalm-suppress PossiblyNullReference */
         $this->values[$at + $this->pos] = $value;
     }
 

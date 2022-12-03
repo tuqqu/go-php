@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\RuntimeError;
-use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\Uint8Value;
@@ -192,7 +191,7 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Ha
         return $this->unwrap();
     }
 
-    public function cast(GoType $to): self
+    public function cast(NamedType $to): self
     {
         return $this;
     }

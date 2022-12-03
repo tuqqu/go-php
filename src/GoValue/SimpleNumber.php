@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\RuntimeError;
-use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Complex\Complex128Value;
@@ -31,6 +30,7 @@ use function GoPhp\normalize_unwindable;
 
 /**
  * @template N = int|float
+ *
  * @template-implements Hashable<N>
  * @template-implements AddressableValue<N>
  */
@@ -38,11 +38,6 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Addressable
 {
     use SealableTrait;
     use AddressableTrait;
-
-    public function __construct($value)
-    {
-        // intentionally left empty
-    }
 
     // fixme move this to child classes
     final public function convertTo(NamedType $type): self|ComplexNumber
@@ -153,7 +148,7 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Addressable
         return $this->unwrap();
     }
 
-    public function cast(GoType $to): self|ComplexNumber
+    public function cast(NamedType $to): self|ComplexNumber
     {
         if ($this->type() instanceof UntypedType) {
             return $this->convertTo($to);
@@ -221,7 +216,7 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Addressable
 
     abstract protected function assign(self $value): void;
 
-    protected function completeOperate(Operator $op): self|PointerValue
+    protected function completeOperate(Operator $op): static|PointerValue
     {
         throw RuntimeError::undefinedOperator($op, $this, true);
     }

@@ -27,7 +27,6 @@ use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SelectorExpr;
 use GoParser\Ast\Expr\SimpleSliceExpr;
 use GoParser\Ast\Expr\SingleTypeName;
-use GoParser\Ast\Expr\SliceExpr;
 use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\StructType as AstStructType;
@@ -194,10 +193,12 @@ final class Interpreter
                 throw RuntimeError::noEntryPoint($this->entryPointValidator->targets());
             }
 
-            $this->callFunc(fn (): GoValue => ($this->entryPoint)($this->argv));
+            $entryPoint = $this->entryPoint;
+            $this->callFunc(fn (): GoValue => ($entryPoint)($this->argv));
         } catch (InternalError $error) {
             throw $error;
         } catch (\Throwable $error) {
+            throw $error;
             if (!$error instanceof AbortExecutionError) {
                 $this->errorHandler->onError($error->getMessage());
             }
@@ -208,6 +209,9 @@ final class Interpreter
         return ExitCode::Success;
     }
 
+    /**
+     * @template T of Decl
+     */
     private function evalDeclsInOrder(): void
     {
         foreach ($this->ast->imports as $import) {
@@ -238,22 +242,27 @@ final class Interpreter
         $this->scopeResolver->enterPackageScope();
 
         foreach ($mapping[TypeDecl::class] as $decl) {
+            /** @var TypeDecl $decl */
             $this->evalTypeDeclStmt($decl);
         }
 
         foreach ($mapping[ConstDecl::class] as $decl) {
+            /** @var ConstDecl $decl */
             $this->evalConstDeclStmt($decl);
         }
 
         foreach ($mapping[VarDecl::class] as $decl) {
+            /** @var VarDecl $decl */
             $this->evalVarDeclStmt($decl);
         }
 
         foreach ($mapping[FuncDecl::class] as $decl) {
+            /** @var FuncDecl $decl */
             $this->evalFuncDeclStmt($decl);
         }
 
         foreach ($mapping[MethodDecl::class] as $decl) {
+            /** @var MethodDecl $decl */
             $this->evalMethodDeclStmt($decl);
         }
 
@@ -374,8 +383,12 @@ final class Interpreter
                     ? $this->tryEvalConstExpr($initExprs[$i])
                     : null;
 
-                if ($value === null) {
-                    throw RuntimeError::uninitialisedConstant($ident->name);
+                if (!$value instanceof AddressableValue) {
+                    if ($value === null) {
+                        throw RuntimeError::uninitialisedConstant($ident->name);
+                    }
+
+                    throw InternalError::unexpectedValue($value);
                 }
 
                 $this->checkNonDeclarableNames($ident->name);
@@ -583,6 +596,10 @@ final class Interpreter
             && $func->func->expectsTypeAsFirstArg()
             && isset($expr->args->exprs[0])
         ) {
+            if (!$expr->args->exprs[0] instanceof AstType) {
+                throw InternalError::unexpectedValue($expr->args->exprs[0]);
+            }
+
             $argvBuilder->add(new TypeValue($this->resolveType($expr->args->exprs[0])));
             ++$startFrom;
         }
@@ -748,9 +765,7 @@ final class Interpreter
                     $jump->startSeeking($stmtJump->label);
 
                     if ($jump->isSameContext($stmtList)) {
-                        /**
-                         * @psalm-suppress LoopInvalidation
-                         */
+                        /** @psalm-suppress LoopInvalidation */
                         [$i, $gotoIndex] = [-1, $i];
                         continue;
                     }
@@ -814,7 +829,7 @@ final class Interpreter
             $values[] = $value;
         }
 
-        if (\count($values) === 1) {
+        if (\count($values) === ReturnJump::LEN_SINGLE) {
             return ReturnJump::fromSingle($values[0]);
         }
 
@@ -1046,8 +1061,8 @@ final class Interpreter
 
         foreach ($range->iter() as $key => $value) {
             /**
-             * @var GoValue $key
-             * @var GoValue $value
+             * @var AddressableValue $key
+             * @var AddressableValue $value
              */
             if ($define) {
                 if ($keyVar !== null) {
@@ -1202,7 +1217,8 @@ final class Interpreter
         $value = match (true) {
             $expr instanceof CallExpr => $this->evalCallExpr($expr),
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
-            $expr instanceof SliceExpr => $this->evalSliceExpr($expr),
+            $expr instanceof SimpleSliceExpr => $this->evalSliceExpr($expr),
+            $expr instanceof FullSliceExpr => $this->evalSliceExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
             $expr instanceof FuncLit => $this->evalFuncLit($expr),
             default => throw InternalError::unreachable($expr),
@@ -1251,6 +1267,10 @@ final class Interpreter
 
     private function evalCompositeLit(CompositeLit $lit): GoValue
     {
+        if ($lit->type === null) {
+            throw InternalError::unexpectedValue($lit);
+        }
+
         $type = $this->resolveType($lit->type, true);
 
         return $this->resolveCompositeLitWithType($lit, $type);
@@ -1362,6 +1382,10 @@ final class Interpreter
 
         // struct access
         $value = $this->evalExpr($expr->expr);
+        if (!$value instanceof AddressableValue) {
+            throw InternalError::unexpectedValue($value::class, AddressableValue::class);
+        }
+
         $method = $this->env->getMethod($expr->selector->name, $value->type());
 
         if ($method !== null) {
@@ -1519,7 +1543,11 @@ final class Interpreter
         foreach ($structType->fieldDecls as $fieldDecl) {
             if ($fieldDecl->identList === null) {
                 // fixme add anonymous fields
-                throw new InternalError('not implemented');
+                throw InternalError::unimplemented();
+            }
+
+            if ($fieldDecl->type === null) {
+                throw InternalError::unimplemented();
             }
 
             $type = $this->resolveType($fieldDecl->type, $composite);
@@ -1582,6 +1610,7 @@ final class Interpreter
         if ($value instanceof UntypedNilValue && $type instanceof RefType) {
             $value = $type->defaultValue();
         } else {
+            /** @var AddressableValue $value */
             $value = $value->copy();
         }
 

@@ -41,11 +41,11 @@ abstract class IntNumber extends SimpleNumber
         return $this->value;
     }
 
-    protected function completeOperate(Operator $op): self|PointerValue
+    protected function completeOperate(Operator $op): static|PointerValue
     {
         return match ($op) {
             Operator::BitXor => $this->bitwiseNot(),
-            default => parent::completeOperate($op),
+            default => throw RuntimeError::undefinedOperator($op, $this, true),
         };
     }
 
@@ -59,7 +59,7 @@ abstract class IntNumber extends SimpleNumber
             Operator::BitXor => $this->bitwiseXor($rhs),
             Operator::ShiftLeft => $this->bitwiseShiftLeft($rhs),
             Operator::ShiftRight => $this->bitwiseShiftRight($rhs),
-            default => parent::completeOperateOn($op, $rhs),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 
@@ -73,7 +73,7 @@ abstract class IntNumber extends SimpleNumber
             Operator::BitXorEq => $this->mutBitwiseXor($rhs),
             Operator::ShiftLeftEq => $this->mutShiftLeft($rhs),
             Operator::ShiftRightEq => $this->mutShiftRight($rhs),
-            default => parent::completeMutate($op, $rhs),
+            default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
 

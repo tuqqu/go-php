@@ -82,9 +82,7 @@ final class Func implements Invokable
             }
         }
 
-        if ($this->receiver !== null) {
-            $this->doBind($env);
-        }
+        $this->doBind($env);
 
         foreach ($this->type->params->iter() as $i => $param) {
             if ($param->variadic) {
@@ -127,7 +125,7 @@ final class Func implements Invokable
         $stmtJump = ($this->body)($env, $this->namespace);
 
         if ($stmtJump instanceof None) {
-            return $this->type->returnArity === 0
+            return $this->type->returnArity === ReturnJump::LEN_VOID
                 ? new VoidValue()
                 : throw RuntimeError::wrongReturnValueNumber([], $this->type->returns);
         }
@@ -138,8 +136,8 @@ final class Func implements Invokable
 
         if ($this->type->returnArity !== $stmtJump->len) {
             // named return: single & tuple value
-            if ($stmtJump->len === 0 && !empty($namedReturns)) {
-                return $this->type->returns->len === 1
+            if ($stmtJump->len === ReturnJump::LEN_VOID && !empty($namedReturns)) {
+                return $this->type->returns->len === ReturnJump::LEN_SINGLE
                     ? $namedReturns[0]
                     : new TupleValue($namedReturns);
             }
@@ -159,6 +157,10 @@ final class Func implements Invokable
 
     private function doBind(Environment $env): void
     {
+        if ($this->receiver === null) {
+            return;
+        }
+
         if ($this->boundInstance === null) {
             throw InternalError::unreachable($this->receiver);
         }

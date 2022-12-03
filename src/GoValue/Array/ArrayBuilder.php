@@ -7,13 +7,13 @@ namespace GoPhp\GoValue\Array;
 use GoParser\Ast\KeyedElement;
 use GoPhp\CompositeValueBuilder;
 use GoPhp\GoType\ArrayType;
-use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\AddressableValue;
 
 use function GoPhp\assert_types_compatible_with_cast;
 
 final class ArrayBuilder implements CompositeValueBuilder
 {
-    /** @var GoValue[] */
+    /** @var AddressableValue[] */
     private array $values = [];
 
     private function __construct(

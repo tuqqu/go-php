@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Array;
 
-use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\AddressableValue;
 
 /**
- * @template V of GoValue
+ * @template V of AddressableValue
+ *
  * @template-implements \ArrayAccess<int, V>
  * @template-implements \Iterator<int, V>
  */
@@ -67,7 +68,7 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
     /**
      * @return V
      */
-    public function current(): GoValue
+    public function current(): AddressableValue
     {
         return \current($this->array);
     }
@@ -100,7 +101,7 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
     /**
      * @return V
      */
-    public function offsetGet(mixed $offset): GoValue
+    public function offsetGet(mixed $offset): AddressableValue
     {
         return $this->array[$offset];
     }
@@ -109,7 +110,7 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
     {
         $value->makeAddressable();
 
-        $this->array[$offset] = $value;
+        $this->array[(int) $offset] = $value;
     }
 
     public function offsetUnset(mixed $offset): void

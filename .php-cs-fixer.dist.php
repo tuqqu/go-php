@@ -8,9 +8,7 @@ const RULES = [
     'strict_param' => true,
     'braces' => false,
     'single_import_per_statement' => false,
-    'ternary_operator_spaces' => false,      // enums
-    'constant_case' => false,                // enums
-    'no_break_comment' => false,
+    'no_break_comment' => false,                // false positive with match
     'no_unused_imports' => true,
     'array_syntax' => ['syntax' => 'short'],
 ];

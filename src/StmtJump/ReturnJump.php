@@ -13,6 +13,9 @@ use GoPhp\GoValue\VoidValue;
  */
 final class ReturnJump implements StmtJump
 {
+    public const LEN_VOID = 0;
+    public const LEN_SINGLE = 1;
+
     /**
      * @param V $value
      */
@@ -26,7 +29,15 @@ final class ReturnJump implements StmtJump
      */
     public static function fromVoid(): self
     {
-        return new self(new VoidValue(), 0);
+        return new self(new VoidValue(), self::LEN_VOID);
+    }
+
+    /**
+     * @return self<GoValue>
+     */
+    public static function fromSingle(GoValue $value): self
+    {
+        return new self($value, self::LEN_SINGLE);
     }
 
     /**
@@ -35,14 +46,6 @@ final class ReturnJump implements StmtJump
     public static function fromTuple(TupleValue $tuple): self
     {
         return new self($tuple, $tuple->len);
-    }
-
-    /**
-     * @return self<GoValue>
-     */
-    public static function fromSingle(GoValue $value): self
-    {
-        return new self($value, 1);
     }
 
     /**
@@ -57,15 +60,14 @@ final class ReturnJump implements StmtJump
     }
 
     /**
-     * @return GoValue[]
-     * @psalm-suppress NoInterfaceProperties
+     * @return V[]
      */
     public function values(): array
     {
         return match ($this->len) {
-            0 => [],
-            1 => [$this->value],
-            default => $this->value->values,
+            self::LEN_VOID => [],
+            self::LEN_SINGLE => [$this->value],
+            default => $this->value->unwrap(),
         };
     }
 }

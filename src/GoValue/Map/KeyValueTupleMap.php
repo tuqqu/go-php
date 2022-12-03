@@ -4,13 +4,21 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
+use GoPhp\Error\InternalError;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Hashable;
 
 /**
- * @template K of Hashable&GoValue
+ * @psalm-type Key = Hashable&GoValue
+ *
+ * @template K of Key
  * @template V of GoValue
+ *
  * @template-implements Map<K, V>
+ *
+ * psalm bug with Intersection types in generics
+ * @psalm-suppress PossiblyUndefinedMethod
  */
 final class KeyValueTupleMap implements Map
 {
@@ -28,14 +36,20 @@ final class KeyValueTupleMap implements Map
         return $this->values[$at->hash()]['value'];
     }
 
-    public function set(GoValue $value, GoValue $at): void
+    public function set(GoValue $value, Hashable&GoValue $at): void
     {
         if (!$this->has($at)) {
             ++$this->len;
         }
 
-        // fixme check isAddressable here
-        $this->values[$at->hash()] = ['key' => $at->copy(), 'value' => $value];
+        $at = $at->copy();
+
+        /** @var K $at */
+        if (!$at instanceof AddressableValue) {
+            throw InternalError::unexpectedValue($at);
+        }
+
+        $this->values[$at->hash()] = ['key' => $at, 'value' => $value];
     }
 
     public function len(): int
@@ -43,18 +57,18 @@ final class KeyValueTupleMap implements Map
         return $this->len;
     }
 
-    public function delete(GoValue $at): void
+    public function delete(Hashable&GoValue $at): void
     {
         unset($this->values[$at->hash()]);
     }
 
-    /**
-     * @psalm-suppress InvalidReturnType
-     */
     public function iter(): iterable
     {
         foreach ($this->values as ['key' => $key, 'value' => $value]) {
-            yield $key->copy() => $value;
+            /** @var K $key */
+            $key = $key->copy();
+
+            yield $key => $value;
         }
     }
 }

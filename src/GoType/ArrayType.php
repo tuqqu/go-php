@@ -7,8 +7,8 @@ namespace GoPhp\GoType;
 use GoPhp\Error\RuntimeError;
 use GoPhp\Error\InternalError;
 use GoPhp\GoType\Converter\DefaultConverter;
+use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Array\ArrayValue;
-use GoPhp\GoValue\GoValue;
 
 final class ArrayType implements GoType
 {
@@ -84,7 +84,7 @@ final class ArrayType implements GoType
         return isset($this->len, $this->name);
     }
 
-    public function convert(GoValue $value): GoValue
+    public function convert(AddressableValue $value): AddressableValue
     {
         return DefaultConverter::convert($value, $this);
     }

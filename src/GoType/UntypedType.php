@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\Error\InternalError;
-use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\AddressableValue;
 
 use function GoPhp\normalize_unwindable;
 
@@ -141,7 +141,7 @@ enum UntypedType implements BasicType
         return false; // fixme add untyped str
     }
 
-    public function convert(GoValue $value): never
+    public function convert(AddressableValue $value): never
     {
         throw InternalError::unreachableMethodCall();
     }
