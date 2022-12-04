@@ -38,7 +38,6 @@ use GoParser\Ast\File as Ast;
 use GoParser\Ast\ForClause;
 use GoParser\Ast\IdentList;
 use GoParser\Ast\Params as AstParams;
-use GoParser\Ast\Punctuation;
 use GoParser\Ast\RangeClause;
 use GoParser\Ast\Signature as AstSignature;
 use GoParser\Ast\Stmt\AssignmentStmt;
@@ -198,7 +197,6 @@ final class Interpreter
         } catch (InternalError $error) {
             throw $error;
         } catch (\Throwable $error) {
-            throw $error;
             if (!$error instanceof AbortExecutionError) {
                 $this->errorHandler->onError($error->getMessage());
             }
@@ -226,7 +224,7 @@ final class Interpreter
             MethodDecl::class => [],
         ];
 
-        foreach ($this->ast->decls as $i => $decl) {
+        foreach ($this->ast->decls as $decl) {
             $key = match (true) {
                 $decl instanceof ConstDecl,
                 $decl instanceof VarDecl,
@@ -1493,26 +1491,23 @@ final class Interpreter
 
     private function resolveArrayType(AstArrayType $arrayType, bool $composite): ArrayType
     {
-        if (
-            $arrayType->len instanceof Punctuation
-            && $arrayType->len->value === Token::Ellipsis->value
-            && $composite
-        ) {
-            $len = null;
-        } elseif ($arrayType->len instanceof Expr) {
-            $len = $this->tryEvalConstExpr($arrayType->len) ?? throw RuntimeError::invalidArrayLength();
+        $elemType = $this->resolveType($arrayType->elemType, $composite);
+
+        if ($arrayType->len instanceof Expr) {
+            $len = $this->tryEvalConstExpr($arrayType->len) ?? throw RuntimeError::invalidArrayLen();
 
             if (!$len instanceof IntNumber) {
-                throw RuntimeError::invalidArrayLen($len);
+                throw RuntimeError::nonIntegerArrayLen($len);
             }
-        } else {
-            throw InternalError::unreachable($arrayType);
+
+            return ArrayType::fromLen($elemType, $len->unwrap());
         }
 
-        return new ArrayType(
-            $this->resolveType($arrayType->elemType, $composite),
-            $len?->unwrap(),
-        );
+        if ($arrayType->len->value === Token::Ellipsis->value && $composite) {
+            return ArrayType::unfinished($elemType);
+        }
+
+        throw InternalError::unreachable($arrayType);
     }
 
     private function resolveSliceType(AstSliceType $sliceType, bool $composite): SliceType
@@ -1556,6 +1551,7 @@ final class Interpreter
                 if (isset($fields[$ident->name])) {
                     throw RuntimeError::redeclaredName($ident->name);
                 }
+
                 $fields[$ident->name] = $type;
             }
         }

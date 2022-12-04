@@ -12,17 +12,24 @@ use GoPhp\GoValue\Array\ArrayValue;
 
 final class ArrayType implements GoType
 {
-    public readonly string $name;
-    public readonly int $len;
     public readonly GoType $elemType;
+    private ?int $len;
+    private ?string $name = null;
 
-    public function __construct(GoType $elemType, ?int $len)
+    private function __construct(GoType $elemType, ?int $len)
     {
         $this->elemType = $elemType;
+        $this->len = $len;
+    }
 
-        if ($len !== null) {
-            $this->finish($len);
-        }
+    public static function fromLen(GoType $elemType, int $len): self
+    {
+        return new self($elemType, $len);
+    }
+
+    public static function unfinished(GoType $elemType): self
+    {
+        return new self($elemType, null);
     }
 
     public function name(): string
@@ -31,7 +38,7 @@ final class ArrayType implements GoType
             throw InternalError::unreachable('array type must be complete prior to usage');
         }
 
-        return $this->name;
+        return $this->name ??= \sprintf('[%d]%s', $this->len, $this->elemType->name());
     }
 
     public function equals(GoType $other): bool
@@ -61,31 +68,38 @@ final class ArrayType implements GoType
         return new ArrayValue($values, $this);
     }
 
-    /**
-     * @psalm-suppress InaccessibleProperty
-     */
     public function finish(int $len): void
     {
         if ($this->isFinished()) {
             return;
         }
 
-        $this->len = $len;
-
         if ($this->elemType instanceof self && !$this->elemType->isFinished()) {
             throw RuntimeError::unfinishedArrayTypeUse();
         }
 
-        $this->name = \sprintf('[%d]%s', $this->len, $this->elemType->name());
-    }
-
-    private function isFinished(): bool
-    {
-        return isset($this->len, $this->name);
+        $this->len = $len;
     }
 
     public function convert(AddressableValue $value): AddressableValue
     {
         return DefaultConverter::convert($value, $this);
+    }
+
+    /**
+     * @psalm-assert !null $this->len
+     */
+    public function isFinished(): bool
+    {
+        return $this->len !== null;
+    }
+
+    public function getLen(): int
+    {
+        if (!$this->isFinished()) {
+            throw InternalError::unreachable('array type must be complete prior to usage');
+        }
+
+        return $this->len;
     }
 }

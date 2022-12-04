@@ -53,8 +53,8 @@ final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValu
         $this->len = $this->values->count();
         $type->finish($this->len);
 
-        if ($type->len !== $this->len) {
-            throw RuntimeError::indexOutOfBounds($this->len - 1, $type->len);
+        if ($type->getLen() !== $this->len) {
+            throw RuntimeError::indexOutOfBounds($this->len - 1, $type->getLen());
         }
 
         $this->type = $type;

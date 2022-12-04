@@ -78,7 +78,7 @@ class RuntimeError extends \RuntimeException
         );
     }
 
-    public static function invalidArrayLen(GoValue $value): self
+    public static function nonIntegerArrayLen(GoValue $value): self
     {
         return new self(
             \sprintf(
@@ -409,7 +409,7 @@ class RuntimeError extends \RuntimeException
         return new self('multiple defaults');
     }
 
-    public static function invalidArrayLength(): self
+    public static function invalidArrayLen(): self
     {
         return new self('invalid array length');
     }
