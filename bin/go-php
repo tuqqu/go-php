@@ -3,6 +3,7 @@
 
 declare(strict_types=1);
 
+use GoPhp\EnvVarSet;
 use GoPhp\ErrorHandler\OutputToStream;
 use GoPhp\Interpreter;
 use GoPhp\Stream\ResourceOutputStream;
@@ -35,16 +36,26 @@ function exit_with_error(string $msg): never
 
 function print_help(): void
 {
-    fwrite(STDOUT, <<<HELP
+    fwrite(STDOUT, sprintf(<<<HELP
+    go-php - Go interpreter written in PHP (version: %s)
+    
     USAGE: 
-        go-php [FLAGS] file.go
-        go-php [FLAGS]
+        go-php [flags] <arguments>
+        go-php [flags]
+        
+    EXAMPLE:
+        go-php hello.go
+        go-php -e 'println("Hello, World!")'
+        go-php --goroot=/usr/local/go --gopath=~/go hello.go
     
     FLAGS:
         -h, --help          Print help message
         -v, --version       Print version
+        -e, --eval          Evaluate given code
+        --goroot            Set GOROOT environment variable
+        --gopath            Set GOPATH environment variable
 
-    HELP);
+    HELP, VERSION));
 }
 
 function print_version(): void
@@ -52,18 +63,65 @@ function print_version(): void
     fwrite(STDOUT, sprintf("go-php %s\n", VERSION));
 }
 
-enum Flag
+enum Flag: string
 {
-    case HELP;
-    case VERSION;
+    case HELP = 'help';
+    case VERSION = 'version';
+    case EVAL = 'eval';
+    case GOROOT = 'goroot';
+    case GOPATH = 'gopath';
 
-    public static function fromString(string $str): ?self
+    private const FLAGS_WITH_VALUE = [
+        self::GOROOT,
+        self::GOPATH,
+    ];
+
+    private const FLAGS_WITHOUT_VALUE = [
+        self::HELP,
+        self::VERSION,
+        self::EVAL,
+    ];
+
+    /**
+     * @return null|array{self, string|null}
+     */
+    public static function tupleFromString(string $str): ?array
     {
-        return match ($str) {
-            '-h', '--help' => self::HELP,
-            '-v', '--version' => self::VERSION,
-            default => null,
-        };
+        //fixme add shortcuts
+        foreach (self::FLAGS_WITHOUT_VALUE as $flag) {
+            if ($str === sprintf('--%s', $flag->value)) {
+                return [$flag, null];
+            }
+        }
+
+        foreach (self::FLAGS_WITH_VALUE as $flag) {
+            $flagValue = $flag->extractValue($str);
+
+            if ($flagValue !== null) {
+                return [$flag, $flagValue];
+            }
+        }
+
+        if (str_starts_with($str, '-')) {
+            exit_with_error(sprintf('unrecognised option "%s"', $str));
+        }
+
+        return null;
+    }
+
+    private function extractValue(string $str): ?string
+    {
+        if (!str_starts_with($str, sprintf('--%s=', $this->value))) {
+            return null;
+        }
+
+        $value = substr($str, strlen($this->value) + 3);
+
+        if ($value === false) {
+            exit_with_error(sprintf('invalid value for flag "%s"', $this->value));
+        }
+
+        return $value;
     }
 }
 
@@ -74,36 +132,62 @@ function main(array $argv): never
 {
     unset($argv[0]);
     $file = null;
+    $goroot = EnvVarSet::DEFAULT_GOROOT;
+    $gopath = EnvVarSet::DEFAULT_GOPATH;
+    $eval = false;
+    $script = null;
 
     foreach ($argv as $arg) {
-        switch (Flag::fromString($arg)) {
+        if ($eval) {
+            $script = $arg;
+            $eval = false;
+
+            continue;
+        }
+
+        [$flag, $value] = Flag::tupleFromString($arg);
+
+        switch ($flag) {
             case Flag::HELP:
                 print_help();
                 exit(0);
             case Flag::VERSION:
                 print_version();
                 exit(0);
-            case null:
-                if (str_starts_with($arg, '-')) {
-                    exit_with_error(sprintf('unrecognised option "%s"', $arg));
-                }
-
+            case Flag::GOROOT:
+                $goroot = $value;
+                break;
+            case Flag::GOPATH:
+                $gopath = $value;
+                break;
+            case Flag::EVAL:
+                $eval = true;
+                break;
+            default:
                 $file = $arg;
                 break 2;
         }
     }
 
-    if ($file === null) {
+    if ($file === null && $script === null) {
         exit_with_error('no input file');
     }
 
-    $src = file_get_contents($file);
+    $src = $script !== null
+        ? $script
+        : file_get_contents($file);
+
     $stderr = new ResourceOutputStream(STDERR);
     $errorHandler = new OutputToStream($stderr);
 
     $runtime = new Interpreter(
         source: $src,
         errorHandler: $errorHandler,
+        envVars: new EnvVarSet(
+            goroot: $goroot,
+            gopath: $gopath,
+        ),
+        toplevel: $script !== null,
     );
 
     $result = $runtime->run();

@@ -25,7 +25,7 @@ const ZERO_ADDRESS = 0x0;
 /**
  * Version of the Runtime
  */
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 
 const INIT_FUNC_NAME = 'init';
 const MAIN_FUNC_NAME = 'main';

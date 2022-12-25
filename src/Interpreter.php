@@ -142,12 +142,13 @@ final class Interpreter
     private readonly ErrorHandler $errorHandler;
     private ?FuncValue $entryPoint = null;
     private ImportHandler $importHandler;
+    private readonly string $source;
 
     /**
      * @param list<GoValue> $argv
      */
     public function __construct(
-        private readonly string $source,
+        string $source,
         ?BuiltinProvider $builtin = null,
         array $argv = [],
         ?ErrorHandler $errorHandler = null,
@@ -155,6 +156,7 @@ final class Interpreter
         private readonly FuncTypeValidator $entryPointValidator = new VoidFuncTypeValidator(MAIN_FUNC_NAME, MAIN_PACK_NAME),
         private readonly FuncTypeValidator $initValidator = new VoidFuncTypeValidator(INIT_FUNC_NAME),
         EnvVarSet $envVars = new EnvVarSet(),
+        bool $toplevel = false,
     ) {
         $this->jumpStack = new JumpStack();
         $this->deferStack = new DeferStack();
@@ -172,6 +174,7 @@ final class Interpreter
         $this->iota = $builtin->iota();
         $this->env = new Environment($builtin->env());
         $this->argv = (new ArgvBuilder($argv))->build();
+        $this->source = $toplevel ? self::wrapSource($source) : $source;
     }
 
     /**
@@ -1619,5 +1622,10 @@ final class Interpreter
                 throw RuntimeError::nameMustBeFunc($name);
             }
         }
+    }
+
+    private function wrapSource(string $source): string
+    {
+        return "package main\n\nfunc main() {\n{$source}\n}";
     }
 }
