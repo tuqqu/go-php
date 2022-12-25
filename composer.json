@@ -16,7 +16,7 @@
         "symfony/var-dumper": "^6.0",
         "friendsofphp/php-cs-fixer": "^3.13",
         "phpunit/phpunit": "^9",
-        "vimeo/psalm": "dev-master as 5.0"
+        "vimeo/psalm": "5.1"
     },
     "bin": [
         "bin/go-php"

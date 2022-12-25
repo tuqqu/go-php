@@ -16,9 +16,18 @@ use GoPhp\GoValue\Unpackable;
 final class ArgvBuilder
 {
     /** @var array<int, GoValue> */
-    private array $values = [];
-    private int $argc = 0;
+    private array $values;
+    private int $argc;
     private bool $unpacked = false;
+
+    /**
+     * @param array<int, GoValue> $values
+     */
+    public function __construct(array $values = [])
+    {
+        $this->values = $values;
+        $this->argc = \count($values);
+    }
 
     public function add(GoValue $value): void
     {

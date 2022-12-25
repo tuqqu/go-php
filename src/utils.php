@@ -27,6 +27,10 @@ const ZERO_ADDRESS = 0x0;
  */
 const VERSION = '0.1.0';
 
+const INIT_FUNC_NAME = 'init';
+const MAIN_FUNC_NAME = 'main';
+const MAIN_PACK_NAME = 'main';
+
 /**
  * Unwindable object normalization.
  *
@@ -48,7 +52,7 @@ function normalize_unwindable(object $object): object
 }
 
 /**
- * Iterate over Spec or GroupSpec.
+ * Iterator over Specs
  *
  * @internal
  *
@@ -59,5 +63,7 @@ function normalize_unwindable(object $object): object
  */
 function iter_spec(Spec $spec): iterable
 {
-    $spec instanceof GroupSpec ? yield from $spec->specs : yield $spec;
+    $spec instanceof GroupSpec
+        ? yield from $spec->specs
+        : yield $spec;
 }

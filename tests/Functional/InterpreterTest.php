@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Tests\Functional;
 
+use GoPhp\EnvVarSet;
 use GoPhp\Interpreter;
 use GoPhp\Stream\StringStreamProvider;
 use PHPUnit\Framework\TestCase;
@@ -31,7 +32,9 @@ final class InterpreterTest extends TestCase
         $interpreter = new Interpreter(
             source: $goProgram,
             streams: $streams,
-            gopath: __DIR__ . '/imports/',
+            envVars: new EnvVarSet(
+                goroot: __DIR__ . '/imports',
+            ),
         );
 
         $interpreter->run();

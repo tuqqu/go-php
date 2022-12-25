@@ -150,6 +150,11 @@ class RuntimeError extends \RuntimeException
         return new self(\sprintf('%s is not a type', self::valueToString($value)));
     }
 
+    public static function cannotFindPackage(string $path): self
+    {
+        return new self(\sprintf('cannot find package "." in: %s', $path));
+    }
+
     public static function undefinedOperator(Operator $op, AddressableValue $value, bool $unary = false): self
     {
         if ($op === Operator::Eq) {

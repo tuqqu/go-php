@@ -23,6 +23,7 @@ use GoParser\Ast\Expr\IntLit;
 use GoParser\Ast\Expr\MapType as AstMapType;
 use GoParser\Ast\Expr\PointerType as AstPointerType;
 use GoParser\Ast\Expr\QualifiedTypeName;
+use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SelectorExpr;
 use GoParser\Ast\Expr\SimpleSliceExpr;
@@ -140,6 +141,7 @@ final class Interpreter
     private readonly Argv $argv;
     private readonly ErrorHandler $errorHandler;
     private ?FuncValue $entryPoint = null;
+    private ImportHandler $importHandler;
 
     /**
      * @param list<GoValue> $argv
@@ -150,13 +152,14 @@ final class Interpreter
         array $argv = [],
         ?ErrorHandler $errorHandler = null,
         private readonly StreamProvider $streams = new StdStreamProvider(),
-        private readonly FuncTypeValidator $entryPointValidator = new VoidFuncTypeValidator('main', 'main'),
-        private readonly FuncTypeValidator $initValidator = new VoidFuncTypeValidator('init'),
-        private readonly string $gopath = '',
+        private readonly FuncTypeValidator $entryPointValidator = new VoidFuncTypeValidator(MAIN_FUNC_NAME, MAIN_PACK_NAME),
+        private readonly FuncTypeValidator $initValidator = new VoidFuncTypeValidator(INIT_FUNC_NAME),
+        EnvVarSet $envVars = new EnvVarSet(),
     ) {
         $this->jumpStack = new JumpStack();
         $this->deferStack = new DeferStack();
         $this->scopeResolver = new ScopeResolver();
+        $this->importHandler = new ImportHandler($envVars);
 
         $this->errorHandler = $errorHandler === null
             ? new OutputToStream($this->streams->stderr())
@@ -168,14 +171,7 @@ final class Interpreter
 
         $this->iota = $builtin->iota();
         $this->env = new Environment($builtin->env());
-
-        $argvBuilder = new ArgvBuilder();
-
-        foreach ($argv as $arg) {
-            $argvBuilder->add($arg);
-        }
-
-        $this->argv = $argvBuilder->build();
+        $this->argv = (new ArgvBuilder($argv))->build();
     }
 
     /**
@@ -207,9 +203,6 @@ final class Interpreter
         return ExitCode::Success;
     }
 
-    /**
-     * @template T of Decl
-     */
     private function evalDeclsInOrder(): void
     {
         foreach ($this->ast->imports as $import) {
@@ -277,14 +270,15 @@ final class Interpreter
         $mainAst = $this->ast;
 
         foreach (iter_spec($decl->spec) as $spec) {
-            $path = \trim(\trim($spec->path->str, '"'), '"');
-            $path = $this->resolveImportPath($path);
-            $source = \file_get_contents($path);
+            /** @var StringValue $path */
+            $path = $this->evalExpr($spec->path);
+            $importedFiles = $this->importHandler->importFromPath($path->unwrap());
 
-            $ast = $this->parseSourceToAst($source);
-            $this->setAst($ast);
-
-            $this->evalDeclsInOrder();
+            foreach ($importedFiles as $source) {
+                $ast = $this->parseSourceToAst($source);
+                $this->setAst($ast);
+                $this->evalDeclsInOrder();
+            }
         }
 
         $this->setAst($mainAst);
@@ -294,15 +288,6 @@ final class Interpreter
     {
         $this->ast = $ast;
         $this->scopeResolver->setCurrentPackage($ast->package->identifier->name);
-    }
-
-    private function resolveImportPath(string $path): string
-    {
-        // fixme add _ . support
-        // fixme add go.mod support
-        $path = \sprintf('%s%s.go', $this->gopath, $path);
-
-        return $path;
     }
 
     private function parseSourceToAst(string $source): Ast
@@ -1233,18 +1218,19 @@ final class Interpreter
     {
         return match (true) {
             // literals
-            $expr instanceof CallExpr => $this->evalCallExpr($expr),
             $expr instanceof RuneLit => $this->evalRuneLit($expr),
             $expr instanceof StringLit => $this->evalStringLit($expr),
-            // $expr instanceof RawStringLit => $this->evalStringLit($expr),
+            $expr instanceof RawStringLit => $this->evalRawStringLit($expr),
             $expr instanceof IntLit => $this->evalIntLit($expr),
             $expr instanceof FloatLit => $this->evalFloatLit($expr),
             $expr instanceof ImagLit => $this->evalImagLit($expr),
+            // possibly const expr
+            $expr instanceof Ident => $this->evalIdent($expr),
+            $expr instanceof CallExpr => $this->evalCallExpr($expr),
             $expr instanceof UnaryExpr => $this->evalUnaryExpr($expr),
             $expr instanceof BinaryExpr => $this->evalBinaryExpr($expr),
             $expr instanceof GroupExpr => $this->evalGroupExpr($expr),
             $expr instanceof SelectorExpr => $this->evalSelectorExpr($expr),
-            $expr instanceof Ident => $this->evalIdent($expr),
             default => null,
         };
     }
@@ -1317,6 +1303,11 @@ final class Interpreter
     private function evalStringLit(StringLit $lit): StringValue
     {
         return new StringValue(\trim($lit->str, '"'));
+    }
+
+    private function evalRawStringLit(RawStringLit $lit): StringValue
+    {
+        return new StringValue(\trim($lit->str, '`'));
     }
 
     private function evalIntLit(IntLit $lit): UntypedIntValue
