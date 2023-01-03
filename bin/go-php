@@ -65,21 +65,21 @@ function print_version(): void
 
 enum Flag: string
 {
-    case HELP = 'help';
-    case VERSION = 'version';
-    case EVAL = 'eval';
-    case GOROOT = 'goroot';
-    case GOPATH = 'gopath';
+    case Help = 'help';
+    case Version = 'version';
+    case Eval = 'eval';
+    case Goroot = 'goroot';
+    case Gopath = 'gopath';
 
     private const FLAGS_WITH_VALUE = [
-        self::GOROOT,
-        self::GOPATH,
+        self::Goroot,
+        self::Gopath,
     ];
 
     private const FLAGS_WITHOUT_VALUE = [
-        self::HELP,
-        self::VERSION,
-        self::EVAL,
+        self::Help,
+        self::Version,
+        self::Eval,
     ];
 
     /**
@@ -148,19 +148,19 @@ function main(array $argv): never
         [$flag, $value] = Flag::tupleFromString($arg);
 
         switch ($flag) {
-            case Flag::HELP:
+            case Flag::Help:
                 print_help();
                 exit(0);
-            case Flag::VERSION:
+            case Flag::Version:
                 print_version();
                 exit(0);
-            case Flag::GOROOT:
+            case Flag::Goroot:
                 $goroot = $value;
                 break;
-            case Flag::GOPATH:
+            case Flag::Gopath:
                 $gopath = $value;
                 break;
-            case Flag::EVAL:
+            case Flag::Eval:
                 $eval = true;
                 break;
             default:
