@@ -146,7 +146,7 @@ enum UntypedType implements BasicType
         throw InternalError::unreachableMethodCall();
     }
 
-    public function defaultValue(): never
+    public function zeroValue(): never
     {
         throw InternalError::unreachableMethodCall();
     }

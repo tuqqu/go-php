@@ -47,7 +47,7 @@ final class MapValue implements Map, AddressableValue
         private ?Map $innerMap,
         private readonly MapType $type,
     ) {
-        assert_map_key($type->keyType->defaultValue());
+        assert_map_key($type->keyType->zeroValue());
     }
 
     public static function nil(MapType $type): self
@@ -75,7 +75,7 @@ final class MapValue implements Map, AddressableValue
 
         if (!$this->innerMap?->has($at)) {
             /** @var V $defaultValue */
-            $defaultValue = $this->type->elemType->defaultValue();
+            $defaultValue = $this->type->elemType->zeroValue();
 
             return new MapLookupValue(
                 $defaultValue,

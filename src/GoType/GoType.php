@@ -16,7 +16,7 @@ interface GoType
 
     public function reify(): self;
 
-    public function defaultValue(): AddressableValue;
+    public function zeroValue(): AddressableValue;
 
     public function convert(AddressableValue $value): AddressableValue;
 }

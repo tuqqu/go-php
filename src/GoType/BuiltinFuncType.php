@@ -33,7 +33,7 @@ final class BuiltinFuncType implements GoType
         throw InternalError::unreachableMethodCall();
     }
 
-    public function defaultValue(): never
+    public function zeroValue(): never
     {
         throw InternalError::unreachableMethodCall();
     }

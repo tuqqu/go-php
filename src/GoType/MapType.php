@@ -41,7 +41,7 @@ final class MapType implements RefType
         return $this;
     }
 
-    public function defaultValue(): MapValue
+    public function zeroValue(): MapValue
     {
         return MapValue::nil($this);
     }

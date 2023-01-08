@@ -48,7 +48,7 @@ class Make extends BaseBuiltinFunc
                 assert_index_positive($len);
 
                 for ($i = 0; $i < $len; ++$i) {
-                    $builder->pushBlindly($type->type->elemType->defaultValue());
+                    $builder->pushBlindly($type->type->elemType->zeroValue());
                 }
             }
 

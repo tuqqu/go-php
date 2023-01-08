@@ -13,7 +13,6 @@ use GoPhp\GoType\PointerType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\TupleValue;
@@ -29,15 +28,16 @@ use function GoPhp\assert_types_compatible;
 /**
  * @psalm-type FuncBody = \Closure(Environment, string): StmtJump
  */
-final class Func implements Invokable
+final class Func
 {
-    /** @var FuncBody */
-    public readonly \Closure $body;
     public readonly FuncType $type;
-    public readonly Environment $enclosure;
-    public readonly string $namespace;
-    public readonly ?Param $receiver;
-    public ?AddressableValue $boundInstance = null;
+
+    /** @var FuncBody */
+    private readonly \Closure $body;
+    private readonly Environment $enclosure;
+    private readonly string $namespace;
+    private readonly ?Param $receiver;
+    private ?AddressableValue $boundInstance = null;
 
     /**
      * @param FuncBody $body
@@ -71,7 +71,7 @@ final class Func implements Invokable
 
         if ($this->type->returns->named) {
             foreach ($this->type->returns->iter() as $param) {
-                $defaultValue = $param->type->defaultValue();
+                $defaultValue = $param->type->zeroValue();
                 $namedReturns[] = $defaultValue;
 
                 $env->defineVar(

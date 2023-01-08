@@ -74,7 +74,7 @@ enum NamedType: string implements BasicType
         return $this;
     }
 
-    public function defaultValue(): AddressableValue
+    public function zeroValue(): AddressableValue
     {
         return match ($this) {
             self::Int => new IntValue(0),

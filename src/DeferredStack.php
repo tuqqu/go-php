@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
-final class DeferStack
+final class DeferredStack
 {
-    /** @var callable[][] */
+    /** @var InvokableCall[][] */
     private array $stack = [];
     private int $context = 0;
 
@@ -15,13 +15,13 @@ final class DeferStack
         $this->stack[$this->context++] = [];
     }
 
-    public function push(callable $fn): void
+    public function push(InvokableCall $fn): void
     {
         $this->stack[$this->context - 1][] = $fn;
     }
 
     /**
-     * @return iterable<callable>
+     * @return iterable<InvokableCall>
      */
     public function iter(): iterable
     {

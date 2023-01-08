@@ -45,7 +45,6 @@ To be implemented:
 * channels and select statements
 * type assertions
 * interfaces
-* panic recovering
 * generics
 
 ## Development

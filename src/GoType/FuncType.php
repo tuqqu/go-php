@@ -70,7 +70,7 @@ final class FuncType implements RefType
         return $this;
     }
 
-    public function defaultValue(): FuncValue
+    public function zeroValue(): FuncValue
     {
         return FuncValue::nil($this);
     }

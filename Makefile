@@ -9,11 +9,11 @@ help:
 	@echo
 	@echo "Targets:"
 	@echo "  help     Show this help message"
-	@echo "  test     Run tests"
+	@echo "  test     Run all tests"
 	@echo "  lint     Run linter"
 	@echo "  cs-fix   Fix code style"
-	@echo "  cs-check Run only code style checker"
-	@echo "  analyse  Run only type checker"
+	@echo "  cs-check Run code style checker"
+	@echo "  analyse  Run type checker"
 
 .PHONY: cs-fix
 cs-fix:

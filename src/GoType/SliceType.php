@@ -43,7 +43,7 @@ final class SliceType implements RefType
         return $this;
     }
 
-    public function defaultValue(): AddressableValue
+    public function zeroValue(): AddressableValue
     {
         return SliceValue::nil($this);
     }

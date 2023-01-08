@@ -76,6 +76,7 @@ use GoPhp\Builtin\StdBuiltinProvider;
 use GoPhp\Env\Environment;
 use GoPhp\Error\AbortExecutionError;
 use GoPhp\Error\InternalError;
+use GoPhp\Error\PanicError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\ErrorHandler\ErrorHandler;
 use GoPhp\ErrorHandler\OutputToStream;
@@ -106,6 +107,7 @@ use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapLookupValue;
 use GoPhp\GoValue\PointerValue;
+use GoPhp\GoValue\RecoverableInvokable;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
@@ -130,13 +132,15 @@ final class Interpreter
 {
     private Ast $ast;
     private Iota $iota;
+    private PanicPointer $panicPointer;
+    private AddressableValue $recoveredValue;
     private Environment $env;
     private JumpStack $jumpStack;
-    private DeferStack $deferStack;
+    private DeferredStack $deferredStack;
     private ScopeResolver $scopeResolver;
     private bool $constContext = false;
     private int $switchContext = 0;
-    /** @var array<callable(): GoValue> */
+    /** @var array<InvokableCall> */
     private array $initializers = [];
     private readonly Argv $argv;
     private readonly ErrorHandler $errorHandler;
@@ -159,7 +163,7 @@ final class Interpreter
         bool $toplevel = false,
     ) {
         $this->jumpStack = new JumpStack();
-        $this->deferStack = new DeferStack();
+        $this->deferredStack = new DeferredStack();
         $this->scopeResolver = new ScopeResolver();
         $this->importHandler = new ImportHandler($envVars);
 
@@ -172,6 +176,7 @@ final class Interpreter
         }
 
         $this->iota = $builtin->iota();
+        $this->panicPointer = $builtin->panicPointer();
         $this->env = new Environment($builtin->env());
         $this->argv = (new ArgvBuilder($argv))->build();
         $this->source = $toplevel ? self::wrapSource($source) : $source;
@@ -191,9 +196,10 @@ final class Interpreter
                 throw RuntimeError::noEntryPoint($this->entryPointValidator->targets());
             }
 
-            $entryPoint = $this->entryPoint;
-            $this->callFunc(fn (): GoValue => ($entryPoint)($this->argv));
+            $call = new InvokableCall($this->entryPoint, $this->argv);
+            $this->callFunc($call);
         } catch (InternalError $error) {
+            //fixme add position
             throw $error;
         } catch (\Throwable $error) {
             if (!$error instanceof AbortExecutionError) {
@@ -410,7 +416,7 @@ final class Interpreter
                 }
 
                 for ($i = 0; $i < $identsLen; ++$i) {
-                    $values[] = $type->defaultValue();
+                    $values[] = $type->zeroValue();
                 }
             } else {
                 $values = $this->collectValuesFromExprList($spec->initList, $identsLen);
@@ -519,7 +525,7 @@ final class Interpreter
             $this->initValidator->validate($funcValue->type);
             // the identifier itself is not declared
             // init functions cannot be referred to from anywhere in a program
-            $this->initializers[] = static fn (): GoValue => $funcValue(Argv::fromEmpty());
+            $this->initializers[] = new InvokableCall($funcValue, Argv::fromEmpty());
 
             return;
         }
@@ -532,7 +538,7 @@ final class Interpreter
         $type = $this->resolveTypeFromAstSignature($signature);
 
         return FuncValue::fromBody(
-            body: function (Environment $env, string $withPackage) use ($blockStmt): StmtJump {
+            body: function (Environment $env, string $withPackage) use ($blockStmt, $type): StmtJump {
                 $currentPackage = $withPackage;
                 $prevPackage = $this->scopeResolver->getCurrentPackage();
                 $this->scopeResolver->setCurrentPackage($currentPackage);
@@ -551,15 +557,12 @@ final class Interpreter
     private function evalDeferStmt(DeferStmt $stmt): None
     {
         $fn = $this->evalCallExprWithoutCall($stmt->expr);
-        $this->deferStack->push($fn);
+        $this->deferredStack->push($fn);
 
         return None::None;
     }
 
-    /**
-     * @return callable(): mixed
-     */
-    private function evalCallExprWithoutCall(CallExpr $expr): callable
+    private function evalCallExprWithoutCall(CallExpr $expr): InvokableCall
     {
         $func = $this->evalExpr($expr->expr);
 
@@ -618,7 +621,7 @@ final class Interpreter
             $argvBuilder->markUnpacked($func);
         }
 
-        return static fn (): mixed => $func($argvBuilder->build());
+        return new InvokableCall($func, $argvBuilder->build());
     }
 
     private function evalCallExpr(CallExpr $expr): GoValue
@@ -628,20 +631,30 @@ final class Interpreter
         return $this->callFunc($fn);
     }
 
-    private function callFunc(callable $fn): GoValue
+    private function callFunc(InvokableCall $fn): GoValue
     {
         $this->jumpStack->push(new JumpHandler());
-        $this->deferStack->newContext();
+        $this->deferredStack->newContext();
 
-        $value = $fn();
+        try {
+            $value = $fn();
+            $this->releaseDeferredStack();
 
-        foreach ($this->deferStack->iter() as $deferFn) {
-            $this->callFunc($deferFn);
+            return $value;
+        } catch (PanicError $panic) {
+            $this->panicPointer->panic = $panic;
+            $this->releaseDeferredStack();
+
+            if ($this->panicPointer->panic === null) {
+                if ($fn->func instanceof RecoverableInvokable) {
+                    return $fn->func->zeroReturnValue();
+                }
+            }
+
+            throw $panic;
+        } finally {
+            $this->jumpStack->pop();
         }
-
-        $this->jumpStack->pop();
-
-        return $value;
     }
 
     private function evalIndexExpr(IndexExpr $expr): GoValue
@@ -1598,7 +1611,7 @@ final class Interpreter
         $this->checkNonDeclarableNames($name);
 
         if ($value instanceof UntypedNilValue && $type instanceof RefType) {
-            $value = $type->defaultValue();
+            $value = $type->zeroValue();
         } else {
             /** @var AddressableValue $value */
             $value = $value->copy();
@@ -1624,8 +1637,16 @@ final class Interpreter
         }
     }
 
+    private function releaseDeferredStack(): void
+    {
+        foreach ($this->deferredStack->iter() as $deferredFunc) {
+            $this->callFunc($deferredFunc);
+        }
+    }
+
     private function wrapSource(string $source): string
     {
+        //fixme: take names from config
         return "package main\n\nfunc main() {\n{$source}\n}";
     }
 }

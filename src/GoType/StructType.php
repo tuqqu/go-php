@@ -67,7 +67,7 @@ final class StructType implements GoType
         return $this;
     }
 
-    public function defaultValue(): StructValue
+    public function zeroValue(): StructValue
     {
         return StructBuilder::fromType($this)->build();
     }

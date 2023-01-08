@@ -23,7 +23,7 @@ class New_ extends BaseBuiltinFunc
 
         $type = $argv[0]->value;
 
-        return PointerValue::fromValue($type->unwrap()->defaultValue());
+        return PointerValue::fromValue($type->unwrap()->zeroValue());
     }
 
     public function expectsTypeAsFirstArg(): bool

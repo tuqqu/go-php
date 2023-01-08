@@ -525,7 +525,7 @@ class RuntimeError extends \RuntimeException
             ? 'invalid operation: not enough arguments for %s() (expected %s, found %d)'
             : 'invalid operation: too many arguments for %s() (expected %s, found %d)';
 
-        return new self(\sprintf($msg, $expected, $actual, $name));
+        return new self(\sprintf($msg, $name, $expected, $actual));
     }
 
     public static function wrongFuncArgumentNumber(Argv $argv, Params $params): self

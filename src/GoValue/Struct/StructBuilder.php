@@ -88,7 +88,7 @@ final class StructBuilder implements CompositeValueBuilder
         }
 
         foreach ($this->type->fields as $field => $type) {
-            $value = $this->namedFields[$field] ?? $type->defaultValue();
+            $value = $this->namedFields[$field] ?? $type->zeroValue();
             $envValue = new EnvValue($field, $value, $type);
             $instanceFields->add($envValue);
         }

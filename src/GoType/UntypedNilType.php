@@ -24,7 +24,7 @@ final class UntypedNilType implements RefType
         return $this;
     }
 
-    public function defaultValue(): never
+    public function zeroValue(): never
     {
         throw InternalError::unreachableMethodCall();
     }

@@ -56,10 +56,10 @@ final class WrappedType implements Unwindable, GoType
         return $this;
     }
 
-    public function defaultValue(): WrappedValue
+    public function zeroValue(): WrappedValue
     {
         return new WrappedValue(
-            $this->underlyingType->defaultValue(),
+            $this->underlyingType->zeroValue(),
             $this,
         );
     }

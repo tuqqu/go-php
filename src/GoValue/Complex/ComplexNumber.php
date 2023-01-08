@@ -164,7 +164,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
         };
 
         /** @var FloatNumber $floatValue */
-        $floatValue = $floatType->defaultValue();
+        $floatValue = $floatType->zeroValue();
 
         return new ($floatValue::class)($float);
     }

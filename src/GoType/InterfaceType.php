@@ -6,29 +6,24 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\PointerValue;
+use GoPhp\GoValue\Interface\InterfaceValue;
 
-final class PointerType implements RefType
+// fixme: this is a stub for now
+final class InterfaceType implements GoType
 {
-    public function __construct(
-        public readonly GoType $pointsTo,
-    ) {}
-
     public function name(): string
     {
-        return \sprintf('*%s', $this->pointsTo->name());
+        return '{}interface';
     }
 
     public function equals(GoType $other): bool
     {
-        return $other instanceof UntypedNilType
-            || $other instanceof self
-            && $this->pointsTo->equals($other->pointsTo);
+        return $other instanceof self;
     }
 
     public function isCompatible(GoType $other): bool
     {
-        return $this->equals($other);
+        return $other instanceof UntypedNilType || $this->equals($other);
     }
 
     public function reify(): self
@@ -36,9 +31,9 @@ final class PointerType implements RefType
         return $this;
     }
 
-    public function zeroValue(): PointerValue
+    public function zeroValue(): InterfaceValue
     {
-        return PointerValue::nil($this);
+        return InterfaceValue::nil($this);
     }
 
     public function convert(AddressableValue $value): AddressableValue

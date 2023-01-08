@@ -7,18 +7,22 @@ namespace GoPhp\GoValue\Func;
 use GoPhp\Argv;
 use GoPhp\Env\Environment;
 use GoPhp\Error\InternalError;
-use GoPhp\Error\RuntimeError;
 use GoPhp\Error\PanicError;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoValue\AddressableTrait;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\PointerValue;
+use GoPhp\GoValue\RecoverableInvokable;
 use GoPhp\GoValue\SealableTrait;
+use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\UntypedNilValue;
+use GoPhp\GoValue\VoidValue;
 use GoPhp\Operator;
+
+use GoPhp\StmtJump\ReturnJump;
 
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_values_compatible;
@@ -30,7 +34,7 @@ use const GoPhp\ZERO_ADDRESS;
  * @psalm-import-type FuncBody from Func
  * @template-implements AddressableValue<self>
  */
-final class FuncValue implements Invokable, AddressableValue
+final class FuncValue implements RecoverableInvokable, AddressableValue
 {
     use AddressableTrait;
     use SealableTrait;
@@ -69,6 +73,21 @@ final class FuncValue implements Invokable, AddressableValue
     public static function nil(FuncType $type): self
     {
         return new self(NIL, $type);
+    }
+
+    public function zeroReturnValue(): GoValue
+    {
+        $values = [];
+        foreach ($this->type->returns->iter() as $return) {
+            $values[] = $return->type->zeroValue();
+        }
+
+        // fixme move this logic
+        return match (\count($values)) {
+            ReturnJump::LEN_VOID => new VoidValue(),
+            ReturnJump::LEN_SINGLE => $values[0],
+            default => new TupleValue($values),
+        };
     }
 
     public function bind(AddressableValue $instance): void

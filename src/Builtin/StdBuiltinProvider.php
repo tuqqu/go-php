@@ -13,9 +13,11 @@ use GoPhp\Builtin\BuiltinFunc\Imag;
 use GoPhp\Builtin\BuiltinFunc\Len;
 use GoPhp\Builtin\BuiltinFunc\Make;
 use GoPhp\Builtin\BuiltinFunc\New_;
+use GoPhp\Builtin\BuiltinFunc\Panic;
 use GoPhp\Builtin\BuiltinFunc\Print_;
 use GoPhp\Builtin\BuiltinFunc\Println;
 use GoPhp\Builtin\BuiltinFunc\Real;
+use GoPhp\Builtin\BuiltinFunc\Recover;
 use GoPhp\Env\Environment;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
@@ -24,6 +26,7 @@ use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\GoValue\UntypedNilValue;
+use GoPhp\PanicPointer;
 use GoPhp\Stream\OutputStream;
 
 class StdBuiltinProvider implements BuiltinProvider
@@ -32,12 +35,18 @@ class StdBuiltinProvider implements BuiltinProvider
 
     public function __construct(
         private readonly OutputStream $stderr,
+        private readonly PanicPointer $panicPointer = new PanicPointer(),
         private readonly IntNumber&Iota $iota = new StdIota(self::IOTA_START),
     ) {}
 
     public function iota(): Iota
     {
         return $this->iota;
+    }
+
+    public function panicPointer(): PanicPointer
+    {
+        return $this->panicPointer;
     }
 
     public function env(): Environment
@@ -76,6 +85,8 @@ class StdBuiltinProvider implements BuiltinProvider
         $env->defineBuiltinFunc(new BuiltinFuncValue(new Complex('complex')));
         $env->defineBuiltinFunc(new BuiltinFuncValue(new Real('real')));
         $env->defineBuiltinFunc(new BuiltinFuncValue(new Imag('imag')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Panic('panic')));
+        $env->defineBuiltinFunc(new BuiltinFuncValue(new Recover('recover', $this->panicPointer)));
         $env->defineBuiltinFunc(new BuiltinFuncValue(new Println('println', $this->stderr)));
         $env->defineBuiltinFunc(new BuiltinFuncValue(new Print_('print', $this->stderr)));
     }
