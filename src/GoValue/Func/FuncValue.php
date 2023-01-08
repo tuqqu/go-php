@@ -17,12 +17,8 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\RecoverableInvokable;
 use GoPhp\GoValue\SealableTrait;
-use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\UntypedNilValue;
-use GoPhp\GoValue\VoidValue;
 use GoPhp\Operator;
-
-use GoPhp\StmtJump\ReturnJump;
 
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_values_compatible;
@@ -77,17 +73,11 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
 
     public function zeroReturnValue(): GoValue
     {
-        $values = [];
-        foreach ($this->type->returns->iter() as $return) {
-            $values[] = $return->type->zeroValue();
+        if ($this->innerFunc === NIL) {
+            throw PanicError::nilDereference();
         }
 
-        // fixme move this logic
-        return match (\count($values)) {
-            ReturnJump::LEN_VOID => new VoidValue(),
-            ReturnJump::LEN_SINGLE => $values[0],
-            default => new TupleValue($values),
-        };
+        return $this->innerFunc->zeroReturnValue();
     }
 
     public function bind(AddressableValue $instance): void

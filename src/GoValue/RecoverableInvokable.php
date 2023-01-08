@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 /**
- * InvokableValue that can be recovered from a panic.
+ * Invokable value that can be recovered from a panic.
  */
 interface RecoverableInvokable extends Invokable
 {

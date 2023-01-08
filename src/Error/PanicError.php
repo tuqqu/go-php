@@ -20,7 +20,7 @@ class PanicError extends \RuntimeException
 
     public static function nilDereference(): self
     {
-        return new self(new StringValue('invalid memory address or nil pointer dereference'));
+        return new self(new StringValue('runtime error: invalid memory address or nil pointer dereference'));
     }
 
     public static function nilMapAssignment(): self

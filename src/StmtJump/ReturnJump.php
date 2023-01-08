@@ -24,16 +24,6 @@ final class ReturnJump implements StmtJump
         public readonly int $len,
     ) {}
 
-    public static function fromAny(GoValue $value): self
-    {
-        //fixme refactor
-        return match (true) {
-            $value instanceof VoidValue => new self($value, self::LEN_VOID),
-            $value instanceof TupleValue => new self($value, $value->len),
-            default => new self($value, self::LEN_SINGLE),
-        };
-    }
-
     /**
      * @return self<VoidValue>
      */

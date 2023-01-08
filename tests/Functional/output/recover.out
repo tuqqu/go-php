@@ -1,7 +1,7 @@
-testRecover_1
+test_1
 nil
-Returned normally from testRecover_1.
-testRecover_2
+Returned normally from test_1.
+test_2
 Calling g.
 Printing in g 0
 Printing in g 1
@@ -16,3 +16,23 @@ Recovered in f
 4
 Returned normally from f.
 0 false
+test_3
+panicking from test_3
+nil
+second call to recover from test_3
+nil
+nil
+recovering from test_3
+test_4
+Recovering from panic: Out of bound access for slice
+Val:  0
+Error:  false
+Val:  6
+Error:  true
+test_5
+Recovering from panic: runtime error: invalid memory address or nil pointer dereference
+No panic
+test_6
+Recovering from panic: assignment to entry in nil map
+No panic
+No panic

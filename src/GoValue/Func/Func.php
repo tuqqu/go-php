@@ -155,6 +155,20 @@ final class Func
         return $stmtJump->value;
     }
 
+    public function zeroReturnValue(): GoValue
+    {
+        $zeroValues = [];
+        foreach ($this->type->returns->iter() as $return) {
+            $zeroValues[] = $return->type->zeroValue();
+        }
+
+        return match (\count($zeroValues)) {
+            ReturnJump::LEN_VOID => new VoidValue(),
+            ReturnJump::LEN_SINGLE => $zeroValues[0],
+            default => new TupleValue($zeroValues),
+        };
+    }
+
     private function doBind(Environment $env): void
     {
         if ($this->receiver === null) {
