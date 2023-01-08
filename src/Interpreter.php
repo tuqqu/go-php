@@ -133,7 +133,6 @@ final class Interpreter
     private Ast $ast;
     private Iota $iota;
     private PanicPointer $panicPointer;
-    private AddressableValue $recoveredValue;
     private Environment $env;
     private JumpStack $jumpStack;
     private DeferredStack $deferredStack;
@@ -147,6 +146,9 @@ final class Interpreter
     private ?FuncValue $entryPoint = null;
     private ImportHandler $importHandler;
     private readonly string $source;
+    private readonly StreamProvider $streams;
+    private readonly FuncTypeValidator $entryPointValidator;
+    private readonly FuncTypeValidator $initValidator;
 
     /**
      * @param list<GoValue> $argv
@@ -156,9 +158,9 @@ final class Interpreter
         ?BuiltinProvider $builtin = null,
         array $argv = [],
         ?ErrorHandler $errorHandler = null,
-        private readonly StreamProvider $streams = new StdStreamProvider(),
-        private readonly FuncTypeValidator $entryPointValidator = new VoidFuncTypeValidator(MAIN_FUNC_NAME, MAIN_PACK_NAME),
-        private readonly FuncTypeValidator $initValidator = new VoidFuncTypeValidator(INIT_FUNC_NAME),
+        StreamProvider $streams = new StdStreamProvider(),
+        FuncTypeValidator $entryPointValidator = new ZeroArityValidator(MAIN_FUNC_NAME, MAIN_PACK_NAME),
+        FuncTypeValidator $initValidator = new ZeroArityValidator(INIT_FUNC_NAME),
         EnvVarSet $envVars = new EnvVarSet(),
         bool $toplevel = false,
     ) {
@@ -166,6 +168,10 @@ final class Interpreter
         $this->deferredStack = new DeferredStack();
         $this->scopeResolver = new ScopeResolver();
         $this->importHandler = new ImportHandler($envVars);
+        $this->streams = $streams;
+        $this->entryPointValidator = $entryPointValidator;
+        $this->initValidator = $initValidator;
+
 
         $this->errorHandler = $errorHandler === null
             ? new OutputToStream($this->streams->stderr())
@@ -193,7 +199,7 @@ final class Interpreter
             $this->evalDeclsInOrder();
 
             if ($this->entryPoint === null) {
-                throw RuntimeError::noEntryPoint($this->entryPointValidator->targets());
+                throw RuntimeError::noEntryPoint($this->entryPointValidator->getFuncName());
             }
 
             $call = new InvokableCall($this->entryPoint, $this->argv);
@@ -1646,7 +1652,12 @@ final class Interpreter
 
     private function wrapSource(string $source): string
     {
-        //fixme: take names from config
-        return "package main\n\nfunc main() {\n{$source}\n}";
+        return <<<GO
+        package {$this->entryPointValidator->getPackageName()}
+        
+        func {$this->entryPointValidator->getFuncName()}() {
+            {$source}
+        }
+        GO;
     }
 }

@@ -24,5 +24,10 @@ interface FuncTypeValidator
     /**
      * Returns function name, which it targets
      */
-    public function targets(): string;
+    public function getFuncName(): string;
+
+    /**
+     * Returns function package, which it targets
+     */
+    public function getPackageName(): string;
 }

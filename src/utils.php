@@ -27,9 +27,26 @@ const ZERO_ADDRESS = 0x0;
  */
 const VERSION = '0.2.0';
 
-const INIT_FUNC_NAME = 'init';
-const MAIN_FUNC_NAME = 'main';
+/**
+ * Default name of the main package
+ *
+ * @internal
+ */
 const MAIN_PACK_NAME = 'main';
+
+/**
+ * Default name of the main function
+ *
+ * @internal
+ */
+const MAIN_FUNC_NAME = 'main';
+
+/**
+ * Default name of the init function
+ *
+ * @internal
+ */
+const INIT_FUNC_NAME = 'init';
 
 /**
  * Unwindable object normalization.

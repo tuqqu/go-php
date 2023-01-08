@@ -7,7 +7,7 @@ namespace GoPhp;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\FuncType;
 
-final class VoidFuncTypeValidator implements FuncTypeValidator
+final class ZeroArityValidator implements FuncTypeValidator
 {
     public function __construct(
         private readonly string $funcName,
@@ -30,8 +30,13 @@ final class VoidFuncTypeValidator implements FuncTypeValidator
         }
     }
 
-    public function targets(): string
+    public function getFuncName(): string
     {
         return $this->funcName;
+    }
+
+    public function getPackageName(): string
+    {
+        return $this->packageName ?? '';
     }
 }

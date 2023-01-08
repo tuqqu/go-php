@@ -87,9 +87,11 @@ enum Flag: string
      */
     public static function tupleFromString(string $str): ?array
     {
-        //fixme add shortcuts
         foreach (self::FLAGS_WITHOUT_VALUE as $flag) {
-            if ($str === sprintf('--%s', $flag->value)) {
+            if (
+                $str === sprintf('--%s', $flag->value)
+                || $str === sprintf('-%s', $flag->value[0])
+            ) {
                 return [$flag, null];
             }
         }

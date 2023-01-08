@@ -9,18 +9,18 @@ use GoPhp\GoType\FuncType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Params;
-use GoPhp\VoidFuncTypeValidator;
+use GoPhp\ZeroArityValidator;
 use PHPUnit\Framework\TestCase;
 
 final class VoidFunctionValidatorTest extends TestCase
 {
-    private VoidFuncTypeValidator $validator;
+    private ZeroArityValidator $validator;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->validator = new VoidFuncTypeValidator('main', 'main');
+        $this->validator = new ZeroArityValidator('main', 'main');
     }
 
     public function testValidate(): void
