@@ -204,14 +204,10 @@ final class Interpreter
 
             $call = new InvokableCall($this->entryPoint, $this->argv);
             $this->callFunc($call);
-        } catch (InternalError $error) {
-            //fixme add position
-            throw $error;
-        } catch (\Throwable $error) {
-            if (!$error instanceof AbortExecutionError) {
-                $this->errorHandler->onError($error->getMessage());
-            }
-
+        } catch (RuntimeError $error) {
+            $this->errorHandler->onError($error->getMessage());
+            return ExitCode::Failure;
+        } catch (AbortExecutionError) {
             return ExitCode::Failure;
         }
 
@@ -365,7 +361,7 @@ final class Interpreter
             }
 
             if ($type !== null && !$type instanceof NamedType) {
-                throw RuntimeError::constantExpectsBasicType($type);
+                throw RuntimeError::invalidConstantType($type);
             }
 
             if (!empty($spec->initList->exprs)) {
@@ -577,7 +573,7 @@ final class Interpreter
         }
 
         if ($this->constContext && !$func instanceof ConstInvokable) {
-            throw RuntimeError::notConstantExpr($func);
+            throw RuntimeError::nonConstantExpr($func);
         }
 
         /** @var Invokable $func */
@@ -1230,7 +1226,7 @@ final class Interpreter
         };
 
         if ($this->constContext) {
-            throw RuntimeError::notConstantExpr($value);
+            throw RuntimeError::nonConstantExpr($value);
         }
 
         return $value;

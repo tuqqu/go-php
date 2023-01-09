@@ -302,7 +302,7 @@ class RuntimeError extends \RuntimeException
         return new self('invalid operation: 3-index slice of string');
     }
 
-    public static function notConstantExpr(GoValue $value): self
+    public static function nonConstantExpr(GoValue $value): self
     {
         return new self(\sprintf('%s is not constant', self::valueToString($value)));
     }
@@ -332,7 +332,7 @@ class RuntimeError extends \RuntimeException
 
     public static function uninitialisedConstant(string $name): self
     {
-        return new self(\sprintf('Constant "%s" must have default value', $name));
+        return new self(\sprintf('missing init expr for %s', $name));
     }
 
     public static function invalidFieldName(?string $field = null): self
@@ -353,9 +353,9 @@ class RuntimeError extends \RuntimeException
         ));
     }
 
-    public static function constantExpectsBasicType(GoType $type): self
+    public static function invalidConstantType(GoType $type): self
     {
-        return new self(\sprintf('Constant must of basic type, got "%s"', $type->name()));
+        return new self(\sprintf('invalid constant type %s', $type->name()));
     }
 
     public static function valueIsNotConstant(GoValue $value): self
@@ -371,7 +371,7 @@ class RuntimeError extends \RuntimeException
 
     public static function uninitilisedVarWithNoType(): self
     {
-        return new self('Variables must be typed or be initialised');
+        return new self('expecting type');
     }
 
     public static function assignmentMismatch(int $expected, int $actual): self
