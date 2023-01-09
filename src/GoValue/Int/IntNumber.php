@@ -175,6 +175,7 @@ abstract class IntNumber extends SimpleNumber
 
     final protected function assign(parent $value): void
     {
+        $this->assertInBounds($value->unwrap());
         $this->value = $value->unwrap();
     }
 
@@ -223,8 +224,8 @@ abstract class IntNumber extends SimpleNumber
     final protected static function wrap(int|float $value): int
     {
         return match (true) {
-            $value < static::MIN => self::wrap($value + static::MAX),
-            $value > static::MAX => self::wrap($value - static::MAX),
+            $value < static::MIN => self::wrap($value + static::MAX + 1),
+            $value > static::MAX => self::wrap($value - static::MAX - 1),
             default => (int) $value,
         };
     }
