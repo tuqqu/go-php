@@ -19,6 +19,8 @@ use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Operator;
 
+use function GoPhp\construct_qualified_name;
+
 class RuntimeError extends \RuntimeException
 {
     public static function numberOverflow(GoValue $value, GoType $type): self
@@ -347,7 +349,7 @@ class RuntimeError extends \RuntimeException
     {
         return new self(\sprintf(
             '%s undefined (type %s has no field or method %s)',
-            self::fullName($valueName, $field),
+            construct_qualified_name($field, $valueName),
             $type->name(),
             $field,
         ));
@@ -439,19 +441,15 @@ class RuntimeError extends \RuntimeException
         return new self(\sprintf('%s redeclared', $name));
     }
 
-    public static function redeclaredNameInBlock(string $name, ?string $selector = null): self
+    public static function redeclaredNameInBlock(string $name, string $selector): self
     {
-        if ($selector !== null) {
-            $name = self::fullName($name, $selector);
-        }
-
-        return new self(\sprintf('%s redeclared in this block', $name));
+        return new self(\sprintf('%s redeclared in this block', construct_qualified_name($name, $selector)));
     }
 
     public static function undefinedName(string $name, ?string $selector = null): self
     {
         if ($selector !== null) {
-            $name = self::fullName($name, $selector);
+            $name = construct_qualified_name($name, $selector);
         }
 
         return new self(\sprintf('undefined: %s', $name));
@@ -551,6 +549,11 @@ class RuntimeError extends \RuntimeException
     public static function tooManyConversionArgs(GoType $type): self
     {
         return new self(\sprintf('too many arguments in conversion to %s', $type->name()));
+    }
+
+    public static function methodOnNonLocalType(string $type): self
+    {
+        return new self(\sprintf('cannot define new methods on non-local type %s', $type));
     }
 
     final protected static function fullName(string $name, string $selector): string

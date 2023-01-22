@@ -466,16 +466,13 @@ final class Interpreter
     {
         $name = $stmt->ident->name;
         $type = $this->resolveType($stmt->type);
+        $namespace = $this->scopeResolver->resolveDefinitionScope();
 
-        $typeValue = new TypeValue(new WrappedType($name, $type));
+        $typeValue = new TypeValue(new WrappedType($name, $namespace, $type));
 
         $this->checkNonDeclarableNames($name);
 
-        $this->env->defineType(
-            $name,
-            $typeValue,
-            $this->scopeResolver->resolveDefinitionScope(),
-        );
+        $this->env->defineType($name, $typeValue, $namespace);
     }
 
     private function evalMethodDeclStmt(MethodDecl $decl): void
@@ -494,17 +491,20 @@ final class Interpreter
         $receiverType = $receiver->type;
 
         if ($receiverType instanceof PointerType) {
-            if ($receiverType->pointsTo instanceof PointerType) {
-                throw RuntimeError::invalidReceiverType($receiverType);
-            }
-
             $receiverType = $receiverType->pointsTo;
         }
 
-        $funcValue = $this->constructFuncValue($decl->signature, $decl->body, $receiver);
+        // technically WrappedType is the only type that can be a receiver
+        if (!$receiverType instanceof WrappedType) {
+            throw RuntimeError::invalidReceiverType($receiverType);
+        }
 
-        // fixme
-        // this->currentPackage
+        $funcValue = $this->constructFuncValue($decl->signature, $decl->body, $receiver);
+        $currentPackage = $this->scopeResolver->getCurrentPackage();
+
+        if (!$receiverType->isLocal($currentPackage)) {
+            throw RuntimeError::methodOnNonLocalType($receiverType->name());
+        }
 
         $this->env->registerMethod($decl->name->name, $funcValue, $receiverType);
     }
@@ -1401,6 +1401,8 @@ final class Interpreter
             return $method;
         }
 
+        $originalType = $value->type();
+
         do {
             $check = false;
             $value = normalize_unwindable($value);
@@ -1419,7 +1421,7 @@ final class Interpreter
             throw RuntimeError::undefinedFieldAccess(
                 $value->getName(),
                 $expr->selector->name,
-                $value->type(),
+                $originalType,
             );
         }
 

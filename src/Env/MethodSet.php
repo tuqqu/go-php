@@ -30,7 +30,7 @@ final class MethodSet
         $type = self::normalizeType($type);
 
         if ($this->has($type, $name)) {
-            throw RuntimeError::redeclaredNameInBlock($type->name(), $name);
+            throw RuntimeError::redeclaredNameInBlock($name, $type->name());
         }
 
         $this->methods[$type] ??= new \ArrayObject();

@@ -33,7 +33,7 @@ final class EnvMap
     public function add(EnvValue $envValue, string $namespace = self::NAMESPACE_TOP): void
     {
         if ($this->has($envValue->name, $namespace)) {
-            throw RuntimeError::redeclaredNameInBlock($envValue->name);
+            throw RuntimeError::redeclaredNameInBlock($envValue->name, $namespace);
         }
 
         $this->values[$namespace][$envValue->name] = $envValue;

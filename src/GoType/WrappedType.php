@@ -9,6 +9,8 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Unwindable;
 use GoPhp\GoValue\WrappedValue;
 
+use function GoPhp\construct_qualified_name;
+
 /**
  * @template-implements Unwindable<GoType>
  */
@@ -16,12 +18,13 @@ final class WrappedType implements Unwindable, GoType
 {
     public function __construct(
         public readonly string $name,
+        public readonly string $package,
         public readonly GoType $underlyingType,
     ) {}
 
     public function name(): string
     {
-        return $this->name;
+        return construct_qualified_name($this->name, $this->package);
     }
 
     public function unwind(): GoType
@@ -39,6 +42,7 @@ final class WrappedType implements Unwindable, GoType
     {
         return $other instanceof self
             && $other->name === $this->name
+            && $other->package === $this->package
             && $this->underlyingType->equals($other->underlyingType);
     }
 
@@ -75,5 +79,10 @@ final class WrappedType implements Unwindable, GoType
             $this->underlyingType->convert($value),
             $this,
         );
+    }
+
+    public function isLocal(string $package): bool
+    {
+        return $this->package === $package;
     }
 }

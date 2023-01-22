@@ -6,6 +6,7 @@ namespace GoPhp;
 
 use GoParser\Ast\GroupSpec;
 use GoParser\Ast\Spec;
+use GoPhp\Env\EnvMap;
 use GoPhp\GoValue\Unwindable;
 
 /**
@@ -83,4 +84,14 @@ function iter_spec(Spec $spec): iterable
     $spec instanceof GroupSpec
         ? yield from $spec->specs
         : yield $spec;
+}
+
+/**
+ * @internal
+ */
+function construct_qualified_name(string $selector, string $namespace): string
+{
+    return $namespace === EnvMap::NAMESPACE_TOP
+        ? $selector
+        : $namespace . '.' . $selector;
 }
