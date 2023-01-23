@@ -47,12 +47,17 @@ class RuntimeError extends \RuntimeException
             default => throw InternalError::unreachable($funcValue),
         };
 
+        return self::cannotUseArgumentAsType($value, $type, $name);
+    }
+
+    public static function cannotUseArgumentAsType(GoValue $value, GoType|string $type, string $func)
+    {
         return new self(
             \sprintf(
                 'cannot use %s as type %s in argument to %s',
                 self::valueToString($value),
-                $type,
-                $name,
+                \is_string($type) ? $type : $type->name(),
+                $func,
             ),
         );
     }

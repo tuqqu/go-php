@@ -52,6 +52,18 @@ function assert_values_compatible(GoValue $a, GoValue $b): void
 }
 
 /**
+ * Asserts that the value is of valid type for a certain function.
+ *
+ * @internal
+ */
+function assert_arg_type_for(AddressableValue $a, GoType $b, string $funcName): void
+{
+    if (!$a->type()->isCompatible($b)) {
+        throw RuntimeError::cannotUseArgumentAsType($a, $b->name(), $funcName);
+    }
+}
+
+/**
  * Assertion for operations with `nil`
  *
  * @internal
@@ -187,7 +199,6 @@ function assert_index_positive(int $index): void
  */
 function assert_index_sliceable(int $cap, int $low, int $high, ?int $max = null): void
 {
-    //fixme revisit -1 weird cases
     assert_index_exists($low, $cap);
     assert_index_exists($high - 1, $cap);
 

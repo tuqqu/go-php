@@ -24,7 +24,6 @@ use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_int;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_index_sliceable;
-use function GoPhp\assert_types_compatible;
 use function GoPhp\assert_values_compatible;
 
 use const GoPhp\NIL;
@@ -153,13 +152,12 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
     }
 
     /**
+     * Assumes that types are compatible.
+     *
      * @param V $value
      */
     public function append(GoValue $value): void
     {
-        //fixme change error text
-        assert_types_compatible($value->type(), $this->type->elemType);
-
         if ($this->values === NIL) {
             /** @var UnderlyingArray<V> $this->values */
             $this->values = UnderlyingArray::fromEmpty();
@@ -170,7 +168,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
         }
 
         /** @psalm-suppress PossiblyNullReference */
-        $this->values[$this->len++] = $value; // fixme maybe pos?
+        $this->values[$this->len++] = $value;
     }
 
     public function operate(Operator $op): PointerValue

@@ -751,7 +751,6 @@ final class Interpreter
             for ($i = 0; $i < $len; ++$i) {
                 $stmt = $stmtList->stmts[$i];
 
-                // fixme refactor
                 if ($jump->isSeeking()) {
                     $stmt = $jump->tryFindLabel($stmt, $gotoIndex > $i);
 

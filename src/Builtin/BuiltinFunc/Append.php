@@ -7,6 +7,7 @@ namespace GoPhp\Builtin\BuiltinFunc;
 use GoPhp\Argv;
 use GoPhp\GoValue\Slice\SliceValue;
 
+use function GoPhp\assert_arg_type_for;
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
 
@@ -25,6 +26,8 @@ class Append extends BaseBuiltinFunc
         $elems = \array_slice($argv->values, 1);
 
         foreach ($elems as $elem) {
+            assert_arg_type_for($elem->value, $slice->type->elemType, $this->name);
+
             $slice->append($elem->value);
         }
 
