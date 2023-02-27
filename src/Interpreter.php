@@ -6,7 +6,6 @@ namespace GoPhp;
 
 use GoParser\Ast\AliasDecl;
 use GoParser\Ast\DefaultCase;
-use GoParser\Ast\Expr\ArrayType as AstArrayType;
 use GoParser\Ast\Expr\BinaryExpr;
 use GoParser\Ast\Expr\CallExpr;
 use GoParser\Ast\Expr\CompositeLit;
@@ -14,34 +13,23 @@ use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\Expr\FloatLit;
 use GoParser\Ast\Expr\FullSliceExpr;
 use GoParser\Ast\Expr\FuncLit;
-use GoParser\Ast\Expr\FuncType as AstFuncType;
 use GoParser\Ast\Expr\GroupExpr;
 use GoParser\Ast\Expr\Ident;
 use GoParser\Ast\Expr\ImagLit;
 use GoParser\Ast\Expr\IndexExpr;
 use GoParser\Ast\Expr\IntLit;
-use GoParser\Ast\Expr\MapType as AstMapType;
-use GoParser\Ast\Expr\PointerType as AstPointerType;
-use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\RawStringLit;
 use GoParser\Ast\Expr\RuneLit;
 use GoParser\Ast\Expr\SelectorExpr;
 use GoParser\Ast\Expr\SimpleSliceExpr;
-use GoParser\Ast\Expr\SingleTypeName;
-use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StringLit;
-use GoParser\Ast\Expr\StructType as AstStructType;
-use GoParser\Ast\Expr\InterfaceType as AstInterfaceType;
 use GoParser\Ast\Expr\Type as AstType;
-use GoParser\Ast\Expr\TypeTerm;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\ExprCaseClause;
 use GoParser\Ast\ExprList;
 use GoParser\Ast\File as Ast;
 use GoParser\Ast\ForClause;
 use GoParser\Ast\IdentList;
-use GoParser\Ast\MethodElem;
-use GoParser\Ast\Params as AstParams;
 use GoParser\Ast\RangeClause;
 use GoParser\Ast\Signature as AstSignature;
 use GoParser\Ast\Stmt\AssignmentStmt;
@@ -71,7 +59,6 @@ use GoParser\Ast\Stmt\TypeSwitchStmt;
 use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\StmtList;
 use GoParser\Ast\TypeDef;
-use GoParser\Lexer\Token;
 use GoParser\Parser;
 use GoPhp\Builtin\BuiltinProvider;
 use GoPhp\Builtin\Iota;
@@ -84,7 +71,6 @@ use GoPhp\Error\RuntimeError;
 use GoPhp\ErrorHandler\ErrorHandler;
 use GoPhp\ErrorHandler\OutputToStream;
 use GoPhp\GoType\ArrayType;
-use GoPhp\GoType\FuncType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\InterfaceType;
 use GoPhp\GoType\MapType;
@@ -103,9 +89,7 @@ use GoPhp\GoValue\ConstInvokable;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
-use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Interface\InterfaceBuilder;
 use GoPhp\GoValue\Invokable;
@@ -155,6 +139,7 @@ final class Interpreter
     private readonly StreamProvider $streams;
     private readonly FuncTypeValidator $entryPointValidator;
     private readonly FuncTypeValidator $initValidator;
+    private readonly TypeResolver $typeResolver;
 
     /**
      * @param list<GoValue> $argv
@@ -178,7 +163,6 @@ final class Interpreter
         $this->entryPointValidator = $entryPointValidator;
         $this->initValidator = $initValidator;
 
-
         $this->errorHandler = $errorHandler === null
             ? new OutputToStream($this->streams->stderr())
             : $errorHandler;
@@ -192,6 +176,11 @@ final class Interpreter
         $this->env = new Environment($builtin->env());
         $this->argv = (new ArgvBuilder($argv))->build();
         $this->source = $toplevel ? self::wrapSource($source) : $source;
+        $this->typeResolver = new TypeResolver(
+            $this->scopeResolver,
+            $this->tryEvalConstExpr(...),
+            $this->env,
+        );
     }
 
     /**
@@ -363,7 +352,7 @@ final class Interpreter
             $type = null;
 
             if ($spec->type !== null) {
-                $type = $this->resolveType($spec->type);
+                $type = $this->typeResolver->resolve($spec->type);
             }
 
             if ($type !== null && !$type instanceof NamedType) {
@@ -412,7 +401,7 @@ final class Interpreter
         foreach (iter_spec($decl->spec) as $spec) {
             $type = null;
             if ($spec->type !== null) {
-                $type = $this->resolveType($spec->type);
+                $type = $this->typeResolver->resolve($spec->type);
             }
 
             $values = [];
@@ -457,7 +446,7 @@ final class Interpreter
     private function evalAliasDeclStmt(AliasDecl $decl): void
     {
         $alias = $decl->ident->name;
-        $typeValue = new TypeValue($this->resolveType($decl->type));
+        $typeValue = new TypeValue($this->typeResolver->resolve($decl->type));
 
         $this->checkNonDeclarableNames($alias);
 
@@ -471,7 +460,7 @@ final class Interpreter
     private function evalTypeDefStmt(TypeDef $stmt): void
     {
         $name = $stmt->ident->name;
-        $type = $this->resolveType($stmt->type);
+        $type = $this->typeResolver->resolve($stmt->type);
         $namespace = $this->scopeResolver->resolveDefinitionScope();
 
         $typeValue = new TypeValue(new WrappedType($name, $namespace, $type));
@@ -487,7 +476,7 @@ final class Interpreter
             throw InternalError::unimplemented();
         }
 
-        $receiverParam = $this->resolveParamsFromAstParams($decl->receiver);
+        $receiverParam = $this->typeResolver->resolveParamsFromAstParams($decl->receiver);
 
         if ($receiverParam->len !== 1) {
             throw RuntimeError::multipleReceivers();
@@ -543,7 +532,7 @@ final class Interpreter
 
     private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt, ?Param $receiver = null): FuncValue
     {
-        $type = $this->resolveTypeFromAstSignature($signature);
+        $type = $this->typeResolver->resolveTypeFromAstSignature($signature);
 
         return FuncValue::fromBody(
             body: function (Environment $env, string $withPackage) use ($blockStmt, $type): StmtJump {
@@ -597,7 +586,7 @@ final class Interpreter
                 throw InternalError::unexpectedValue($expr->args->exprs[0]);
             }
 
-            $argvBuilder->add(new TypeValue($this->resolveType($expr->args->exprs[0])));
+            $argvBuilder->add(new TypeValue($this->typeResolver->resolve($expr->args->exprs[0])));
             ++$startFrom;
         }
 
@@ -1278,7 +1267,7 @@ final class Interpreter
             throw InternalError::unexpectedValue($lit);
         }
 
-        $type = $this->resolveType($lit->type, true);
+        $type = $this->typeResolver->resolve($lit->type, true);
 
         return $this->resolveCompositeLitWithType($lit, $type);
     }
@@ -1476,185 +1465,6 @@ final class Interpreter
         }
 
         return $value->isTrue();
-    }
-
-    private function resolveType(AstType $type, bool $composite = false): GoType
-    {
-        return match (true) {
-            $type instanceof SingleTypeName => $this->resolveTypeFromSingleName($type),
-            $type instanceof QualifiedTypeName => $this->resolveTypeFromQualifiedName($type),
-            $type instanceof AstFuncType => $this->resolveTypeFromAstSignature($type->signature),
-            $type instanceof AstArrayType => $this->resolveArrayType($type, $composite),
-            $type instanceof AstSliceType => $this->resolveSliceType($type, $composite),
-            $type instanceof AstMapType => $this->resolveMapType($type, $composite),
-            $type instanceof AstPointerType => $this->resolvePointerType($type, $composite),
-            $type instanceof AstStructType => $this->resolveStructType($type, $composite),
-            $type instanceof AstInterfaceType => $this->resolveInterfaceType($type, $composite),
-            default => throw InternalError::unreachable($type),
-        };
-    }
-
-    private function resolveTypeFromSingleName(SingleTypeName $type): GoType
-    {
-        return $this->getTypeFromEnv(
-            $type->name->name,
-            $this->scopeResolver->currentPackage,
-        );
-    }
-
-    private function resolveTypeFromQualifiedName(QualifiedTypeName $type): GoType
-    {
-        return $this->getTypeFromEnv(
-            $type->typeName->name->name,
-            $type->packageName->name,
-        );
-    }
-
-    private function getTypeFromEnv(string $name, string $namespace): GoType
-    {
-        $value = $this->env->get($name, $namespace)->unwrap();
-
-        if (!$value instanceof TypeValue) {
-            throw RuntimeError::valueIsNotType($value);
-        }
-
-        return $value->unwrap();
-    }
-
-    private function resolveTypeFromAstSignature(AstSignature $signature): FuncType
-    {
-        return new FuncType(...$this->resolveParamsFromAstSignature($signature));
-    }
-
-    private function resolveArrayType(AstArrayType $arrayType, bool $composite): ArrayType
-    {
-        $elemType = $this->resolveType($arrayType->elemType, $composite);
-
-        if ($arrayType->len instanceof Expr) {
-            $len = $this->tryEvalConstExpr($arrayType->len) ?? throw RuntimeError::invalidArrayLen();
-
-            if (!$len instanceof IntNumber) {
-                throw RuntimeError::nonIntegerArrayLen($len);
-            }
-
-            return ArrayType::fromLen($elemType, $len->unwrap());
-        }
-
-        if ($arrayType->len->value === Token::Ellipsis->value && $composite) {
-            return ArrayType::unfinished($elemType);
-        }
-
-        throw InternalError::unreachable($arrayType);
-    }
-
-    private function resolveSliceType(AstSliceType $sliceType, bool $composite): SliceType
-    {
-        return new SliceType($this->resolveType($sliceType->elemType, $composite));
-    }
-
-    private function resolveMapType(AstMapType $mapType, bool $composite): MapType
-    {
-        return new MapType(
-            $this->resolveType($mapType->keyType, $composite),
-            $this->resolveType($mapType->elemType, $composite),
-        );
-    }
-
-    private function resolvePointerType(AstPointerType $pointerType, bool $composite): PointerType
-    {
-        return new PointerType(
-            $this->resolveType($pointerType->type, $composite),
-        );
-    }
-
-    private function resolveStructType(AstStructType $structType, bool $composite): StructType
-    {
-        /** @var array<string, GoType> $fields */
-        $fields = [];
-
-        foreach ($structType->fieldDecls as $fieldDecl) {
-            if ($fieldDecl->identList === null) {
-                // fixme add anonymous fields
-                throw InternalError::unimplemented();
-            }
-
-            if ($fieldDecl->type === null) {
-                throw InternalError::unimplemented();
-            }
-
-            $type = $this->resolveType($fieldDecl->type, $composite);
-
-            foreach ($fieldDecl->identList->idents as $ident) {
-                if (isset($fields[$ident->name])) {
-                    throw RuntimeError::redeclaredName($ident->name);
-                }
-
-                $fields[$ident->name] = $type;
-            }
-        }
-
-        return new StructType($fields);
-    }
-
-    private function resolveInterfaceType(AstInterfaceType $interfaceType, bool $composite): InterfaceType
-    {
-        // fixme use composite param
-        $methods = [];
-        foreach ($interfaceType->items as $item) {
-            if ($item instanceof TypeTerm) {
-                throw InternalError::unimplemented();
-            }
-
-            if ($item instanceof MethodElem) {
-                if (isset($methods[$item->methodName->name])) {
-                    throw RuntimeError::duplicateMethod($item->methodName->name);
-                }
-
-                $methods[$item->methodName->name] = $this->resolveTypeFromAstSignature($item->signature);
-            }
-        }
-
-        return new InterfaceType($methods, $this->env);
-    }
-
-    /**
-     * @return array{Params, Params}
-     */
-    private function resolveParamsFromAstSignature(AstSignature $signature): array
-    {
-        return [
-            $this->resolveParamsFromAstParams($signature->params),
-            match (true) {
-                $signature->result === null => Params::fromEmpty(),
-                $signature->result instanceof AstType => Params::fromParam(new Param($this->resolveType($signature->result))),
-                $signature->result instanceof AstParams => $this->resolveParamsFromAstParams($signature->result),
-            },
-        ];
-    }
-
-    private function resolveParamsFromAstParams(AstParams $astParams): Params
-    {
-        $params = [];
-        foreach ($astParams->paramList as $paramDecl) {
-            if ($paramDecl->identList === null) {
-                $params[] = new Param(
-                    $this->resolveType($paramDecl->type),
-                    null,
-                    $paramDecl->ellipsis !== null,
-                );
-                continue;
-            }
-
-            foreach ($paramDecl->identList->idents as $ident) {
-                $params[] = new Param(
-                    $this->resolveType($paramDecl->type),
-                    $ident->name,
-                    $paramDecl->ellipsis !== null,
-                );
-            }
-        }
-
-        return new Params($params);
     }
 
     private function defineVar(string $name, GoValue $value, ?GoType $type = null): void

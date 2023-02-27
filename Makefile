@@ -11,7 +11,7 @@ help:
 	@echo "  help     	Show this help message"
 	@echo "  test     	Run all tests"
 	@echo "  test-unit 	Run unit tests"
-	@echo "  test-func  Run functional tests"
+	@echo "  test-func 	Run functional tests"
 	@echo "  lint     	Run linter"
 	@echo "  cs-fix   	Fix code style"
 	@echo "  cs-check 	Run code style checker"
