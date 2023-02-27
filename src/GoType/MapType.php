@@ -16,7 +16,12 @@ final class MapType implements RefType
         public readonly GoType $keyType,
         public readonly GoType $elemType,
     ) {
-        $this->name = \sprintf('map[%s]%s', $this->keyType->name(), $this->elemType->name());
+        $this->name = \sprintf(
+            '%s[%s]%s',
+            MapValue::NAME,
+            $this->keyType->name(),
+            $this->elemType->name(),
+        );
     }
 
     public function name(): string

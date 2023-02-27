@@ -48,4 +48,4 @@ jobs:
               run: make test-unit
 
             - name: Functional Tests
-              run: make test-functional
+              run: make test-func

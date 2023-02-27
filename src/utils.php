@@ -10,6 +10,11 @@ use GoPhp\Env\EnvMap;
 use GoPhp\GoValue\Unwindable;
 
 /**
+ * Version of the Runtime
+ */
+const VERSION = '0.2.0';
+
+/**
  * Alias for `null` in place of `nil` value in reference types.
  *
  * @internal
@@ -22,11 +27,6 @@ const NIL = null;
  * @internal
  */
 const ZERO_ADDRESS = 0x0;
-
-/**
- * Version of the Runtime
- */
-const VERSION = '0.2.0';
 
 /**
  * Default name of the main package

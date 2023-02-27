@@ -31,13 +31,16 @@ use GoParser\Ast\Expr\SingleTypeName;
 use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\StructType as AstStructType;
+use GoParser\Ast\Expr\InterfaceType as AstInterfaceType;
 use GoParser\Ast\Expr\Type as AstType;
+use GoParser\Ast\Expr\TypeTerm;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\ExprCaseClause;
 use GoParser\Ast\ExprList;
 use GoParser\Ast\File as Ast;
 use GoParser\Ast\ForClause;
 use GoParser\Ast\IdentList;
+use GoParser\Ast\MethodElem;
 use GoParser\Ast\Params as AstParams;
 use GoParser\Ast\RangeClause;
 use GoParser\Ast\Signature as AstSignature;
@@ -83,6 +86,7 @@ use GoPhp\ErrorHandler\OutputToStream;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\FuncType;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\InterfaceType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\PointerType;
@@ -103,6 +107,7 @@ use GoPhp\GoValue\Func\Params;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\Interface\InterfaceBuilder;
 use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapLookupValue;
@@ -118,6 +123,7 @@ use GoPhp\GoValue\Struct\StructValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\GoValue\UntypedNilValue;
+use GoPhp\GoValue\WrappedValue;
 use GoPhp\StmtJump\BreakJump;
 use GoPhp\StmtJump\ContinueJump;
 use GoPhp\StmtJump\FallthroughJump;
@@ -298,7 +304,7 @@ final class Interpreter
     private function setAst(Ast $ast): void
     {
         $this->ast = $ast;
-        $this->scopeResolver->setCurrentPackage($ast->package->identifier->name);
+        $this->scopeResolver->currentPackage = $ast->package->identifier->name;
     }
 
     private function parseSourceToAst(string $source): Ast
@@ -500,7 +506,7 @@ final class Interpreter
         }
 
         $funcValue = $this->constructFuncValue($decl->signature, $decl->body, $receiver);
-        $currentPackage = $this->scopeResolver->getCurrentPackage();
+        $currentPackage = $this->scopeResolver->currentPackage;
 
         if (!$receiverType->isLocal($currentPackage)) {
             throw RuntimeError::methodOnNonLocalType($receiverType->name());
@@ -516,7 +522,7 @@ final class Interpreter
         }
 
         $funcValue = $this->constructFuncValue($decl->signature, $decl->body);
-        $currentPackage = $this->scopeResolver->getCurrentPackage();
+        $currentPackage = $this->scopeResolver->currentPackage;
 
         if ($this->entryPointValidator->supports($decl->name->name, $currentPackage)) {
             $this->entryPointValidator->validate($funcValue->type);
@@ -542,17 +548,17 @@ final class Interpreter
         return FuncValue::fromBody(
             body: function (Environment $env, string $withPackage) use ($blockStmt, $type): StmtJump {
                 $currentPackage = $withPackage;
-                $prevPackage = $this->scopeResolver->getCurrentPackage();
-                $this->scopeResolver->setCurrentPackage($currentPackage);
+                $prevPackage = $this->scopeResolver->currentPackage;
+                $this->scopeResolver->currentPackage = $currentPackage;
                 $jump = $this->evalBlockStmt($blockStmt, $env);
-                $this->scopeResolver->setCurrentPackage($prevPackage);
+                $this->scopeResolver->currentPackage = $prevPackage;
 
                 return $jump;
             },
             type: $type,
             enclosure: $this->env,
             receiver: $receiver,
-            namespace: $this->scopeResolver->getCurrentPackage(),
+            namespace: $this->scopeResolver->currentPackage,
         );
     }
 
@@ -1291,6 +1297,7 @@ final class Interpreter
             $type instanceof SliceType => SliceBuilder::fromType($type),
             $type instanceof MapType => MapBuilder::fromType($type),
             $type instanceof StructType => StructBuilder::fromType($type),
+            $type instanceof InterfaceType => InterfaceBuilder::fromType($type),
             default => throw InternalError::unreachable($type),
         };
 
@@ -1392,7 +1399,17 @@ final class Interpreter
             throw InternalError::unexpectedValue($value::class, AddressableValue::class);
         }
 
-        $method = $this->env->getMethod($expr->selector->name, $value->type());
+        $method = $this->env->getMethod(
+            $expr->selector->name,
+            $value->type(),
+        );
+
+        if ($method == null && $value instanceof WrappedValue) {
+            $method = $this->env->getMethod(
+                $expr->selector->name,
+                $value->underlyingValue->type(),
+            );
+        }
 
         if ($method !== null) {
             $method->bind($value);
@@ -1429,7 +1446,10 @@ final class Interpreter
 
     private function evalIdent(Ident $ident): GoValue
     {
-        $value = $this->env->get($ident->name, $this->scopeResolver->getCurrentPackage())->unwrap();
+        $value = $this->env->get(
+            $ident->name,
+            $this->scopeResolver->currentPackage
+        )->unwrap();
 
         if ($value === $this->iota && !$this->constContext) {
             throw RuntimeError::iotaMisuse();
@@ -1469,18 +1489,25 @@ final class Interpreter
             $type instanceof AstMapType => $this->resolveMapType($type, $composite),
             $type instanceof AstPointerType => $this->resolvePointerType($type, $composite),
             $type instanceof AstStructType => $this->resolveStructType($type, $composite),
+            $type instanceof AstInterfaceType => $this->resolveInterfaceType($type, $composite),
             default => throw InternalError::unreachable($type),
         };
     }
 
     private function resolveTypeFromSingleName(SingleTypeName $type): GoType
     {
-        return $this->getTypeFromEnv($type->name->name, $this->scopeResolver->getCurrentPackage());
+        return $this->getTypeFromEnv(
+            $type->name->name,
+            $this->scopeResolver->currentPackage,
+        );
     }
 
     private function resolveTypeFromQualifiedName(QualifiedTypeName $type): GoType
     {
-        return $this->getTypeFromEnv($type->typeName->name->name, $type->packageName->name);
+        return $this->getTypeFromEnv(
+            $type->typeName->name->name,
+            $type->packageName->name,
+        );
     }
 
     private function getTypeFromEnv(string $name, string $namespace): GoType
@@ -1569,6 +1596,27 @@ final class Interpreter
         return new StructType($fields);
     }
 
+    private function resolveInterfaceType(AstInterfaceType $interfaceType, bool $composite): InterfaceType
+    {
+        // fixme use composite param
+        $methods = [];
+        foreach ($interfaceType->items as $item) {
+            if ($item instanceof TypeTerm) {
+                throw InternalError::unimplemented();
+            }
+
+            if ($item instanceof MethodElem) {
+                if (isset($methods[$item->methodName->name])) {
+                    throw RuntimeError::duplicateMethod($item->methodName->name);
+                }
+
+                $methods[$item->methodName->name] = $this->resolveTypeFromAstSignature($item->signature);
+            }
+        }
+
+        return new InterfaceType($methods, $this->env);
+    }
+
     /**
      * @return array{Params, Params}
      */
@@ -1634,7 +1682,7 @@ final class Interpreter
         $validators = [$this->entryPointValidator, $this->initValidator];
 
         foreach ($validators as $validator) {
-            if ($validator->supports($name, $this->scopeResolver->getCurrentPackage())) {
+            if ($validator->supports($name, $this->scopeResolver->currentPackage)) {
                 throw RuntimeError::nameMustBeFunc($name);
             }
         }

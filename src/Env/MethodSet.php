@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
+use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\PointerType;
 use GoPhp\GoValue\Func\FuncValue;
+use GoPhp\GoValue\Hashable;
 
 final class MethodSet
 {
-    private \SplObjectStorage $methods;
+    /**
+     * @var array<string, array<string, FuncValue>>
+     */
+    private array $methods = [];
 
-    public function __construct()
-    {
-        $this->methods = new \SplObjectStorage();
-    }
-
-    public function tryGet(GoType $type, string $name): ?FuncValue
+    public function tryGet(GoType&Hashable $type, string $name): ?FuncValue
     {
         $type = self::normalizeType($type);
 
-        return $this->methods[$type][$name] ?? null;
+        return $this->methods[$type->hash()][$name] ?? null;
     }
 
     public function add(GoType $type, string $name, FuncValue $method): void
@@ -33,19 +33,26 @@ final class MethodSet
             throw RuntimeError::redeclaredNameInBlock($name, $type->name());
         }
 
-        $this->methods[$type] ??= new \ArrayObject();
-        $this->methods[$type][$name] = $method;
+        $hash = $type->hash();
+        $this->methods[$hash] ??= [];
+        $this->methods[$hash][$name] = $method;
     }
 
-    private function has(GoType $type, string $name): bool
+    public function has(GoType&Hashable $type, string $name): bool
     {
-        return isset($this->methods[$type][$name]);
+        return isset($this->methods[$type->hash()][$name]);
     }
 
-    private static function normalizeType(GoType $type): GoType
+    private static function normalizeType(GoType $type): GoType&Hashable
     {
-        return $type instanceof PointerType
+        $normalizedType = $type instanceof PointerType
             ? $type->pointsTo
             : $type;
+
+        if (!$normalizedType instanceof Hashable) {
+            throw InternalError::unreachable($normalizedType);
+        }
+
+        return $normalizedType;
     }
 }

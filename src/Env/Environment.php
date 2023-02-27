@@ -10,6 +10,7 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BlankValue;
 use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\Func\FuncValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\TypeValue;
 
@@ -61,8 +62,22 @@ final class Environment
 
     public function getMethod(string $name, GoType $receiver): ?FuncValue
     {
+        if (!$receiver instanceof Hashable) {
+            return null;
+        }
+
         return $this->registeredMethods->tryGet($receiver, $name)
             ?? $this->enclosing?->getMethod($name, $receiver);
+    }
+
+    public function hasMethod(string $name, GoType $receiver): bool
+    {
+        if (!$receiver instanceof Hashable) {
+            return false;
+        }
+
+        return $this->registeredMethods->has($receiver, $name)
+            || $this->enclosing?->hasMethod($name, $receiver);
     }
 
     public function defineBuiltinFunc(BuiltinFuncValue $value): void
@@ -105,9 +120,13 @@ final class Environment
             ?? null;
     }
 
-    private function defineAddressableValue(string $name, AddressableValue $value, ?GoType $type, string $namespace): void {
+    private function defineAddressableValue(
+        string $name,
+        AddressableValue $value,
+        ?GoType $type,
+        string $namespace,
+    ): void {
         $value->makeAddressable();
-
         $envValue = new EnvValue($name, $value, $type);
 
         if ($name === $this->blankIdent) {

@@ -17,8 +17,6 @@ use function GoPhp\assert_types_compatible_with_cast;
 
 final class StructBuilder implements CompositeValueBuilder
 {
-    public const NAME = 'struct';
-
     /** @var array<string, GoValue> */
     private array $namedFields = [];
 

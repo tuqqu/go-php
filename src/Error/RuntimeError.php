@@ -446,6 +446,11 @@ class RuntimeError extends \RuntimeException
         return new self(\sprintf('%s redeclared', $name));
     }
 
+    public static function duplicateMethod(string $name): self
+    {
+        return new self(\sprintf('duplicate method %s', $name));
+    }
+
     public static function redeclaredNameInBlock(string $name, string $selector): self
     {
         return new self(\sprintf('%s redeclared in this block', construct_qualified_name($name, $selector)));

@@ -8,12 +8,14 @@ help:
 	@echo "Usage: make [target]"
 	@echo
 	@echo "Targets:"
-	@echo "  help     Show this help message"
-	@echo "  test     Run all tests"
-	@echo "  lint     Run linter"
-	@echo "  cs-fix   Fix code style"
-	@echo "  cs-check Run code style checker"
-	@echo "  analyse  Run type checker"
+	@echo "  help     	Show this help message"
+	@echo "  test     	Run all tests"
+	@echo "  test-unit 	Run unit tests"
+	@echo "  test-func  Run functional tests"
+	@echo "  lint     	Run linter"
+	@echo "  cs-fix   	Fix code style"
+	@echo "  cs-check 	Run code style checker"
+	@echo "  analyse  	Run type checker"
 
 .PHONY: cs-fix
 cs-fix:
@@ -34,9 +36,9 @@ lint: cs-check analyse
 test-unit:
 	$(bin_dir)/phpunit --testsuite=unit
 
-.PHONY: test-functional
-test-functional:
+.PHONY: test-func
+test-func:
 	$(bin_dir)/phpunit --testsuite=functional
 
 .PHONY: test
-test: lint test-unit test-functional
+test: lint test-unit test-func

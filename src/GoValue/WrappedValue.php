@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 use GoPhp\Error\InternalError;
-use GoPhp\GoType\GoType;
 use GoPhp\GoType\WrappedType;
 use GoPhp\Operator;
 
@@ -71,7 +70,7 @@ final class WrappedValue implements Unwindable, AddressableValue
         );
     }
 
-    public function type(): GoType
+    public function type(): WrappedType
     {
         return $this->wrappedType;
     }

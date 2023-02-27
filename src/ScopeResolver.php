@@ -27,14 +27,4 @@ final class ScopeResolver
     {
         return $this->packageScope ? $this->currentPackage : self::NO_PACKAGE;
     }
-
-    public function getCurrentPackage(): string
-    {
-        return $this->currentPackage;
-    }
-
-    public function setCurrentPackage(string $currentPackage): void
-    {
-        $this->currentPackage = $currentPackage;
-    }
 }

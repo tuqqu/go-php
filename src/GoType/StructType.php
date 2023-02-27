@@ -28,7 +28,8 @@ final class StructType implements GoType
         }
 
         return \sprintf(
-            'struct{%s}',
+            '%s{%s}',
+            StructValue::NAME,
             \implode(', ', $fields),
         );
     }

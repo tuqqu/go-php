@@ -15,7 +15,6 @@ use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\GoValue\TypeValue;
-
 use GoPhp\Operator;
 
 use function GoPhp\assert_types_compatible;

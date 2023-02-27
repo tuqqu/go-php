@@ -6,6 +6,7 @@ namespace GoPhp\GoType;
 
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Unwindable;
 use GoPhp\GoValue\WrappedValue;
 
@@ -13,8 +14,9 @@ use function GoPhp\construct_qualified_name;
 
 /**
  * @template-implements Unwindable<GoType>
+ * @template-implements Hashable<string>
  */
-final class WrappedType implements Unwindable, GoType
+final class WrappedType implements Unwindable, Hashable, GoType
 {
     public function __construct(
         public readonly string $name,
@@ -84,5 +86,10 @@ final class WrappedType implements Unwindable, GoType
     public function isLocal(string $package): bool
     {
         return $this->package === $package;
+    }
+
+    public function hash(): string
+    {
+        return $this->name . $this->underlyingType->name();
     }
 }
