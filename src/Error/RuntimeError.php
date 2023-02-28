@@ -482,6 +482,11 @@ class RuntimeError extends \RuntimeException
         return new self(\sprintf('invalid receiver type %s', $type->name()));
     }
 
+    public static function invalidReceiverNamedType(GoType $type): self
+    {
+        return new self(\sprintf('invalid receiver type %s (pointer or interface type)', $type->name()));
+    }
+
     public static function mixedStructLiteralFields(): self
     {
         return new self('mixture of field:value and value elements in struct literal');
@@ -541,6 +546,11 @@ class RuntimeError extends \RuntimeException
         return self::wrongFuncArity($argv, $params, 'arguments in call');
     }
 
+    public static function mixedReturnParams(): self
+    {
+        return new self('mixed named and unnamed parameters');
+    }
+
     public static function wrongReturnValueNumber(array $returnValues, Params $params): self
     {
         return self::wrongFuncArity($returnValues, $params, 'return values');
@@ -561,9 +571,9 @@ class RuntimeError extends \RuntimeException
         return new self(\sprintf('too many arguments in conversion to %s', $type->name()));
     }
 
-    public static function methodOnNonLocalType(string $type): self
+    public static function methodOnNonLocalType(GoType $type): self
     {
-        return new self(\sprintf('cannot define new methods on non-local type %s', $type));
+        return new self(\sprintf('cannot define new methods on non-local type %s', $type->name()));
     }
 
     final protected static function fullName(string $name, string $selector): string

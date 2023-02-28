@@ -36,7 +36,7 @@ final class Func
     private readonly \Closure $body;
     private readonly Environment $enclosure;
     private readonly string $namespace;
-    private readonly ?Param $receiver;
+    private readonly ?Receiver $receiver;
     private ?AddressableValue $boundInstance = null;
 
     /**
@@ -46,7 +46,7 @@ final class Func
         \Closure $body,
         FuncType $type,
         Environment $enclosure,
-        ?Param $receiver,
+        ?Receiver $receiver,
         string $namespace,
     ) {
         $this->body = $body;
@@ -74,6 +74,7 @@ final class Func
                 $defaultValue = $param->type->zeroValue();
                 $namedReturns[] = $defaultValue;
 
+                /** @var string $param->name */
                 $env->defineVar(
                     $param->name,
                     $defaultValue,
@@ -171,7 +172,7 @@ final class Func
 
     private function doBind(Environment $env): void
     {
-        if ($this->receiver === null) {
+        if ($this->receiver === null || $this->receiver->name === null) {
             return;
         }
 

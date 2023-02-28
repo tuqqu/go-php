@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\GoValue\Func;
 
 use GoPhp\Error\InternalError;
+use GoPhp\Error\RuntimeError;
 
 /**
  * @template-implements \ArrayAccess<int, Param>
@@ -25,12 +26,25 @@ final class Params implements \ArrayAccess
     {
         $this->params = $params;
         $this->len = \count($params);
-        [$this->variadic, $this->named] = empty($params)
-            ? [false, false]
-            : [
-                $params[$this->len - 1]->variadic,
-                $params[$this->len - 1]->name !== null,
-            ];
+
+        if ($this->len === 0) {
+            $this->variadic = false;
+            $this->named = false;
+
+            return;
+        }
+
+        $lastI = $this->len - 1;
+        $this->variadic = $params[$lastI]->variadic;
+        $named = $params[$lastI]->name !== null;
+
+        for ($i = 0; $i < $lastI; ++$i) {
+            if ($named !== ($params[$i]->name !== null)) {
+                throw RuntimeError::mixedReturnParams();
+            }
+        }
+
+        $this->named = $named;
     }
 
     public static function fromEmpty(): self
@@ -54,8 +68,7 @@ final class Params implements \ArrayAccess
     }
 
     /**
-     * @return Param[]
-     * @psalm-return iterable<Param>
+     * @return iterable<Param>
      */
     public function iter(): iterable
     {

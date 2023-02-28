@@ -75,7 +75,6 @@ use GoPhp\GoType\GoType;
 use GoPhp\GoType\InterfaceType;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\NamedType;
-use GoPhp\GoType\PointerType;
 use GoPhp\GoType\RefType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoType\StructType;
@@ -89,6 +88,7 @@ use GoPhp\GoValue\ConstInvokable;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Param;
+use GoPhp\GoValue\Func\Receiver;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Interface\InterfaceBuilder;
@@ -476,32 +476,18 @@ final class Interpreter
             throw InternalError::unimplemented();
         }
 
-        $receiverParam = $this->typeResolver->resolveParamsFromAstParams($decl->receiver);
-
-        if ($receiverParam->len !== 1) {
-            throw RuntimeError::multipleReceivers();
-        }
-
-        $receiver = $receiverParam[0];
-        $receiverType = $receiver->type;
-
-        if ($receiverType instanceof PointerType) {
-            $receiverType = $receiverType->pointsTo;
-        }
-
-        // technically WrappedType is the only type that can be a receiver
-        if (!$receiverType instanceof WrappedType) {
-            throw RuntimeError::invalidReceiverType($receiverType);
-        }
+        $receiver = Receiver::fromParams(
+            $this->typeResolver->resolveParamsFromAstParams($decl->receiver),
+        );
 
         $funcValue = $this->constructFuncValue($decl->signature, $decl->body, $receiver);
         $currentPackage = $this->scopeResolver->currentPackage;
 
-        if (!$receiverType->isLocal($currentPackage)) {
-            throw RuntimeError::methodOnNonLocalType($receiverType->name());
+        if (!$receiver->type->isLocal($currentPackage)) {
+            throw RuntimeError::methodOnNonLocalType($receiver->type);
         }
 
-        $this->env->registerMethod($decl->name->name, $funcValue, $receiverType);
+        $this->env->registerMethod($decl->name->name, $funcValue, $receiver->type);
     }
 
     private function evalFuncDeclStmt(FuncDecl $decl): void
@@ -530,8 +516,11 @@ final class Interpreter
         $this->env->defineFunc($decl->name->name, $funcValue, $currentPackage);
     }
 
-    private function constructFuncValue(AstSignature $signature, BlockStmt $blockStmt, ?Param $receiver = null): FuncValue
-    {
+    private function constructFuncValue(
+        AstSignature $signature,
+        BlockStmt $blockStmt,
+        ?Receiver $receiver = null,
+    ): FuncValue {
         $type = $this->typeResolver->resolveTypeFromAstSignature($signature);
 
         return FuncValue::fromBody(

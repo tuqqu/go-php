@@ -58,7 +58,7 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
         \Closure $body,
         FuncType $type,
         Environment $enclosure,
-        ?Param $receiver,
+        ?Receiver $receiver,
         string $namespace,
     ): self {
         $innerFunc = new Func($body, $type, $enclosure, $receiver, $namespace);

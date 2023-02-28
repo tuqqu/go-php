@@ -35,7 +35,8 @@ final class Environment
         $this->envMap->add($blankValue);
     }
 
-    public function defineConst(string $name, AddressableValue $value, GoType $type, string $namespace = EnvMap::NAMESPACE_TOP): void {
+    public function defineConst(string $name, AddressableValue $value, GoType $type, string $namespace = EnvMap::NAMESPACE_TOP): void
+    {
         if (!$value instanceof Sealable) {
             throw RuntimeError::valueIsNotConstant($value);
         }
