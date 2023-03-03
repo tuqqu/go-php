@@ -6,5 +6,7 @@ namespace GoPhp\StmtJump;
 
 final class ContinueJump implements StmtJump
 {
-    // fixme add label
+    public function __construct(
+        public readonly ?string $label,
+    ) {}
 }

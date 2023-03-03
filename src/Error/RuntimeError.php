@@ -17,6 +17,7 @@ use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\UntypedNilValue;
+use GoPhp\JumpStatus;
 use GoPhp\Operator;
 
 use function GoPhp\construct_qualified_name;
@@ -559,6 +560,16 @@ class RuntimeError extends \RuntimeException
     public static function jumpBeforeDecl(): self
     {
         return new self('goto jumps over declaration');
+    }
+
+    public static function invalidLabel(string $label, JumpStatus $status): self
+    {
+        return new self(\sprintf('invalid %s label %s', \strtolower($status->name), $label));
+    }
+
+    public static function undefinedLoopLabel(string $label, JumpStatus $status): self
+    {
+        return new self(\sprintf('%s label not defined: %s', \strtolower($status->name), $label));
     }
 
     public static function missingConversionArg(GoType $type): self

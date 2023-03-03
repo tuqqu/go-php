@@ -5,21 +5,41 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoParser\Ast\Stmt\Decl;
+use GoParser\Ast\Stmt\ForStmt;
 use GoParser\Ast\Stmt\LabeledStmt;
 use GoParser\Ast\Stmt\Stmt;
+use GoParser\Ast\Stmt\SwitchStmt;
 use GoParser\Ast\Stmt\TypeDecl;
 use GoPhp\Error\RuntimeError;
 use GoPhp\Error\InternalError;
 
 final class JumpHandler
 {
+    private const DEFAULT_STATUS = JumpStatus::Goto;
+
+    /** @var array<LabeledStmt> */
+    private array $labeledStmts = [];
     private ?string $soughtForLabel = null;
     private ?object $context = null;
-    private array $metLabels = [];
+    private JumpStatus $status = self::DEFAULT_STATUS;
 
     public function setContext(object $context): void
     {
         $this->context ??= $context;
+    }
+
+    public function setStatus(JumpStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    public function resetStatus(): bool
+    {
+        try {
+            return $this->status->isLoopJump();
+        } finally {
+            $this->status = self::DEFAULT_STATUS;
+        }
     }
 
     public function isSeeking(): bool
@@ -38,7 +58,7 @@ final class JumpHandler
             throw RuntimeError::labelAlreadyDefined($label->label->name);
         }
 
-        $this->metLabels[$label->label->name] = \spl_object_id($label);
+        $this->labeledStmts[$label->label->name] = $label;
     }
 
     public function isSameContext(object $context): bool
@@ -48,7 +68,7 @@ final class JumpHandler
 
     public function getLabel(): string
     {
-        return $this->soughtForLabel ?? throw new InternalError('label was not found');
+        return $this->soughtForLabel ?? throw InternalError::unreachable('label not set');
     }
 
     public function tryFindLabel(Stmt $stmt, bool $ignoreDecl): ?Stmt
@@ -70,7 +90,17 @@ final class JumpHandler
         if ($stmt->label->name === $this->soughtForLabel) {
             $this->stopSeeking();
 
+            if ($this->status->isLoopJump()) {
+                if (!self::isBreakableStmt($stmt)) {
+                    throw RuntimeError::invalidLabel($stmt->label->name, $this->status);
+                }
+            }
+
             return $stmt->stmt;
+        }
+
+        if ($this->status->isLoopJump()) {
+            throw RuntimeError::undefinedLoopLabel($stmt->label->name, $this->status);
         }
 
         return null;
@@ -83,7 +113,15 @@ final class JumpHandler
 
     private function hasMet(LabeledStmt $label): bool
     {
-        return isset($this->metLabels[$label->label->name])
-            && $this->metLabels[$label->label->name] !== \spl_object_id($label);
+        return isset($this->labeledStmts[$label->label->name]) && $this->labeledStmts[$label->label->name] !== $label;
+    }
+
+    private static function isBreakableStmt(LabeledStmt $label): bool
+    {
+        return match (true) {
+            $label->stmt instanceof ForStmt,
+            $label->stmt instanceof SwitchStmt => true,
+            default => false,
+        };
     }
 }

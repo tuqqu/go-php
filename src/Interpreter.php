@@ -693,7 +693,7 @@ final class Interpreter
 
     private function evalBreakStmt(BreakStmt $stmt): BreakJump
     {
-        return new BreakJump();
+        return new BreakJump($stmt->label?->name);
     }
 
     private function evalFallthroughStmt(FallthroughStmt $stmt): FallthroughJump
@@ -707,7 +707,7 @@ final class Interpreter
 
     private function evalContinueStmt(ContinueStmt $stmt): ContinueJump
     {
-        return new ContinueJump();
+        return new ContinueJump($stmt->label?->name);
     }
 
     private function evalExprStmt(ExprStmt $stmt): None
@@ -738,14 +738,18 @@ final class Interpreter
                 if ($jump->isSeeking()) {
                     $stmt = $jump->tryFindLabel($stmt, $gotoIndex > $i);
 
-                    if ($stmt === null) {
+                    if ($stmt === null || $jump->resetStatus()) {
                         continue;
                     }
                 }
 
                 $stmtJump = $this->evalStmt($stmt);
 
-                if ($stmtJump instanceof GotoJump) {
+                if ($stmtJump instanceof GotoJump || $stmtJump instanceof BreakJump) {
+                    if ($stmtJump->label === null) {
+                        break;
+                    }
+
                     $jump->startSeeking($stmtJump->label);
 
                     if ($jump->isSameContext($stmtList)) {
@@ -757,11 +761,7 @@ final class Interpreter
                     return $stmtJump;
                 }
 
-                if (
-                    $stmtJump instanceof ReturnJump
-                    || $stmtJump instanceof ContinueJump
-                    || $stmtJump instanceof BreakJump
-                ) {
+                if ($stmtJump instanceof ReturnJump || $stmtJump instanceof ContinueJump) {
                     break;
                 }
 
@@ -783,12 +783,13 @@ final class Interpreter
      */
     private function evalWithEnvWrap(?Environment $env, callable $code): StmtJump
     {
-        $prevEnv = $this->env;
-        $this->env = $env ?? new Environment($this->env);
-        $stmtJump = $code();
-        $this->env = $prevEnv;
+        [$prevEnv, $this->env] = [$this->env, $env ?? new Environment($this->env)];
 
-        return $stmtJump;
+        try {
+            return $code();
+        } finally {
+            $this->env = $prevEnv;
+        }
     }
 
     private function evalReturnStmt(ReturnStmt $stmt): ReturnJump
@@ -907,7 +908,11 @@ final class Interpreter
                         }
                         continue 2;
                     case $stmtJump instanceof BreakJump:
-                        return None::None;
+                        if ($stmtJump->label === null) {
+                            return None::None;
+                        }
+                        $this->jumpStack->peek()->setStatus(JumpStatus::Break);
+                        return $stmtJump;
                     case $stmtJump instanceof ReturnJump || $stmtJump instanceof GotoJump:
                         return $stmtJump;
                     default:

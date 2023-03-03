@@ -1,0 +1,38 @@
+test_label_1
+for loop 0
+for loop inner 0 0
+for loop inner 0 1
+for loop inner 0 2
+break label 0 2
+test_label_2
+for loop 0
+for loop 1
+for loop 2
+for loop 3
+break label 4
+test_label_3
+for loop 0
+inner for loop 1 10
+inner if 1 11
+goto 1
+for loop 1
+inner for loop 2 10
+inner if 2 11
+goto 2
+for loop 2
+inner for loop 3 10
+inner if 3 11
+goto 3
+for loop 3
+inner for loop 4 10
+inner if 4 11
+goto 4
+for loop 4
+inner for loop 5 10
+inner if 5 11
+end 5
+test_label_4
+for loop 0
+inner for loop 1
+for loop 2
+end 3
