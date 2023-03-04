@@ -12,7 +12,7 @@ use GoPhp\GoValue\Func\Params;
 use GoPhp\ZeroArityValidator;
 use PHPUnit\Framework\TestCase;
 
-final class VoidFunctionValidatorTest extends TestCase
+final class ZeroArityValidatorTest extends TestCase
 {
     private ZeroArityValidator $validator;
 

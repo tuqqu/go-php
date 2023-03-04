@@ -7,6 +7,7 @@ namespace GoPhp\Tests\Functional;
 use GoPhp\EnvVarSet;
 use GoPhp\Interpreter;
 use GoPhp\Stream\StringStreamProvider;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class InterpreterTest extends TestCase
@@ -14,9 +15,7 @@ final class InterpreterTest extends TestCase
     private const SRC_FILES_PATH = __DIR__ . '/files';
     private const OUTPUT_FILES_PATH = __DIR__ . '/output';
 
-    /**
-     * @dataProvider sourceFileProvider
-     */
+    #[DataProvider('sourceFileProvider')]
     public function testSourceFiles(string $goProgram, string $expectedOutput): void
     {
         $stdout = '';
@@ -42,7 +41,7 @@ final class InterpreterTest extends TestCase
         self::assertSame($expectedOutput, $stderr);
     }
 
-    public function sourceFileProvider(): iterable
+    public static function sourceFileProvider(): iterable
     {
         $files = \glob(\sprintf('%s/*.go', self::SRC_FILES_PATH));
 
