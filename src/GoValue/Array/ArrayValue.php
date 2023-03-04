@@ -30,7 +30,7 @@ use function GoPhp\assert_values_compatible;
  * @template V of AddressableValue
  *
  * @template-implements Sequence<IntNumber, V>
- * @template-implements AddressableValue<list<V>>
+ * @template-implements AddressableValue<array<V>>
  * @template-implements Hashable<string>
  */
 final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValue
@@ -135,6 +135,9 @@ final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValu
         throw RuntimeError::undefinedOperator($op, $this);
     }
 
+    /**
+     * @return array<V>
+     */
     public function unwrap(): array
     {
         return $this->values->values();

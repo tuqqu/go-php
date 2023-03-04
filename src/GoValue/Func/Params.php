@@ -8,6 +8,16 @@ use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
 
 /**
+ * Formal parameters, actual parameters (arguments),
+ * or result parameters (named return values) of a function or method.
+ *
+ * ```
+ * func sum(a, b int) (res int) {}
+ *          ^^^^^^^^   ^^^^^^^
+ * sum(1, 2)
+ *     ^^^^
+ * ```
+ *
  * @template-implements \ArrayAccess<int, Param>
  */
 final class Params implements \ArrayAccess

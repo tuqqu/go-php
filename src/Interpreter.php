@@ -483,11 +483,12 @@ final class Interpreter
         $funcValue = $this->constructFuncValue($decl->signature, $decl->body, $receiver);
         $currentPackage = $this->scopeResolver->currentPackage;
 
-        if (!$receiver->type->isLocal($currentPackage)) {
+        $receiverType = $receiver->getType();
+        if (!$receiverType->isLocal($currentPackage)) {
             throw RuntimeError::methodOnNonLocalType($receiver->type);
         }
 
-        $this->env->registerMethod($decl->name->name, $funcValue, $receiver->type);
+        $this->env->registerMethod($decl->name->name, $funcValue, $receiverType);
     }
 
     private function evalFuncDeclStmt(FuncDecl $decl): void

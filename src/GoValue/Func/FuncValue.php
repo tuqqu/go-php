@@ -27,8 +27,9 @@ use const GoPhp\NIL;
 use const GoPhp\ZERO_ADDRESS;
 
 /**
+ * @psalm-type FuncCallable = callable(Argv): GoValue
  * @psalm-import-type FuncBody from Func
- * @template-implements AddressableValue<self>
+ * @template-implements AddressableValue<FuncCallable>
  */
 final class FuncValue implements RecoverableInvokable, AddressableValue
 {
@@ -99,6 +100,9 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
         return \sprintf('0x%x', $this->getAddress());
     }
 
+    /**
+     * @return FuncCallable
+     */
     public function unwrap(): callable
     {
         return $this;

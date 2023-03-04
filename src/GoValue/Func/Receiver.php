@@ -10,11 +10,24 @@ use GoPhp\GoType\InterfaceType;
 use GoPhp\GoType\PointerType;
 use GoPhp\GoType\WrappedType;
 
+/**
+ * Receiver of a method.
+ *
+ * ```
+ * func (r *ReceiverType) MethodName() {}
+ *      ^^^^^^^^^^^^^^^^
+ * ```
+ *
+ * @psalm-type ReceiverType = WrappedType|PointerType<WrappedType>
+ */
 final class Receiver
 {
+    /**
+     * @param ReceiverType $type
+     */
     private function __construct(
         public readonly ?string $name,
-        public readonly WrappedType $type,
+        public readonly WrappedType|PointerType $type,
     ) {}
 
     public static function fromParams(Params $params): self
@@ -24,14 +37,25 @@ final class Receiver
         }
 
         $receiverParam = $params[0];
+        self::validateType($receiverParam->type);
 
         return new self(
             $receiverParam->name,
-            self::validateType($receiverParam->type),
+            $receiverParam->type,
         );
     }
 
-    private static function validateType(GoType $receiverType): WrappedType
+    public function getType(): WrappedType
+    {
+        return $this->type instanceof PointerType
+            ? $this->type->pointsTo
+            : $this->type;
+    }
+
+    /**
+     * @psalm-assert ReceiverType $receiverType
+     */
+    private static function validateType(GoType $receiverType): void
     {
         if ($receiverType instanceof PointerType) {
             $receiverType = $receiverType->pointsTo;
@@ -47,7 +71,5 @@ final class Receiver
         if ($underlyingType instanceof PointerType || $underlyingType instanceof InterfaceType) {
             throw RuntimeError::invalidReceiverNamedType($receiverType);
         }
-
-        return $receiverType;
     }
 }

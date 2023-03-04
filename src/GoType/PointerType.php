@@ -8,8 +8,14 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\PointerValue;
 
+/**
+ * @template T of GoType
+ */
 final class PointerType implements RefType
 {
+    /**
+     * @param T $pointsTo
+     */
     public function __construct(
         public readonly GoType $pointsTo,
     ) {}

@@ -33,7 +33,7 @@ use const GoPhp\NIL;
  *
  * @template-implements Sequence<IntNumber, V>
  * @template-implements Unpackable<V>
- * @template-implements AddressableValue<list<V>>
+ * @template-implements AddressableValue<array<V>>
  */
 final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableValue
 {

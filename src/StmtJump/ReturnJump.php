@@ -49,7 +49,7 @@ final class ReturnJump implements StmtJump
     }
 
     /**
-     * @param GoValue[] $values
+     * @param list<GoValue> $values
      * @return self<TupleValue>
      */
     public static function fromMultiple(array $values): self

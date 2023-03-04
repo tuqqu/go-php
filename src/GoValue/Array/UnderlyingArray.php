@@ -106,6 +106,9 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
         return $this->array[$offset];
     }
 
+    /**
+     * @param V $value
+     */
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $value->makeAddressable();
