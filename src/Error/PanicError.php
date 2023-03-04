@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Error;
 
 use GoPhp\GoValue\AddressableValue;
-use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\String\UntypedStringValue;
 
 class PanicError extends \RuntimeException
 {
@@ -20,11 +20,11 @@ class PanicError extends \RuntimeException
 
     public static function nilDereference(): self
     {
-        return new self(new StringValue('runtime error: invalid memory address or nil pointer dereference'));
+        return new self(new UntypedStringValue('runtime error: invalid memory address or nil pointer dereference'));
     }
 
     public static function nilMapAssignment(): self
     {
-        return new self(new StringValue('assignment to entry in nil map'));
+        return new self(new UntypedStringValue('assignment to entry in nil map'));
     }
 }

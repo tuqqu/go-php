@@ -10,8 +10,7 @@ use GoPhp\GoType\NamedType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Slice\SliceValue;
-
-use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\String\BaseString;
 
 use function GoPhp\assert_arg_type;
 use function GoPhp\assert_arg_value;
@@ -46,7 +45,7 @@ class Copy extends BaseBuiltinFunc
 
         /**
          * @var SliceValue $dst
-         * @var SliceValue|StringValue $src
+         * @var SliceValue|BaseString $src
          */
         $until = $dst->len();
         $i = 0;

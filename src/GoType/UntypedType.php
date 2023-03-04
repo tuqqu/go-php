@@ -17,6 +17,7 @@ enum UntypedType implements BasicType
     case UntypedRoundFloat; // bare float literals with a trailing .0
     case UntypedBool;       // bare bool literals
     case UntypedComplex;    // bare complex literals
+    case UntypedString;     // bare string literals
 
     public function name(): string
     {
@@ -27,6 +28,7 @@ enum UntypedType implements BasicType
             self::UntypedRoundFloat => 'untyped float',
             self::UntypedBool => 'untyped bool',
             self::UntypedComplex => 'untyped complex',
+            self::UntypedString => 'untyped string',
         };
     }
 
@@ -44,6 +46,7 @@ enum UntypedType implements BasicType
             self::UntypedRoundFloat => NamedType::Float32,
             self::UntypedBool => NamedType::Bool,
             self::UntypedComplex => NamedType::Complex128,
+            self::UntypedString => NamedType::String,
         };
     }
 
@@ -115,6 +118,10 @@ enum UntypedType implements BasicType
                 self::UntypedInt => true,
                 default => $this->equals($other),
             },
+            self::UntypedString => match ($other) {
+                NamedType::String => true,
+                default => $this->equals($other),
+            },
         };
     }
 
@@ -138,7 +145,7 @@ enum UntypedType implements BasicType
 
     public function isString(): bool
     {
-        return false; // fixme add untyped str
+        return $this === self::UntypedString;
     }
 
     public function convert(AddressableValue $value): never

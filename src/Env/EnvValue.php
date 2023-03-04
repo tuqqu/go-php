@@ -14,6 +14,7 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
+use GoPhp\GoValue\String\BaseString;
 use GoPhp\GoValue\TypeValue;
 use GoPhp\Operator;
 
@@ -70,7 +71,10 @@ final class EnvValue
     private static function convertIfNeeded(GoValue $value, GoType $type): GoValue
     {
         if (
-            $value instanceof SimpleNumber
+            (
+                $value instanceof SimpleNumber
+                || $value instanceof BaseString
+            )
             && $type instanceof NamedType
             && $value->type() instanceof UntypedType
         ) {

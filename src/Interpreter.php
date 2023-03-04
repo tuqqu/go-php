@@ -87,7 +87,6 @@ use GoPhp\GoValue\Complex\UntypedComplexValue;
 use GoPhp\GoValue\ConstInvokable;
 use GoPhp\GoValue\Float\UntypedFloatValue;
 use GoPhp\GoValue\Func\FuncValue;
-use GoPhp\GoValue\Func\Param;
 use GoPhp\GoValue\Func\Receiver;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
@@ -101,7 +100,8 @@ use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\Sliceable;
-use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\String\BaseString;
+use GoPhp\GoValue\String\UntypedStringValue;
 use GoPhp\GoValue\Struct\StructBuilder;
 use GoPhp\GoValue\Struct\StructValue;
 use GoPhp\GoValue\TupleValue;
@@ -276,7 +276,7 @@ final class Interpreter
         $mainAst = $this->ast;
 
         foreach (iter_spec($decl->spec) as $spec) {
-            /** @var StringValue $path */
+            /** @var UntypedStringValue $path */
             $path = $this->evalExpr($spec->path);
             $importedFiles = $this->importHandler->importFromPath($path->unwrap());
 
@@ -658,7 +658,7 @@ final class Interpreter
         return $sequence->get($index);
     }
 
-    private function evalSliceExpr(SimpleSliceExpr|FullSliceExpr $expr): StringValue|SliceValue
+    private function evalSliceExpr(SimpleSliceExpr|FullSliceExpr $expr): BaseString|SliceValue
     {
         $sequence = $this->evalExpr($expr->expr);
 
@@ -1308,14 +1308,14 @@ final class Interpreter
         return UntypedIntValue::fromRune(\trim($lit->rune, '\''));
     }
 
-    private function evalStringLit(StringLit $lit): StringValue
+    private function evalStringLit(StringLit $lit): UntypedStringValue
     {
-        return new StringValue(\trim($lit->str, '"'));
+        return new UntypedStringValue(\trim($lit->str, '"'));
     }
 
-    private function evalRawStringLit(RawStringLit $lit): StringValue
+    private function evalRawStringLit(RawStringLit $lit): UntypedStringValue
     {
-        return new StringValue(\trim($lit->str, '`'));
+        return new UntypedStringValue(\trim($lit->str, '`'));
     }
 
     private function evalIntLit(IntLit $lit): UntypedIntValue

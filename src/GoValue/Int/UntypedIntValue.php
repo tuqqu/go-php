@@ -46,7 +46,7 @@ final class UntypedIntValue extends IntNumber
         $digits = \substr($number, $start);
 
         if (empty($digits)) {
-            throw new RuntimeError(\sprintf('%s literal has no digits', $type));
+            throw RuntimeError::invalidNumberLiteral($type);
         }
 
         return $digits;

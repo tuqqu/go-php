@@ -24,7 +24,7 @@ use GoPhp\GoValue\Int\Uint64Value;
 use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UintptrValue;
 use GoPhp\GoValue\Int\UintValue;
-use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\String\StringValue;
 
 use function GoPhp\normalize_unwindable;
 
@@ -136,6 +136,10 @@ enum NamedType: string implements BasicType
             },
             self::Bool => match ($other) {
                 UntypedType::UntypedBool => true,
+                default => $this->equals($other),
+            },
+            self::String => match ($other) {
+                UntypedType::UntypedString => true,
                 default => $this->equals($other),
             },
             default => $this->equals($other),

@@ -14,8 +14,10 @@ use GoPhp\Operator;
  * Represents types in environment
  * as well as type "values", that are passed to some built-in functions as arguments
  *
+ * ```
  * e.g. make([]int, 2, 3)
  *           ^^^^^
+ *```
  *
  * @template-implements AddressableValue<GoType>
  */
@@ -29,13 +31,11 @@ final class TypeValue implements ConstInvokable, AddressableValue
 
     public function __invoke(Argv $argv): GoValue
     {
-        if ($argv->argc === 0) {
-            throw RuntimeError::missingConversionArg($this->type);
-        } elseif ($argv->argc > 1) {
-            throw RuntimeError::tooManyConversionArgs($this->type);
-        }
-
-        return $this->type->convert($argv[0]->value);
+        return match ($argv->argc) {
+            1 => $this->type->convert($argv[0]->value),
+            0 => throw RuntimeError::missingConversionArg($this->type),
+            default => throw RuntimeError::tooManyConversionArgs($this->type),
+        };
     }
 
     public function unwrap(): GoType

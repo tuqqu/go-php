@@ -252,6 +252,11 @@ class RuntimeError extends \RuntimeException
         );
     }
 
+    public static function invalidNumberLiteral(string $type): self
+    {
+        return new self(\sprintf('%s literal has no digits', $type));
+    }
+
     public static function nonFunctionCall(GoValue $value): self
     {
         return new self(

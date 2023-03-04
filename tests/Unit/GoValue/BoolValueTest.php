@@ -7,7 +7,7 @@ namespace GoPhp\Tests\Unit\GoValue;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\Int\UintValue;
-use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\String\StringValue;
 use GoPhp\Operator;
 use PHPUnit\Framework\TestCase;
 

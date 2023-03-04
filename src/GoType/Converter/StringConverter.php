@@ -9,19 +9,20 @@ use GoPhp\GoType\NamedType;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Slice\SliceValue;
-use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\String\BaseString;
+use GoPhp\GoValue\String\UntypedStringValue;
 
 final class StringConverter
 {
     private const INVALID_RANGE_CHAR = "\u{FFFD}";
 
-    public static function convert(GoValue $value): StringValue
+    public static function convert(GoValue $value): BaseString
     {
         return match (true) {
-            $value instanceof StringValue => $value,
-            $value instanceof IntNumber => new StringValue(self::char($value)),
+            $value instanceof BaseString => $value,
+            $value instanceof IntNumber => new UntypedStringValue(self::char($value)),
             $value instanceof SliceValue
-            && self::isSliceConvertible($value) => new StringValue(self::chars($value->unwrap())),
+            && self::isSliceConvertible($value) => new UntypedStringValue(self::chars($value->unwrap())),
             default => throw RuntimeError::conversionError($value, NamedType::String),
         };
     }

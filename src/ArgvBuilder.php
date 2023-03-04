@@ -10,7 +10,7 @@ use GoPhp\GoValue\BuiltinFuncValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Slice\SliceValue;
-use GoPhp\GoValue\StringValue;
+use GoPhp\GoValue\String\BaseString;
 use GoPhp\GoValue\Unpackable;
 
 final class ArgvBuilder
@@ -41,7 +41,7 @@ final class ArgvBuilder
 
         $this->unpacked = match (true) {
             $unpackable instanceof SliceValue,
-            $unpackable instanceof StringValue
+            $unpackable instanceof BaseString
             && $func instanceof BuiltinFuncValue
             && $func->func->permitsStringUnpacking() => true,
             default => throw RuntimeError::expectedSliceInArgumentUnpacking($unpackable, $func),

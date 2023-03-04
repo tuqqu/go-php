@@ -2,13 +2,28 @@
 
 declare(strict_types=1);
 
-namespace GoPhp\GoValue;
+namespace GoPhp\GoValue\String;
 
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\NamedType;
+use GoPhp\GoType\UntypedType;
+use GoPhp\GoValue\AddressableTrait;
+use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\BoolValue;
+use GoPhp\GoValue\Castable;
+use GoPhp\GoValue\GoValue;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
+use GoPhp\GoValue\Typeable;
+use GoPhp\GoValue\PointerValue;
+use GoPhp\GoValue\Sealable;
+use GoPhp\GoValue\SealableTrait;
+use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\Sliceable;
+use GoPhp\GoValue\TypeableTrait;
+use GoPhp\GoValue\Unpackable;
 use GoPhp\Operator;
 
 use function GoPhp\assert_index_exists;
@@ -22,8 +37,17 @@ use function GoPhp\assert_values_compatible;
  * @template-implements Hashable<string>
  * @template-implements AddressableValue<string>
  */
-final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Hashable, Castable, AddressableValue
+abstract class BaseString implements
+    Sliceable,
+    Unpackable,
+    Sequence,
+    Sealable,
+    Hashable,
+    Castable,
+    Typeable,
+    AddressableValue
 {
+    use TypeableTrait;
     use SealableTrait;
     use AddressableTrait;
 
@@ -38,17 +62,14 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Ha
         $this->byteLen = \strlen($this->value);
     }
 
-    public function type(): NamedType
-    {
-        return NamedType::String;
-    }
+    abstract public function type(): NamedType|UntypedType;
 
     public function toString(): string
     {
         return $this->value;
     }
 
-    public function slice(?int $low, ?int $high, ?int $max = null): self
+    public function slice(?int $low, ?int $high, ?int $max = null): static
     {
         if ($max !== null) {
             throw RuntimeError::cannotFullSliceString();
@@ -59,7 +80,7 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Ha
 
         assert_index_sliceable($this->byteLen, $low, $high);
 
-        return new self(\substr($this->value, $low, $high - $low));
+        return new static(\substr($this->value, $low, $high - $low));
     }
 
     public function operate(Operator $op): PointerValue
@@ -105,9 +126,9 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Ha
         return $this->value;
     }
 
-    public function add(self $value): self
+    public function add(self $value): static
     {
-        return new self($this->value . $value->value);
+        return new static($this->value . $value->value);
     }
 
     public function mutAdd(self $value): void
@@ -119,11 +140,6 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Ha
     public function copy(): self
     {
         return clone $this;
-    }
-
-    private function equals(self $rhs): BoolValue
-    {
-        return new BoolValue($this->value === $rhs->value);
     }
 
 //    public function greater(self $other): BoolValue
@@ -178,14 +194,6 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Ha
         }
     }
 
-    /**
-     * @return iterable<string>
-     */
-    private function chars(): iterable
-    {
-        yield from \mb_str_split($this->value);
-    }
-
     public function hash(): string
     {
         return $this->unwrap();
@@ -194,5 +202,27 @@ final class StringValue implements Sliceable, Unpackable, Sequence, Sealable, Ha
     public function cast(NamedType $to): self
     {
         return $this;
+    }
+
+    final protected function doBecomeTyped(NamedType $type): self
+    {
+        if ($type !== NamedType::String || !$this->type() instanceof UntypedType) {
+            throw RuntimeError::implicitConversionError($this, $type);
+        }
+
+        return new StringValue($this->value);
+    }
+
+    /**
+     * @return iterable<string>
+     */
+    private function chars(): iterable
+    {
+        yield from \mb_str_split($this->value);
+    }
+
+    private function equals(self $rhs): BoolValue
+    {
+        return new BoolValue($this->value === $rhs->value);
     }
 }

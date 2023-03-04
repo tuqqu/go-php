@@ -34,8 +34,9 @@ use function GoPhp\normalize_unwindable;
  * @template-implements Hashable<N>
  * @template-implements AddressableValue<N>
  */
-abstract class SimpleNumber implements Hashable, Castable, Sealable, AddressableValue
+abstract class SimpleNumber implements Hashable, Castable, Sealable, Typeable, AddressableValue
 {
+    use TypeableTrait;
     use SealableTrait;
     use AddressableTrait;
 
@@ -64,27 +65,10 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Addressable
         };
     }
 
-    final public function becomeTyped(NamedType $type): AddressableValue
-    {
-        $value = $this->doBecomeTyped($type);
-
-        if ($this->isSealed()) {
-            $value->seal();
-        }
-
-        if ($this->isAddressable()) {
-            $value->makeAddressable();
-        }
-
-        return $value;
-    }
-
     public function toString(): string
     {
         return (string) $this->unwrap();
     }
-
-    abstract protected function doBecomeTyped(NamedType $type): AddressableValue&Sealable;
 
     final public function operate(Operator $op): self|PointerValue
     {
