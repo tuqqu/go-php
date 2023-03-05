@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+/**
+ * Primitive types
+ */
 interface BasicType extends GoType
 {
-    public function isFloat(): bool; //fixme check
+    public function isFloat(): bool;
 
     public function isInt(): bool;
 

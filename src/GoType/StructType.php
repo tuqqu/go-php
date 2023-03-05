@@ -11,6 +11,9 @@ use GoPhp\GoValue\Struct\StructValue;
 
 use function GoPhp\normalize_unwindable;
 
+/**
+ * @see https://golang.org/ref/spec#Struct_types
+ */
 final class StructType implements GoType
 {
     /**
@@ -61,11 +64,6 @@ final class StructType implements GoType
     public function isCompatible(GoType $other): bool
     {
         return $this->equals($other);
-    }
-
-    public function reify(): self
-    {
-        return $this;
     }
 
     public function zeroValue(): StructValue

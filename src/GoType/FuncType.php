@@ -9,6 +9,9 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Params;
 
+/**
+ * @see https://golang.org/ref/spec#Function_types
+ */
 final class FuncType implements RefType
 {
     public readonly int $arity;
@@ -63,11 +66,6 @@ final class FuncType implements RefType
     public function isCompatible(GoType $other): bool
     {
         return $other instanceof UntypedNilType || $this->equals($other);
-    }
-
-    public function reify(): self
-    {
-        return $this;
     }
 
     public function zeroValue(): FuncValue

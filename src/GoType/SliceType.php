@@ -8,6 +8,9 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Slice\SliceValue;
 
+/**
+ * @see https://golang.org/ref/spec#Slice_types
+ */
 final class SliceType implements RefType
 {
     public readonly string $name;
@@ -36,11 +39,6 @@ final class SliceType implements RefType
     public function isCompatible(GoType $other): bool
     {
         return $other instanceof UntypedNilType || $this->equals($other);
-    }
-
-    public function reify(): self
-    {
-        return $this;
     }
 
     public function zeroValue(): AddressableValue

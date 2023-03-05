@@ -8,6 +8,9 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Map\MapValue;
 
+/**
+ * @see https://golang.org/ref/spec#Map_types
+ */
 final class MapType implements RefType
 {
     public readonly string $name;
@@ -39,11 +42,6 @@ final class MapType implements RefType
     public function isCompatible(GoType $other): bool
     {
         return $other instanceof UntypedNilType || $this->equals($other);
-    }
-
-    public function reify(): self
-    {
-        return $this;
     }
 
     public function zeroValue(): MapValue

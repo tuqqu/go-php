@@ -49,11 +49,6 @@ final class InterfaceType implements Hashable, GoType
             || $this->equals($other);
     }
 
-    public function reify(): self
-    {
-        return $this;
-    }
-
     public function zeroValue(): InterfaceValue
     {
         return InterfaceValue::nil($this);

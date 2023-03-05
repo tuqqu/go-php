@@ -13,6 +13,8 @@ use GoPhp\GoValue\WrappedValue;
 use function GoPhp\construct_qualified_name;
 
 /**
+ * User-defined type that wraps another type
+ *
  * @template-implements Unwindable<GoType>
  * @template-implements Hashable<string>
  */
@@ -55,11 +57,6 @@ final class WrappedType implements Unwindable, Hashable, GoType
         }
 
         return $this->equals($other);
-    }
-
-    public function reify(): GoType
-    {
-        return $this;
     }
 
     public function zeroValue(): WrappedValue

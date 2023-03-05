@@ -9,6 +9,9 @@ use GoPhp\GoValue\AddressableValue;
 
 use function GoPhp\normalize_unwindable;
 
+/**
+ * Primitive type that is not yet assigned to any variable
+ */
 enum UntypedType implements BasicType
 {
     case UntypedInt;        // bare int literals
@@ -35,19 +38,6 @@ enum UntypedType implements BasicType
     public function equals(GoType $other): bool
     {
         return $this === $other;
-    }
-
-    public function reify(): BasicType
-    {
-        return match ($this) {
-            self::UntypedInt => NamedType::Int,
-            self::UntypedRune => NamedType::Rune,
-            self::UntypedFloat,
-            self::UntypedRoundFloat => NamedType::Float32,
-            self::UntypedBool => NamedType::Bool,
-            self::UntypedComplex => NamedType::Complex128,
-            self::UntypedString => NamedType::String,
-        };
     }
 
     public function isCompatible(GoType $other): bool

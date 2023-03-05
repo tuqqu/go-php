@@ -7,6 +7,9 @@ namespace GoPhp;
 use GoParser\Ast\GroupSpec;
 use GoParser\Ast\Spec;
 use GoPhp\Env\EnvMap;
+use GoPhp\GoType\GoType;
+use GoPhp\GoType\NamedType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\Unwindable;
 
 /**
@@ -94,4 +97,23 @@ function construct_qualified_name(string $selector, string $namespace): string
     return $namespace === EnvMap::NAMESPACE_TOP
         ? $selector
         : $namespace . '.' . $selector;
+}
+
+/**
+ * Reify untyped type to named type.
+ *
+ * @internal
+ */
+function reify_untyped(GoType $type): GoType
+{
+    return match ($type) {
+        UntypedType::UntypedInt => NamedType::Int,
+        UntypedType::UntypedRune => NamedType::Rune,
+        UntypedType::UntypedFloat,
+        UntypedType::UntypedRoundFloat => NamedType::Float32,
+        UntypedType::UntypedBool => NamedType::Bool,
+        UntypedType::UntypedComplex => NamedType::Complex128,
+        UntypedType::UntypedString => NamedType::String,
+        default => $type,
+    };
 }

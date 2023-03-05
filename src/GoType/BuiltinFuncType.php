@@ -7,6 +7,11 @@ namespace GoPhp\GoType;
 use GoPhp\Error\InternalError;
 use GoPhp\GoValue\AddressableValue;
 
+/**
+ * Pseudo type for builtin functions
+ *
+ * @see https://go.dev/ref/spec#Built-in_functions
+ */
 final class BuiltinFuncType implements GoType
 {
     public function __construct(
@@ -26,11 +31,6 @@ final class BuiltinFuncType implements GoType
     public function isCompatible(GoType $other): bool
     {
         return $this->equals($other);
-    }
-
-    public function reify(): never
-    {
-        throw InternalError::unreachableMethodCall();
     }
 
     public function zeroValue(): never

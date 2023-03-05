@@ -10,6 +10,9 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Array\ArrayValue;
 
+/**
+ * @see https://golang.org/ref/spec#Array_types
+ */
 final class ArrayType implements GoType
 {
     public readonly GoType $elemType;
@@ -51,11 +54,6 @@ final class ArrayType implements GoType
     public function isCompatible(GoType $other): bool
     {
         return $this->equals($other);
-    }
-
-    public function reify(): self
-    {
-        return $this;
     }
 
     public function zeroValue(): ArrayValue

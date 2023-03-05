@@ -373,19 +373,20 @@ final class Interpreter
                     : null;
 
                 if (!$value instanceof AddressableValue) {
-                    if ($value === null) {
-                        throw RuntimeError::uninitialisedConstant($ident->name);
-                    }
-
-                    throw InternalError::unexpectedValue($value);
+                    throw $value === null
+                        ? RuntimeError::uninitialisedConstant($ident->name)
+                        : InternalError::unexpectedValue($value);
                 }
 
                 $this->checkNonDeclarableNames($ident->name);
+                $constType = $type === null
+                    ? $value->type()
+                    : reify_untyped($type);
 
                 $this->env->defineConst(
                     $ident->name,
                     $value->copy(),
-                    $type?->reify() ?? $value->type(),
+                    $constType,
                     $this->scopeResolver->resolveDefinitionScope(),
                 );
             }
@@ -1476,7 +1477,7 @@ final class Interpreter
         $this->env->defineVar(
             $name,
             $value,
-            ($type ?? $value->type())->reify(),
+            reify_untyped($type ?? $value->type()),
             $this->scopeResolver->resolveDefinitionScope(),
         );
     }

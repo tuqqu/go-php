@@ -28,6 +28,9 @@ use GoPhp\GoValue\String\StringValue;
 
 use function GoPhp\normalize_unwindable;
 
+/**
+ * Named types are primitive types that have a name.
+ */
 enum NamedType: string implements BasicType
 {
     public const Rune = self::Int32;
@@ -67,11 +70,6 @@ enum NamedType: string implements BasicType
     public function equals(GoType $other): bool
     {
         return $this === $other;
-    }
-
-    public function reify(): self
-    {
-        return $this;
     }
 
     public function zeroValue(): AddressableValue

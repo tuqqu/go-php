@@ -9,6 +9,8 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\PointerValue;
 
 /**
+ * @see https://golang.org/ref/spec#Pointer_types
+ *
  * @template T of GoType
  */
 final class PointerType implements RefType
@@ -35,11 +37,6 @@ final class PointerType implements RefType
     public function isCompatible(GoType $other): bool
     {
         return $this->equals($other);
-    }
-
-    public function reify(): self
-    {
-        return $this;
     }
 
     public function zeroValue(): PointerValue
