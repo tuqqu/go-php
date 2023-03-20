@@ -10,6 +10,8 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Array\ArrayValue;
 
+use function sprintf;
+
 /**
  * @see https://golang.org/ref/spec#Array_types
  */
@@ -41,7 +43,7 @@ final class ArrayType implements GoType
             throw InternalError::unreachable('array type must be complete prior to usage');
         }
 
-        return $this->name ??= \sprintf('[%d]%s', $this->len, $this->elemType->name());
+        return $this->name ??= sprintf('[%d]%s', $this->len, $this->elemType->name());
     }
 
     public function equals(GoType $other): bool

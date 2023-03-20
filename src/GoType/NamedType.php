@@ -62,6 +62,19 @@ enum NamedType: string implements BasicType
     case Bool = 'bool';
     case String = 'string';
 
+    public static function fromUntyped(UntypedType $type): self
+    {
+        return match ($type) {
+            UntypedType::UntypedInt => self::Int,
+            UntypedType::UntypedRune => self::Rune,
+            UntypedType::UntypedFloat,
+            UntypedType::UntypedRoundFloat => self::Float32,
+            UntypedType::UntypedBool => self::Bool,
+            UntypedType::UntypedComplex => self::Complex128,
+            UntypedType::UntypedString => self::String,
+        };
+    }
+
     public function name(): string
     {
         return $this->value;

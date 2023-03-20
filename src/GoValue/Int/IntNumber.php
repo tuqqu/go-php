@@ -17,6 +17,9 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
+use const PHP_INT_MAX;
+use const PHP_INT_MIN;
+
 /**
  * @template-extends SimpleNumber<int>
  */

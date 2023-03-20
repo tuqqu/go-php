@@ -103,17 +103,16 @@ function construct_qualified_name(string $selector, string $namespace): string
  * Reify untyped type to named type.
  *
  * @internal
+ *
+ * @template T of GoType
+ * @psalm-param T $type
+ * @psalm-return ($type is UntypedType ? NamedType : T)
  */
 function reify_untyped(GoType $type): GoType
 {
-    return match ($type) {
-        UntypedType::UntypedInt => NamedType::Int,
-        UntypedType::UntypedRune => NamedType::Rune,
-        UntypedType::UntypedFloat,
-        UntypedType::UntypedRoundFloat => NamedType::Float32,
-        UntypedType::UntypedBool => NamedType::Bool,
-        UntypedType::UntypedComplex => NamedType::Complex128,
-        UntypedType::UntypedString => NamedType::String,
-        default => $type,
-    };
+    if ($type instanceof UntypedType) {
+        $type = NamedType::fromUntyped($type);
+    }
+
+    return $type;
 }

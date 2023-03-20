@@ -7,6 +7,8 @@ namespace GoPhp\GoValue;
 use GoPhp\Error\InternalError;
 use GoPhp\Operator;
 
+use function count;
+
 /**
  * Not a real Go value, but an internal representation
  * of a set of values returned from a function call with multiple return values.
@@ -24,7 +26,7 @@ final class TupleValue implements GoValue
     public function __construct(
         public readonly array $values,
     ) {
-        $this->len = \count($this->values);
+        $this->len = count($this->values);
     }
 
     public function toString(): never

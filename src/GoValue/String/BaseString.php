@@ -26,6 +26,9 @@ use GoPhp\GoValue\TypeableTrait;
 use GoPhp\GoValue\Unpackable;
 use GoPhp\Operator;
 
+use function mb_str_split;
+use function strlen;
+use function substr;
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_int;
 use function GoPhp\assert_index_sliceable;
@@ -59,7 +62,7 @@ abstract class BaseString implements
     public function __construct(string $value)
     {
         $this->value = $value;
-        $this->byteLen = \strlen($this->value);
+        $this->byteLen = strlen($this->value);
     }
 
     abstract public function type(): NamedType|UntypedType;
@@ -80,7 +83,7 @@ abstract class BaseString implements
 
         assert_index_sliceable($this->byteLen, $low, $high);
 
-        return new static(\substr($this->value, $low, $high - $low));
+        return new static(substr($this->value, $low, $high - $low));
     }
 
     public function operate(Operator $op): PointerValue
@@ -134,7 +137,7 @@ abstract class BaseString implements
     public function mutAdd(self $value): void
     {
         $this->value .= $value->value;
-        $this->byteLen += \strlen($value->value);
+        $this->byteLen += strlen($value->value);
     }
 
     public function copy(): self
@@ -183,7 +186,7 @@ abstract class BaseString implements
         $i = 0;
         foreach ($this->chars() as $char) {
             yield new UntypedIntValue($i) => UntypedIntValue::fromRune($char);
-            $i += \strlen($char);
+            $i += strlen($char);
         }
     }
 
@@ -218,7 +221,7 @@ abstract class BaseString implements
      */
     private function chars(): iterable
     {
-        yield from \mb_str_split($this->value);
+        yield from mb_str_split($this->value);
     }
 
     private function equals(self $rhs): BoolValue

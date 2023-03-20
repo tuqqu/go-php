@@ -6,14 +6,17 @@ namespace GoPhp\Error;
 
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\String\UntypedStringValue;
+use RuntimeException;
 
-class PanicError extends \RuntimeException
+use function sprintf;
+
+class PanicError extends RuntimeException
 {
     public readonly AddressableValue $panicValue;
 
     public function __construct(AddressableValue $panicValue)
     {
-        parent::__construct(\sprintf('panic: %s', $panicValue->toString()));
+        parent::__construct(sprintf('panic: %s', $panicValue->toString()));
 
         $this->panicValue = $panicValue;
     }

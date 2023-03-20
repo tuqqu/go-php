@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use ArrayAccess;
+use Countable;
 use GoPhp\Error\InternalError;
 
+use function count;
+
 /**
- * @template-implements \ArrayAccess<int, Arg>
+ * @template-implements ArrayAccess<int, Arg>
  */
-final class Argv implements \ArrayAccess, \Countable
+final class Argv implements ArrayAccess, Countable
 {
     /**
      * @param list<Arg> $values
@@ -52,6 +56,6 @@ final class Argv implements \ArrayAccess, \Countable
      */
     public function count(): int
     {
-        return \count($this->values);
+        return count($this->values);
     }
 }

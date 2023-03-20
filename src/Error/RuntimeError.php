@@ -19,10 +19,19 @@ use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\JumpStatus;
 use GoPhp\Operator;
+use RuntimeException;
 
+use function array_map;
+use function count;
+use function implode;
+use function is_array;
+use function is_int;
+use function is_string;
+use function sprintf;
+use function strtolower;
 use function GoPhp\construct_qualified_name;
 
-class RuntimeError extends \RuntimeException
+class RuntimeError extends RuntimeException
 {
     public static function numberOverflow(GoValue $value, GoType $type): self
     {
@@ -54,10 +63,10 @@ class RuntimeError extends \RuntimeException
     public static function cannotUseArgumentAsType(GoValue $value, GoType|string $type, string $func)
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'cannot use %s as type %s in argument to %s',
                 self::valueToString($value),
-                \is_string($type) ? $type : $type->name(),
+                is_string($type) ? $type : $type->name(),
                 $func,
             ),
         );
@@ -66,7 +75,7 @@ class RuntimeError extends \RuntimeException
     public static function conversionError(GoValue $value, GoType $type): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'cannot convert %s to %s',
                 self::valueToString($value),
                 $type->name(),
@@ -77,7 +86,7 @@ class RuntimeError extends \RuntimeException
     public static function cannotUseValue(GoValue $value, GoType $type, ?string $context = null): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'cannot use %s as %s value%s',
                 self::valueToString($value),
                 $type->name(),
@@ -89,7 +98,7 @@ class RuntimeError extends \RuntimeException
     public static function nonIntegerArrayLen(GoValue $value): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'array length %s must be integer',
                 self::valueToString($value),
             ),
@@ -99,7 +108,7 @@ class RuntimeError extends \RuntimeException
     public static function mismatchedTypes(GoType $a, GoType $b): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'invalid operation: mismatched types %s and %s',
                 $a->name(),
                 $b->name(),
@@ -115,10 +124,10 @@ class RuntimeError extends \RuntimeException
     public static function valueOfWrongType(GoValue $value, GoType|string $expected): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'Got value of type "%s", whilst expecting "%s"',
                 $value->type()->name(),
-                \is_string($expected) ? $expected : $expected->name(),
+                is_string($expected) ? $expected : $expected->name(),
             )
         );
     }
@@ -126,7 +135,7 @@ class RuntimeError extends \RuntimeException
     public static function multipleValueInSingleContext(TupleValue $value): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'multiple-value (value of type %s) in single-value context',
                 self::tupleTypeToString($value),
             ),
@@ -135,12 +144,12 @@ class RuntimeError extends \RuntimeException
 
     public static function cannotSplatMultipleValuedReturn(int $n): self
     {
-        return new self(\sprintf('cannot use ... with %d-valued return value', $n));
+        return new self(sprintf('cannot use ... with %d-valued return value', $n));
     }
 
     public static function onlyComparableToNil(string $name): self
     {
-        return new self(\sprintf('invalid operation: %s can only be compared to nil', $name));
+        return new self(sprintf('invalid operation: %s can only be compared to nil', $name));
     }
 
     public static function noValueUsedAsValue(): self
@@ -150,17 +159,17 @@ class RuntimeError extends \RuntimeException
 
     public static function builtInMustBeCalled(string $name): self
     {
-        return new self(\sprintf('%s (built-in) must be called', $name));
+        return new self(sprintf('%s (built-in) must be called', $name));
     }
 
     public static function valueIsNotType(GoValue $value): self
     {
-        return new self(\sprintf('%s is not a type', self::valueToString($value)));
+        return new self(sprintf('%s is not a type', self::valueToString($value)));
     }
 
     public static function cannotFindPackage(string $path): self
     {
-        return new self(\sprintf('cannot find package "." in: %s', $path));
+        return new self(sprintf('cannot find package "." in: %s', $path));
     }
 
     public static function undefinedOperator(Operator $op, AddressableValue $value, bool $unary = false): self
@@ -174,7 +183,7 @@ class RuntimeError extends \RuntimeException
         }
 
         return new self(
-            \sprintf(
+            sprintf(
                 'invalid operation: operator %s not defined on %s',
                 $op->value,
                 self::valueToString($value),
@@ -185,25 +194,25 @@ class RuntimeError extends \RuntimeException
     public static function cannotIndex(GoType $type): self
     {
         return new self(
-            \sprintf('invalid operation: cannot index (%s)', $type->name())
+            sprintf('invalid operation: cannot index (%s)', $type->name())
         );
     }
 
     public static function cannotSlice(GoType $type): self
     {
         return new self(
-            \sprintf('invalid operation: cannot slice (%s)', $type->name())
+            sprintf('invalid operation: cannot slice (%s)', $type->name())
         );
     }
 
     public static function cannotAssign(GoValue $value): self
     {
-        return new self(\sprintf('cannot assign to %s', self::valueToString($value)));
+        return new self(sprintf('cannot assign to %s', self::valueToString($value)));
     }
 
     public static function invalidRangeValue(GoValue $value): self
     {
-        return new self(\sprintf('cannot range over %s', self::valueToString($value)));
+        return new self(sprintf('cannot range over %s', self::valueToString($value)));
     }
 
     public static function lenAndCapSwapped(): self
@@ -214,7 +223,7 @@ class RuntimeError extends \RuntimeException
     private static function cannotIndirect(AddressableValue $value): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'invalid operation: cannot indirect %s',
                 self::valueToString($value),
             ),
@@ -224,7 +233,7 @@ class RuntimeError extends \RuntimeException
     public static function cannotTakeAddressOfMapValue(GoType $type): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'invalid operation: cannot take address of value (map index expression of type %s)',
                 $type->name(),
             )
@@ -234,7 +243,7 @@ class RuntimeError extends \RuntimeException
     public static function cannotTakeAddressOfValue(GoValue $value): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'invalid operation: cannot take address of %s',
                 self::valueToString($value),
             )
@@ -244,7 +253,7 @@ class RuntimeError extends \RuntimeException
     public static function unsupportedOperation(string $operation, GoValue $value): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'Value of type "%s" does not support "%s" operation',
                 $value->type()->name(),
                 $operation,
@@ -254,13 +263,13 @@ class RuntimeError extends \RuntimeException
 
     public static function invalidNumberLiteral(string $type): self
     {
-        return new self(\sprintf('%s literal has no digits', $type));
+        return new self(sprintf('%s literal has no digits', $type));
     }
 
     public static function nonFunctionCall(GoValue $value): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'invalid operation: cannot call non-function %s',
                 self::valueToString($value),
             )
@@ -270,7 +279,7 @@ class RuntimeError extends \RuntimeException
     public static function expectedAssignmentOperator(Operator $op): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'Unexpected operator "%s" in assignment',
                 $op->value,
             )
@@ -285,17 +294,17 @@ class RuntimeError extends \RuntimeException
             $msg = 'too many arguments in call (expected %s, but found %d)';
         }
 
-        return new self(\sprintf($msg, $expected, $actual));
+        return new self(sprintf($msg, $expected, $actual));
     }
 
     public static function wrongArgumentType(Arg $arg, string|GoType $expectedType): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'invalid argument %d (%s), expected %s',
                 $arg->pos,
                 $arg->value->type()->name(),
-                \is_string($expectedType) ? $expectedType : $expectedType->name(),
+                is_string($expectedType) ? $expectedType : $expectedType->name(),
             )
         );
     }
@@ -303,9 +312,9 @@ class RuntimeError extends \RuntimeException
     public static function indexNegative(GoValue|int $value): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'invalid argument: index %s must not be negative',
-                \is_int($value) ? $value : self::valueToString($value),
+                is_int($value) ? $value : self::valueToString($value),
             ),
         );
     }
@@ -317,23 +326,23 @@ class RuntimeError extends \RuntimeException
 
     public static function nonConstantExpr(GoValue $value): self
     {
-        return new self(\sprintf('%s is not constant', self::valueToString($value)));
+        return new self(sprintf('%s is not constant', self::valueToString($value)));
     }
 
     public static function indexOutOfRange(int $index, int $len): self
     {
-        return new self(\sprintf('index out of range [%d] with length %d', $index, $len));
+        return new self(sprintf('index out of range [%d] with length %d', $index, $len));
     }
 
     public static function invalidSliceIndices(int $low, int $high): self
     {
-        return new self(\sprintf('invalid slice indices: %d < %d', $low, $high));
+        return new self(sprintf('invalid slice indices: %d < %d', $low, $high));
     }
 
     public static function indexOfWrongType(GoValue $index, string $type, string $where): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 'cannot use "%s" (%s) as %s value in %s index',
                 $index->toString(),
                 $index->type()->name(),
@@ -345,20 +354,20 @@ class RuntimeError extends \RuntimeException
 
     public static function uninitialisedConstant(string $name): self
     {
-        return new self(\sprintf('missing init expr for %s', $name));
+        return new self(sprintf('missing init expr for %s', $name));
     }
 
     public static function invalidFieldName(?string $field = null): self
     {
-        return new self(\sprintf(
+        return new self(sprintf(
             'invalid field name%s in struct literal',
-            $field === null ? '' : \sprintf(' \'%s\'', $field),
+            $field === null ? '' : sprintf(' \'%s\'', $field),
         ));
     }
 
     public static function undefinedFieldAccess(string $valueName, string $field, GoType $type): self
     {
-        return new self(\sprintf(
+        return new self(sprintf(
             '%s undefined (type %s has no field or method %s)',
             construct_qualified_name($field, $valueName),
             $type->name(),
@@ -368,13 +377,13 @@ class RuntimeError extends \RuntimeException
 
     public static function invalidConstantType(GoType $type): self
     {
-        return new self(\sprintf('invalid constant type %s', $type->name()));
+        return new self(sprintf('invalid constant type %s', $type->name()));
     }
 
     public static function valueIsNotConstant(GoValue $value): self
     {
         return new self(
-            \sprintf(
+            sprintf(
                 '%s (value of type %s) is not constant',
                 $value->toString(),
                 $value->type()->name(),
@@ -389,17 +398,17 @@ class RuntimeError extends \RuntimeException
 
     public static function assignmentMismatch(int $expected, int $actual): self
     {
-        return new self(\sprintf('assignment mismatch: %d variables, but %d values', $expected, $actual));
+        return new self(sprintf('assignment mismatch: %d variables, but %d values', $expected, $actual));
     }
 
     public static function labelAlreadyDefined(string $label): self
     {
-        return new self(\sprintf('label %s already defined', $label));
+        return new self(sprintf('label %s already defined', $label));
     }
 
     public static function undefinedLabel(string $label): self
     {
-        return new self(\sprintf('label %s not defined', $label));
+        return new self(sprintf('label %s not defined', $label));
     }
 
     public static function unfinishedArrayTypeUse(): self
@@ -409,7 +418,7 @@ class RuntimeError extends \RuntimeException
 
     public static function noEntryPoint(string $funcName): self
     {
-        return new self(\sprintf('function %s is undeclared in the main package', $funcName));
+        return new self(sprintf('function %s is undeclared in the main package', $funcName));
     }
 
     public static function nonDeclarationOnTopLevel(): self
@@ -449,17 +458,17 @@ class RuntimeError extends \RuntimeException
 
     public static function redeclaredName(string $name): self
     {
-        return new self(\sprintf('%s redeclared', $name));
+        return new self(sprintf('%s redeclared', $name));
     }
 
     public static function duplicateMethod(string $name): self
     {
-        return new self(\sprintf('duplicate method %s', $name));
+        return new self(sprintf('duplicate method %s', $name));
     }
 
     public static function redeclaredNameInBlock(string $name, string $selector): self
     {
-        return new self(\sprintf('%s redeclared in this block', construct_qualified_name($name, $selector)));
+        return new self(sprintf('%s redeclared in this block', construct_qualified_name($name, $selector)));
     }
 
     public static function undefinedName(string $name, ?string $selector = null): self
@@ -468,29 +477,29 @@ class RuntimeError extends \RuntimeException
             $name = construct_qualified_name($name, $selector);
         }
 
-        return new self(\sprintf('undefined: %s', $name));
+        return new self(sprintf('undefined: %s', $name));
     }
 
     public static function invalidMapKeyType(GoType $type): self
     {
-        return new self(\sprintf('invalid map key type %s', $type->name()));
+        return new self(sprintf('invalid map key type %s', $type->name()));
     }
 
     public static function indexOutOfBounds(int $index, int $len): self
     {
         $op = $index >= $len ? '>=' : '<=';
 
-        return new self(\sprintf('index %d is out of bounds (%s %d)', $index, $op, $len));
+        return new self(sprintf('index %d is out of bounds (%s %d)', $index, $op, $len));
     }
 
     public static function invalidReceiverType(GoType $type): self
     {
-        return new self(\sprintf('invalid receiver type %s', $type->name()));
+        return new self(sprintf('invalid receiver type %s', $type->name()));
     }
 
     public static function invalidReceiverNamedType(GoType $type): self
     {
-        return new self(\sprintf('invalid receiver type %s (pointer or interface type)', $type->name()));
+        return new self(sprintf('invalid receiver type %s (pointer or interface type)', $type->name()));
     }
 
     public static function mixedStructLiteralFields(): self
@@ -500,7 +509,7 @@ class RuntimeError extends \RuntimeException
 
     public static function structLiteralTooManyValues(int $expected, int $actual): self
     {
-        return new self(\sprintf('too %s values in struct literal', $actual > $expected ? 'many' : 'few'));
+        return new self(sprintf('too %s values in struct literal', $actual > $expected ? 'many' : 'few'));
     }
 
     public static function noNewVarsInShortAssignment(): self
@@ -510,12 +519,12 @@ class RuntimeError extends \RuntimeException
 
     public static function cannotUseBlankIdent(string $blankIdent): self
     {
-        return new self(\sprintf('cannot use %s as value or type', $blankIdent));
+        return new self(sprintf('cannot use %s as value or type', $blankIdent));
     }
 
     public static function nameMustBeFunc(string $name): self
     {
-        return new self(\sprintf('cannot declare %s - must be func', $name));
+        return new self(sprintf('cannot declare %s - must be func', $name));
     }
 
     public static function multipleReceivers(): self
@@ -530,7 +539,7 @@ class RuntimeError extends \RuntimeException
 
     public static function funcMustBeNoArgsVoid(string $funcName): self
     {
-        return new self(\sprintf('func %s must have no arguments and no return values', $funcName));
+        return new self(sprintf('func %s must have no arguments and no return values', $funcName));
     }
 
     public static function iotaMisuse(): self
@@ -544,7 +553,7 @@ class RuntimeError extends \RuntimeException
             ? 'invalid operation: not enough arguments for %s() (expected %s, found %d)'
             : 'invalid operation: too many arguments for %s() (expected %s, found %d)';
 
-        return new self(\sprintf($msg, $name, $expected, $actual));
+        return new self(sprintf($msg, $name, $expected, $actual));
     }
 
     public static function wrongFuncArgumentNumber(Argv $argv, Params $params): self
@@ -569,32 +578,32 @@ class RuntimeError extends \RuntimeException
 
     public static function invalidLabel(string $label, JumpStatus $status): self
     {
-        return new self(\sprintf('invalid %s label %s', \strtolower($status->name), $label));
+        return new self(sprintf('invalid %s label %s', strtolower($status->name), $label));
     }
 
     public static function undefinedLoopLabel(string $label, JumpStatus $status): self
     {
-        return new self(\sprintf('%s label not defined: %s', \strtolower($status->name), $label));
+        return new self(sprintf('%s label not defined: %s', strtolower($status->name), $label));
     }
 
     public static function missingConversionArg(GoType $type): self
     {
-        return new self(\sprintf('missing argument in conversion to %s', $type->name()));
+        return new self(sprintf('missing argument in conversion to %s', $type->name()));
     }
 
     public static function tooManyConversionArgs(GoType $type): self
     {
-        return new self(\sprintf('too many arguments in conversion to %s', $type->name()));
+        return new self(sprintf('too many arguments in conversion to %s', $type->name()));
     }
 
     public static function methodOnNonLocalType(GoType $type): self
     {
-        return new self(\sprintf('cannot define new methods on non-local type %s', $type->name()));
+        return new self(sprintf('cannot define new methods on non-local type %s', $type->name()));
     }
 
     final protected static function fullName(string $name, string $selector): string
     {
-        return \sprintf('%s.%s', $name, $selector);
+        return sprintf('%s.%s', $name, $selector);
     }
 
     protected static function wrongFuncArity(
@@ -602,18 +611,18 @@ class RuntimeError extends \RuntimeException
         Params $params,
         string $type,
     ): self {
-        [$len, $values] = \is_array($values)
-            ? [\count($values), $values]
+        [$len, $values] = is_array($values)
+            ? [count($values), $values]
             : [$values->argc, $values->values];
 
         $msg = $params->len > $len ?
             'not enough ' :
             'too many ';
 
-        $msg .= \sprintf(
+        $msg .= sprintf(
             "%s\nhave (%s)\nwant (%s)",
             $type,
-            \implode(', ', \array_map(
+            implode(', ', array_map(
                 static fn (GoValue $value): string => $value->type()->name(),
                 $values,
             )),
@@ -635,14 +644,14 @@ class RuntimeError extends \RuntimeException
 
         if (!$value->isAddressable()) {
             if ($value instanceof Sequence) {
-                return \sprintf(
+                return sprintf(
                     '%s (value of type %s)',
                     $value->toString(),
                     $value->type()->name(),
                 );
             }
 
-            return \sprintf(
+            return sprintf(
                 '%s (%s constant)',
                 $value->toString(),
                 $value->type()->name(),
@@ -653,7 +662,7 @@ class RuntimeError extends \RuntimeException
         $valueString = $value instanceof FuncValue ? 'value' : $value->toString();
 
         if ($isConst) {
-            return \sprintf(
+            return sprintf(
                 '%s (%s constant %s)',
                 $value->getName(),
                 $value->type()->name(),
@@ -661,7 +670,7 @@ class RuntimeError extends \RuntimeException
             );
         }
 
-        return \sprintf(
+        return sprintf(
             '%s (variable of type %s)',
             $value->getName(),
             $value->type()->name(),
@@ -670,11 +679,11 @@ class RuntimeError extends \RuntimeException
 
     protected static function tupleTypeToString(TupleValue $tuple): string
     {
-        return \sprintf(
+        return sprintf(
             '(%s)',
-            \implode(
+            implode(
                 ', ',
-                \array_map(
+                array_map(
                     static fn (GoValue $value): string => $value->type()->name(),
                     $tuple->values,
                 ),

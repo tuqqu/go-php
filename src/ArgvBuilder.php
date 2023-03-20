@@ -13,6 +13,9 @@ use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\String\BaseString;
 use GoPhp\GoValue\Unpackable;
 
+use function array_pop;
+use function count;
+
 final class ArgvBuilder
 {
     /** @var array<int, GoValue> */
@@ -26,7 +29,7 @@ final class ArgvBuilder
     public function __construct(array $values = [])
     {
         $this->values = $values;
-        $this->argc = \count($values);
+        $this->argc = count($values);
     }
 
     public function add(GoValue $value): void
@@ -58,7 +61,7 @@ final class ArgvBuilder
 
         if ($this->unpacked) {
             /** @var Arg<Unpackable&AddressableValue> $unpackable */
-            $unpackable = \array_pop($argv);
+            $unpackable = array_pop($argv);
 
             foreach ($unpackable->value->unpack() as $value) {
                 $argv[] = new Arg($unpackable->pos, $value);;

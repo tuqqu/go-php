@@ -11,6 +11,9 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
 
+use function spl_object_id;
+use function sprintf;
+
 use const GoPhp\NIL;
 
 /**
@@ -101,7 +104,7 @@ final class PointerValue implements AddressableValue
 
     public function toString(): string
     {
-        return \sprintf('0x%x', $this->getAddress());
+        return sprintf('0x%x', $this->getAddress());
     }
 
     private function getAddress(): int
@@ -110,7 +113,7 @@ final class PointerValue implements AddressableValue
             return 0;
         }
 
-        return \spl_object_id($this->pointsTo);
+        return spl_object_id($this->pointsTo);
     }
 
     private function equals(self|UntypedNilValue $rhs): BoolValue

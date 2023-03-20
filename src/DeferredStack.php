@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use function array_reverse;
+
 final class DeferredStack
 {
     /** @var InvokableCall[][] */
@@ -30,6 +32,6 @@ final class DeferredStack
         unset($this->stack[$this->context - 1]);
         $this->context--;
 
-        yield from \array_reverse($defers);
+        yield from array_reverse($defers);
     }
 }

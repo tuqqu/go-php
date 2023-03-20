@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
+use Closure;
 use GoPhp\Argv;
 use GoPhp\Env\Environment;
 use GoPhp\Error\InternalError;
@@ -22,6 +23,9 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_values_compatible;
+
+use function spl_object_id;
+use function sprintf;
 
 use const GoPhp\NIL;
 use const GoPhp\ZERO_ADDRESS;
@@ -56,7 +60,7 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
      * @param FuncBody $body
      */
     public static function fromBody(
-        \Closure $body,
+        Closure $body,
         FuncType $type,
         Environment $enclosure,
         ?Receiver $receiver,
@@ -97,7 +101,7 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
 
     public function toString(): string
     {
-        return \sprintf('0x%x', $this->getAddress());
+        return sprintf('0x%x', $this->getAddress());
     }
 
     /**
@@ -164,6 +168,6 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
             return ZERO_ADDRESS;
         }
 
-        return \spl_object_id($this);
+        return spl_object_id($this);
     }
 }

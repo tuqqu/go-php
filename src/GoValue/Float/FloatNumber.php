@@ -12,12 +12,15 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\SimpleNumber;
 
+use function sprintf;
+
 /**
  * @template-extends SimpleNumber<float>
  */
 abstract class FloatNumber extends SimpleNumber
 {
     public const NAME = 'float';
+
     protected float $value;
 
     public function __construct(float $value)
@@ -32,7 +35,7 @@ abstract class FloatNumber extends SimpleNumber
 
     public function toString(): string
     {
-        return \sprintf('%f', $this->value);
+        return sprintf('%f', $this->value);
     }
 
     abstract public function type(): BasicType;

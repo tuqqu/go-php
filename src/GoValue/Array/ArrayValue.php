@@ -20,6 +20,8 @@ use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\Sliceable;
 use GoPhp\Operator;
 
+use function implode;
+use function sprintf;
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_int;
 use function GoPhp\assert_map_key;
@@ -67,7 +69,7 @@ final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValu
             $str[] = $value->toString();
         }
 
-        return \sprintf('[%s]', \implode(' ', $str));
+        return sprintf('[%s]', implode(' ', $str));
     }
 
     public function slice(?int $low, ?int $high, ?int $max = null): SliceValue
@@ -186,7 +188,7 @@ final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValu
         foreach ($this->values as $value) {
             assert_map_key($value);
 
-            $hash .= \sprintf(':%s', $value->hash());
+            $hash .= sprintf(':%s', $value->hash());
         }
 
         return $hash;

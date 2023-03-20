@@ -6,6 +6,11 @@ namespace GoPhp\Stream;
 
 use GoPhp\Error\InternalError;
 
+use function fclose;
+use function fopen;
+use function fwrite;
+use function rewind;
+
 class StringInputStream implements InputStream
 {
     /** @var resource */
@@ -14,7 +19,7 @@ class StringInputStream implements InputStream
 
     public function __construct(string $input)
     {
-        $handle = \fopen('php://memory', 'rb+');
+        $handle = fopen('php://memory', 'rb+');
 
         if ($handle === false) {
             throw new InternalError('cannot open in memory stream');
@@ -22,15 +27,15 @@ class StringInputStream implements InputStream
 
         $this->handle = $handle;
 
-        \fwrite($this->handle, $input);
-        \rewind($this->handle);
+        fwrite($this->handle, $input);
+        rewind($this->handle);
 
         $this->resourceStream = new ResourceInputStream($this->handle);
     }
 
     public function __destruct()
     {
-        \fclose($this->handle);
+        fclose($this->handle);
     }
 
     public function getChar(): ?string

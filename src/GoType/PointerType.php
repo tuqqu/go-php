@@ -8,6 +8,8 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\PointerValue;
 
+use function sprintf;
+
 /**
  * @see https://golang.org/ref/spec#Pointer_types
  *
@@ -24,7 +26,7 @@ final class PointerType implements RefType
 
     public function name(): string
     {
-        return \sprintf('*%s', $this->pointsTo->name());
+        return sprintf('*%s', $this->pointsTo->name());
     }
 
     public function equals(GoType $other): bool

@@ -9,6 +9,9 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Struct\StructBuilder;
 use GoPhp\GoValue\Struct\StructValue;
 
+use function count;
+use function implode;
+use function sprintf;
 use function GoPhp\normalize_unwindable;
 
 /**
@@ -27,13 +30,13 @@ final class StructType implements GoType
     {
         $fields = [];
         foreach ($this->fields as $field => $type) {
-            $fields[] = \sprintf('%s %s', $field, $type->name());
+            $fields[] = sprintf('%s %s', $field, $type->name());
         }
 
-        return \sprintf(
+        return sprintf(
             '%s{%s}',
             StructValue::NAME,
-            \implode(', ', $fields),
+            implode(', ', $fields),
         );
     }
 
@@ -45,7 +48,7 @@ final class StructType implements GoType
             return false;
         }
 
-        if (\count($this->fields) !== \count($other->fields)) {
+        if (count($this->fields) !== count($other->fields)) {
             return false;
         }
 

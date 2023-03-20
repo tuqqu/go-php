@@ -19,6 +19,8 @@ use GoPhp\Operator;
 use function GoPhp\assert_map_key;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\normalize_unwindable;
+use function implode;
+use function sprintf;
 
 /**
  * @template-implements Hashable<string>
@@ -42,7 +44,7 @@ final class StructValue implements Hashable, AddressableValue
             $str[] = $value->unwrap()->toString();
         }
 
-        return \sprintf('{%s}', \implode(' ', $str));
+        return sprintf('{%s}', implode(' ', $str));
     }
 
     public function operate(Operator $op): PointerValue
@@ -98,11 +100,6 @@ final class StructValue implements Hashable, AddressableValue
         return new self($this->fields->copy(), $this->type);
     }
 
-    public function clone(): self
-    {
-        return clone $this;
-    }
-
     public function accessField(string $name): GoValue
     {
         return $this->fields->get($name)->unwrap();
@@ -129,7 +126,7 @@ final class StructValue implements Hashable, AddressableValue
             $value = $envValue->unwrap();
             assert_map_key($value);
 
-            $hash .= \sprintf(':%s:%s', $field, $value->hash());
+            $hash .= sprintf(':%s:%s', $field, $value->hash());
         }
 
         return $hash;

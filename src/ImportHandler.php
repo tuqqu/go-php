@@ -6,6 +6,12 @@ namespace GoPhp;
 
 use GoPhp\Error\RuntimeError;
 
+use function file_get_contents;
+use function glob;
+use function is_dir;
+use function is_file;
+use function sprintf;
+
 class ImportHandler
 {
     final protected const EXTENSION_GO = '.go';
@@ -30,9 +36,9 @@ class ImportHandler
      */
     public function importFromPath(string $path): iterable
     {
-        $path = \sprintf('%s/src/%s', $this->envVars->goroot, $path);
+        $path = sprintf('%s/src/%s', $this->envVars->goroot, $path);
 
-        if (\is_dir($path)) {
+        if (is_dir($path)) {
             yield from $this->importFromDirectory($path);
 
             return;
@@ -41,7 +47,7 @@ class ImportHandler
         foreach ($this->extensions as $extension) {
             $file = $path . $extension;
 
-            if (\is_file($file)) {
+            if (is_file($file)) {
                 yield self::importFromFile($file);
 
                 return;
@@ -57,7 +63,7 @@ class ImportHandler
     protected function importFromDirectory(string $path): iterable
     {
         foreach ($this->extensions as $ext) {
-            $files = \glob(\sprintf('%s/*%s', $path, $ext));
+            $files = glob(sprintf('%s/*%s', $path, $ext));
 
             foreach ($files as $file) {
                 yield self::importFromFile($file);
@@ -71,6 +77,6 @@ class ImportHandler
 
     protected static function importFromFile(string $path): string
     {
-        return \file_get_contents($path);
+        return file_get_contents($path);
     }
 }

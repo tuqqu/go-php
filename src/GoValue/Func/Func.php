@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
+use Closure;
 use GoPhp\Argv;
 use GoPhp\Env\Environment;
 use GoPhp\Error\InternalError;
@@ -21,19 +22,20 @@ use GoPhp\StmtJump\None;
 use GoPhp\StmtJump\ReturnJump;
 use GoPhp\StmtJump\StmtJump;
 
+use function count;
 use function GoPhp\assert_arg_type;
 use function GoPhp\assert_argc;
 use function GoPhp\assert_types_compatible;
 
 /**
- * @psalm-type FuncBody = \Closure(Environment, string): StmtJump
+ * @psalm-type FuncBody = Closure(Environment, string): StmtJump
  */
 final class Func
 {
     public readonly FuncType $type;
 
     /** @var FuncBody */
-    private readonly \Closure $body;
+    private readonly Closure $body;
     private readonly Environment $enclosure;
     private readonly string $namespace;
     private readonly ?Receiver $receiver;
@@ -43,7 +45,7 @@ final class Func
      * @param FuncBody $body
      */
     public function __construct(
-        \Closure $body,
+        Closure $body,
         FuncType $type,
         Environment $enclosure,
         ?Receiver $receiver,
@@ -90,7 +92,7 @@ final class Func
                 $sliceType = new SliceType($param->type);
                 $sliceBuilder = SliceBuilder::fromType($sliceType);
 
-                for ($argc = \count($argv); $i < $argc; ++$i) {
+                for ($argc = count($argv); $i < $argc; ++$i) {
                     assert_arg_type($argv[$i], $param->type);
 
                     $sliceBuilder->pushBlindly($argv[$i]->value);
@@ -163,7 +165,7 @@ final class Func
             $zeroValues[] = $return->type->zeroValue();
         }
 
-        return match (\count($zeroValues)) {
+        return match (count($zeroValues)) {
             ReturnJump::LEN_VOID => new VoidValue(),
             ReturnJump::LEN_SINGLE => $zeroValues[0],
             default => new TupleValue($zeroValues),

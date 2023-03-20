@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Func;
 
+use ArrayAccess;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
+
+use function count;
+use function implode;
 
 /**
  * Formal parameters, actual parameters (arguments),
@@ -18,9 +22,9 @@ use GoPhp\Error\RuntimeError;
  *     ^^^^
  * ```
  *
- * @template-implements \ArrayAccess<int, Param>
+ * @template-implements ArrayAccess<int, Param>
  */
-final class Params implements \ArrayAccess
+final class Params implements ArrayAccess
 {
     public readonly int $len;
     public readonly bool $variadic;
@@ -35,7 +39,7 @@ final class Params implements \ArrayAccess
     public function __construct(array $params)
     {
         $this->params = $params;
-        $this->len = \count($params);
+        $this->len = count($params);
 
         if ($this->len === 0) {
             $this->variadic = false;
@@ -74,7 +78,7 @@ final class Params implements \ArrayAccess
             $types[] = ($param->variadic ? '...' : '') . $param->type->name();
         }
 
-        return \implode(', ', $types);
+        return implode(', ', $types);
     }
 
     /**

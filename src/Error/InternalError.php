@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
+use LogicException;
+
+use function get_debug_type;
+use function is_object;
+use function is_string;
+use function sprintf;
+
 /**
  * Errors that indicate a bug in the code.
  * They must not occur even when running a wrongly written program.
  */
-final class InternalError extends \LogicException
+final class InternalError extends LogicException
 {
     public static function unreachableMethodCall(): self
     {
@@ -18,20 +25,20 @@ final class InternalError extends \LogicException
     public static function unreachable(object|string|null $context): self
     {
         $context = match (true) {
-            \is_object($context) => $context::class,
-            \is_string($context) => $context,
+            is_object($context) => $context::class,
+            is_string($context) => $context,
             $context === null => '',
         };
 
-        return new self('unreachable' . $context ? \sprintf(': %s', $context) : '');
+        return new self('unreachable' . $context ? sprintf(': %s', $context) : '');
     }
 
     public static function unexpectedValue(mixed $value, ?string $expected = null): self
     {
-        $message = \sprintf('unexpected value: %s', \get_debug_type($value));
+        $message = sprintf('unexpected value: %s', get_debug_type($value));
 
         if ($expected !== null) {
-            $message .= \sprintf(', expected: %s', $expected);
+            $message .= sprintf(', expected: %s', $expected);
         }
 
         return new self($message);
@@ -39,7 +46,7 @@ final class InternalError extends \LogicException
 
     public static function unknownOperator(string $operator): self
     {
-        return new self(\sprintf('unknown operator: %s', $operator));
+        return new self(sprintf('unknown operator: %s', $operator));
     }
 
     public static function jumpStackUnderflow(): self

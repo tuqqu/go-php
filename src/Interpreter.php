@@ -118,6 +118,8 @@ use GoPhp\StmtJump\StmtJump;
 use GoPhp\Stream\StdStreamProvider;
 use GoPhp\Stream\StreamProvider;
 
+use function count;
+
 final class Interpreter
 {
     private Ast $ast;
@@ -363,7 +365,7 @@ final class Interpreter
                 $initExprs = $spec->initList->exprs;
             }
 
-            if (\count($initExprs) > \count($spec->identList->idents)) {
+            if (count($initExprs) > count($spec->identList->idents)) {
                 throw RuntimeError::extraInitExpr();
             }
 
@@ -406,7 +408,7 @@ final class Interpreter
             }
 
             $values = [];
-            $identsLen = \count($spec->identList->idents);
+            $identsLen = count($spec->identList->idents);
 
             if ($spec->initList === null) {
                 if ($type === null) {
@@ -563,7 +565,7 @@ final class Interpreter
         }
 
         /** @var Invokable $func */
-        $exprLen = \count($expr->args->exprs);
+        $exprLen = count($expr->args->exprs);
         $nValuedContext = 1;
         $argvBuilder = new ArgvBuilder();
         $startFrom = 0;
@@ -731,7 +733,7 @@ final class Interpreter
 
         return $this->evalWithEnvWrap($env, function () use ($stmtList, $jump): StmtJump {
             $stmtJump = None::None;
-            $len = \count($stmtList->stmts);
+            $len = count($stmtList->stmts);
             $gotoIndex = 0;
 
             for ($i = 0; $i < $len; ++$i) {
@@ -816,7 +818,7 @@ final class Interpreter
             $values[] = $value;
         }
 
-        if (\count($values) === ReturnJump::LEN_SINGLE) {
+        if (count($values) === ReturnJump::LEN_SINGLE) {
             return ReturnJump::fromSingle($values[0]);
         }
 
@@ -1001,7 +1003,7 @@ final class Interpreter
 
         for (
             $i = $fromCase,
-            $caseClausesLen = \count($stmt->caseClauses);
+            $caseClausesLen = count($stmt->caseClauses);
             $i < $caseClausesLen;
             $i++
         ) {
@@ -1043,7 +1045,7 @@ final class Interpreter
             default => [false, []],
         };
 
-        [$keyVar, $valVar] = match (\count($iterVars)) {
+        [$keyVar, $valVar] = match (count($iterVars)) {
             0 => [null, null],
             1 => [$iterVars[0], null],
             2 => $iterVars,
@@ -1119,7 +1121,7 @@ final class Interpreter
             $lhs[] = $this->evalLhsExpr($expr);
         }
 
-        $lhsLen = \count($lhs);
+        $lhsLen = count($lhs);
         $rhs = $this->collectValuesFromExprList($stmt->rhs, $lhsLen);
 
         for ($i = 0; $i < $lhsLen; ++$i) {
@@ -1131,7 +1133,7 @@ final class Interpreter
 
     private function evalShortVarDeclStmt(ShortVarDecl $stmt): None
     {
-        $len = \count($stmt->identList->idents);
+        $len = count($stmt->identList->idents);
         $values = $this->collectValuesFromExprList($stmt->exprList, $len);
 
         $hasNew = false;
@@ -1156,7 +1158,7 @@ final class Interpreter
     private function collectValuesFromExprList(ExprList $exprList, int $expectedLen): array
     {
         $value = $this->evalExpr($exprList->exprs[0]);
-        $exprLen = \count($exprList->exprs);
+        $exprLen = count($exprList->exprs);
 
         if ($value instanceof TupleValue) {
             if ($exprLen !== 1) {

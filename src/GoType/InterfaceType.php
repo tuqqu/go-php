@@ -11,6 +11,10 @@ use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Interface\InterfaceValue;
 use GoPhp\GoValue\WrappedValue;
 
+use function array_keys;
+use function implode;
+use function sprintf;
+
 /**
  * @template-implements Hashable<string>
  */
@@ -26,10 +30,10 @@ final class InterfaceType implements Hashable, GoType
 
     public function name(): string
     {
-        return \sprintf(
+        return sprintf(
             '%s{%s}',
             InterfaceValue::NAME,
-            \implode(', ', \array_keys($this->methods)),
+            implode(', ', array_keys($this->methods)),
         );
     }
 
@@ -74,7 +78,7 @@ final class InterfaceType implements Hashable, GoType
 
     private function checkWrappedType(WrappedType $other): bool
     {
-        if($this->envRef === null) {
+        if ($this->envRef === null) {
             return true;
         }
 

@@ -26,6 +26,10 @@ use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_index_sliceable;
 use function GoPhp\assert_values_compatible;
 
+use function implode;
+
+use function sprintf;
+
 use const GoPhp\NIL;
 
 /**
@@ -107,7 +111,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
             $str[] = $value->toString();
         }
 
-        return \sprintf('[%s]', \implode(' ', $str));
+        return sprintf('[%s]', implode(' ', $str));
     }
 
     public function slice(?int $low, ?int $high, ?int $max = null): self

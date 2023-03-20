@@ -4,15 +4,25 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Array;
 
+use ArrayAccess;
+use Countable;
+use Iterator;
 use GoPhp\GoValue\AddressableValue;
+
+use function array_slice;
+use function count;
+use function current;
+use function key;
+use function next;
+use function reset;
 
 /**
  * @template V of AddressableValue
  *
- * @template-implements \ArrayAccess<int, V>
- * @template-implements \Iterator<int, V>
+ * @template-implements ArrayAccess<int, V>
+ * @template-implements Iterator<int, V>
  */
-final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
+final class UnderlyingArray implements Countable, ArrayAccess, Iterator
 {
     /** @var V[] */
     private array $array;
@@ -49,7 +59,7 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
      */
     public function slice(int $offset, int $len): array
     {
-        return \array_slice($this->array, $offset, $len);
+        return array_slice($this->array, $offset, $len);
     }
 
     /**
@@ -62,7 +72,7 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
 
     public function count(): int
     {
-        return \count($this->array);
+        return count($this->array);
     }
 
     /**
@@ -70,27 +80,27 @@ final class UnderlyingArray implements \Countable, \ArrayAccess, \Iterator
      */
     public function current(): AddressableValue
     {
-        return \current($this->array);
+        return current($this->array);
     }
 
     public function next(): void
     {
-        \next($this->array);
+        next($this->array);
     }
 
     public function key(): int
     {
-        return \key($this->array);
+        return key($this->array);
     }
 
     public function valid(): bool
     {
-        return \current($this->array) !== false;
+        return current($this->array) !== false;
     }
 
     public function rewind(): void
     {
-        \reset($this->array);
+        reset($this->array);
     }
 
     public function offsetExists(mixed $offset): bool

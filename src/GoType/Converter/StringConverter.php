@@ -12,6 +12,10 @@ use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\String\BaseString;
 use GoPhp\GoValue\String\UntypedStringValue;
 
+use function array_map;
+use function implode;
+use function mb_chr;
+
 final class StringConverter
 {
     private const INVALID_RANGE_CHAR = "\u{FFFD}";
@@ -31,7 +35,7 @@ final class StringConverter
     {
         $int = $value->unwrap();
 
-        $char = \mb_chr($int, 'UTF-8');
+        $char = mb_chr($int, 'UTF-8');
 
         return $char === false
             ? self::INVALID_RANGE_CHAR
@@ -40,7 +44,7 @@ final class StringConverter
 
     private static function chars(array $values): string
     {
-        return \implode('', \array_map(self::char(...), $values));
+        return implode('', array_map(self::char(...), $values));
     }
 
     private static function isSliceConvertible(SliceValue $slice): bool

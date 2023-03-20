@@ -13,6 +13,7 @@ use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\StructType;
 use GoPhp\GoValue\GoValue;
 
+use function count;
 use function GoPhp\assert_types_compatible_with_cast;
 
 final class StructBuilder implements CompositeValueBuilder
@@ -68,8 +69,8 @@ final class StructBuilder implements CompositeValueBuilder
                 throw RuntimeError::mixedStructLiteralFields();
             }
 
-            $orderedCount = \count($this->orderedFields);
-            $fieldCount = \count($this->type->fields);
+            $orderedCount = count($this->orderedFields);
+            $fieldCount = count($this->type->fields);
 
             if ($orderedCount !== $fieldCount) {
                 throw RuntimeError::structLiteralTooManyValues($fieldCount, $orderedCount);

@@ -8,6 +8,8 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Map\MapValue;
 
+use function sprintf;
+
 /**
  * @see https://golang.org/ref/spec#Map_types
  */
@@ -19,7 +21,7 @@ final class MapType implements RefType
         public readonly GoType $keyType,
         public readonly GoType $elemType,
     ) {
-        $this->name = \sprintf(
+        $this->name = sprintf(
             '%s[%s]%s',
             MapValue::NAME,
             $this->keyType->name(),

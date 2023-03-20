@@ -17,6 +17,8 @@ use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Operator;
 
+use function implode;
+use function sprintf;
 use function GoPhp\assert_map_key;
 use function GoPhp\assert_index_type;
 use function GoPhp\assert_nil_comparison;
@@ -59,14 +61,14 @@ final class MapValue implements Map, AddressableValue
     {
         $str = [];
         foreach ($this->iter() as $key => $value) {
-            $str[] = \sprintf(
+            $str[] = sprintf(
                 '%s:%s',
                 $key->toString(),
                 $value->toString()
             );
         }
 
-        return \sprintf('map[%s]', \implode(' ', $str));
+        return sprintf('map[%s]', implode(' ', $str));
     }
 
     public function get(GoValue $at): MapLookupValue
@@ -179,10 +181,5 @@ final class MapValue implements Map, AddressableValue
     public function copy(): self
     {
         return $this;
-    }
-
-    public function clone(): self
-    {
-        return clone $this;
     }
 }

@@ -7,6 +7,13 @@ namespace GoPhp\GoValue\Int;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\UntypedType;
 
+use function bindec;
+use function hexdec;
+use function mb_ord;
+use function octdec;
+use function strlen;
+use function substr;
+
 final class UntypedIntValue extends IntNumber
 {
     public function __construct(
@@ -18,13 +25,13 @@ final class UntypedIntValue extends IntNumber
 
     public static function fromString(string $digits): self
     {
-        $prefix = \substr($digits, 0, 2);
+        $prefix = substr($digits, 0, 2);
 
         $int = (int) match (true) {
-            '0b' === $prefix => \bindec(self::getDigits($digits, 2, 'binary')),
-            '0x' === $prefix => \hexdec(self::getDigits($digits, 2, 'hexadecimal')),
-            '0o' === $prefix => \octdec(self::getDigits($digits, 2, 'octal')),
-            $digits[0] === '0' && \strlen($digits) >= 2 => \octdec(self::getDigits($digits, 1, 'octal')),
+            '0b' === $prefix => bindec(self::getDigits($digits, 2, 'binary')),
+            '0x' === $prefix => hexdec(self::getDigits($digits, 2, 'hexadecimal')),
+            '0o' === $prefix => octdec(self::getDigits($digits, 2, 'octal')),
+            $digits[0] === '0' && strlen($digits) >= 2 => octdec(self::getDigits($digits, 1, 'octal')),
             default => $digits,
         };
 
@@ -33,7 +40,7 @@ final class UntypedIntValue extends IntNumber
 
     public static function fromRune(string $rune): self
     {
-        return new self(\mb_ord($rune), UntypedType::UntypedRune);
+        return new self(mb_ord($rune), UntypedType::UntypedRune);
     }
 
     public function type(): UntypedType
@@ -43,7 +50,7 @@ final class UntypedIntValue extends IntNumber
 
     private static function getDigits(string $number, int $start, string $type): string
     {
-        $digits = \substr($number, $start);
+        $digits = substr($number, $start);
 
         if (empty($digits)) {
             throw RuntimeError::invalidNumberLiteral($type);

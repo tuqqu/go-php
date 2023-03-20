@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GoPhp\Stream;
 
+use function fwrite;
+
 class ResourceOutputStream implements OutputStream
 {
     /**
@@ -15,7 +17,7 @@ class ResourceOutputStream implements OutputStream
 
     public function write(string $str): void
     {
-        \fwrite($this->stream, $str);
+        fwrite($this->stream, $str);
     }
 
     public function writeln(string $str): void

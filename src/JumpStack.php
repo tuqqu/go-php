@@ -6,6 +6,8 @@ namespace GoPhp;
 
 use GoPhp\Error\InternalError;
 
+use function array_pop;
+
 final class JumpStack
 {
     /** @var JumpHandler[] */
@@ -23,6 +25,6 @@ final class JumpStack
 
     public function pop(): JumpHandler
     {
-        return \array_pop($this->stack) ?? throw InternalError::jumpStackUnderflow();
+        return array_pop($this->stack) ?? throw InternalError::jumpStackUnderflow();
     }
 }

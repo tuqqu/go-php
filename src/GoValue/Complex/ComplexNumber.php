@@ -24,6 +24,7 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
 use function GoPhp\normalize_unwindable;
+use function sprintf;
 
 /**
  * @psalm-type ComplexTuple = array{float, float}
@@ -57,7 +58,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
 
     public function toString(): string
     {
-        return \sprintf(
+        return sprintf(
             '(%s%f%s%f)',
             $this->real >= 0 ? '+' : '',
             $this->real,

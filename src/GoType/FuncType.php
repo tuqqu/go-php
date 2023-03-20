@@ -9,6 +9,8 @@ use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Func\FuncValue;
 use GoPhp\GoValue\Func\Params;
 
+use function sprintf;
+
 /**
  * @see https://golang.org/ref/spec#Function_types
  */
@@ -31,13 +33,13 @@ final class FuncType implements RefType
 
     public function name(): string
     {
-        return \sprintf(
+        return sprintf(
             'func(%s)%s',
             $this->params,
             match ($this->returns->len) {
                 0 => '',
-                1 => \sprintf(' %s', $this->returns),
-                default => \sprintf(' (%s)', $this->returns),
+                1 => sprintf(' %s', $this->returns),
+                default => sprintf(' (%s)', $this->returns),
             }
         );
     }

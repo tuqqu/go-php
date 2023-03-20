@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoValue\Map;
 
+use Closure;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\BoolValue;
@@ -11,7 +12,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
 
 /**
- * @psalm-type Mutator = \Closure(): void
+ * @psalm-type Mutator = Closure(): void
  * @template V of GoValue
  * @template-implements GoValue<V>
  */
@@ -22,9 +23,9 @@ final class MapLookupValue implements GoValue
      * @param Mutator|null $mutationCallback
      */
     public function __construct(
-        public readonly GoValue $value,
+        public readonly GoValue   $value,
         public readonly BoolValue $ok,
-        private readonly ?\Closure $mutationCallback = null,
+        private readonly ?Closure $mutationCallback = null,
     ) {}
 
     public function toString(): string

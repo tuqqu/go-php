@@ -7,6 +7,7 @@ namespace GoPhp\Builtin\BuiltinFunc;
 use GoPhp\Argv;
 use GoPhp\GoValue\Slice\SliceValue;
 
+use function array_slice;
 use function GoPhp\assert_arg_type_for;
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
@@ -23,7 +24,7 @@ class Append extends BaseBuiltinFunc
 
         /** @var SliceValue $slice */
         $slice = $argv[0]->value->clone();
-        $elems = \array_slice($argv->values, 1);
+        $elems = array_slice($argv->values, 1);
 
         foreach ($elems as $elem) {
             assert_arg_type_for($elem->value, $slice->type->elemType, $this->name);
@@ -34,10 +35,14 @@ class Append extends BaseBuiltinFunc
         return $slice;
     }
 
+    /**
+     * As a special case, it is legal to append a string to a byte slice, like this:
+     * ```
+     * slice = append([]byte("hello "), "world"...)
+     * ```
+     */
     public function permitsStringUnpacking(): bool
     {
-        // As a special case, it is legal to append a string to a byte slice, like this:
-        // slice = append([]byte("hello "), "world"...)
         return true;
     }
 }

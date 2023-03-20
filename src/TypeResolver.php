@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use Closure;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
 use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\Expr\FuncType as AstFuncType;
@@ -40,11 +41,11 @@ use GoPhp\GoValue\TypeValue;
 final class TypeResolver
 {
     /**
-     * @param \Closure(Expr): ?GoValue $constEvaluator
+     * @param Closure(Expr): ?GoValue $constEvaluator
      */
     public function __construct(
         private readonly ScopeResolver $scopeResolver,
-        private readonly \Closure $constEvaluator,
+        private readonly Closure $constEvaluator,
         private Environment &$envRef,
     ) {}
 

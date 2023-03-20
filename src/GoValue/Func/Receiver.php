@@ -37,7 +37,7 @@ final class Receiver
         }
 
         $receiverParam = $params[0];
-        self::validateType($receiverParam->type);
+        self::validateReceiverType($receiverParam->type);
 
         return new self(
             $receiverParam->name,
@@ -55,7 +55,7 @@ final class Receiver
     /**
      * @psalm-assert ReceiverType $receiverType
      */
-    private static function validateType(GoType $receiverType): void
+    private static function validateReceiverType(GoType $receiverType): void
     {
         if ($receiverType instanceof PointerType) {
             $receiverType = $receiverType->pointsTo;

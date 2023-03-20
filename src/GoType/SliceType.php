@@ -8,6 +8,8 @@ use GoPhp\GoType\Converter\DefaultConverter;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Slice\SliceValue;
 
+use function sprintf;
+
 /**
  * @see https://golang.org/ref/spec#Slice_types
  */
@@ -18,7 +20,7 @@ final class SliceType implements RefType
     public function __construct(
         public readonly GoType $elemType,
     ) {
-        $this->name = \sprintf('[]%s', $this->elemType->name());
+        $this->name = sprintf('[]%s', $this->elemType->name());
     }
 
     public static function fromArrayType(ArrayType $arrayType): self
