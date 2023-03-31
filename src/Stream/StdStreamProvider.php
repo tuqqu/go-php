@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace GoPhp\Stream;
 
+use const STDERR;
+use const STDIN;
+use const STDOUT;
+
 final class StdStreamProvider implements StreamProvider
 {
-    private readonly OutputStream $stdout;
-    private readonly OutputStream $stderr;
-    private readonly InputStream $stdin;
-
-    public function __construct()
-    {
-        $this->stdout = new ResourceOutputStream(\STDOUT);
-        $this->stderr = new ResourceOutputStream(\STDERR);
-        $this->stdin = new ResourceInputStream(\STDIN);
-    }
+    public function __construct(
+        private readonly OutputStream $stdout = new ResourceOutputStream(STDOUT),
+        private readonly OutputStream $stderr = new ResourceOutputStream(STDERR),
+        private readonly InputStream $stdin = new ResourceInputStream(STDIN),
+    ) {}
 
     public function stdout(): OutputStream
     {

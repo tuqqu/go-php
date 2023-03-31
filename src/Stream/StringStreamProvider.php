@@ -13,7 +13,7 @@ final class StringStreamProvider implements StreamProvider
     public function __construct(
         string &$outBuffer,
         string &$errBuffer,
-        string $inputSource,
+        string $inputSource = '',
     ) {
         $this->stdout = new StringOutputStream($outBuffer);
         $this->stderr = new StringOutputStream($errBuffer);
