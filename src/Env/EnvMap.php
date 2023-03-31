@@ -67,4 +67,9 @@ final class EnvMap
 
         return $copy;
     }
+
+    public function empty(): bool
+    {
+        return empty($this->values);
+    }
 }

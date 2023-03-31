@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace GoPhp\GoType;
 
 use GoPhp\Env\Environment;
-use GoPhp\Error\RuntimeError;
+use GoPhp\Error\InterfaceTypeError;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Interface\InterfaceValue;
 use GoPhp\GoValue\WrappedValue;
 
-use function array_keys;
 use function implode;
 use function sprintf;
 
@@ -30,10 +29,15 @@ final class InterfaceType implements Hashable, GoType
 
     public function name(): string
     {
+        $methods = [];
+        foreach ($this->methods as $name => $method) {
+            $methods[] = sprintf('%s() %s', $name, $method->returns);
+        }
+
         return sprintf(
             '%s{%s}',
             InterfaceValue::NAME,
-            implode(', ', array_keys($this->methods)),
+            implode('; ', $methods),
         );
     }
 
@@ -68,12 +72,30 @@ final class InterfaceType implements Hashable, GoType
             return $value;
         }
 
-        throw RuntimeError::conversionError($value, $value->type());
+        throw InterfaceTypeError::cannotUseAsInterfaceType($value, $this);
     }
 
     public function hash(): string
     {
         return $this->name();
+    }
+
+    public function tryGetMissingMethod(WrappedType $other): ?string
+    {
+        if ($this->envRef === null) {
+            return null;
+        }
+
+        foreach ($this->methods as $name => $method) {
+            if (
+                !$this->envRef->hasMethod($name, $other)
+                && !$this->envRef->hasMethod($name, $other->underlyingType)
+            ) {
+                return $name;
+            }
+        }
+
+        return null;
     }
 
     private function checkWrappedType(WrappedType $other): bool
@@ -82,15 +104,6 @@ final class InterfaceType implements Hashable, GoType
             return true;
         }
 
-        foreach ($this->methods as $name => $method) {
-            if (
-                !$this->envRef->hasMethod($name, $other)
-                && !$this->envRef->hasMethod($name, $other->underlyingType)
-            ) {
-                return false;
-            }
-        }
-
-        return true;
+        return $this->tryGetMissingMethod($other) === null;
     }
 }

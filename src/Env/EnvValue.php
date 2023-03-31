@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace GoPhp\Env;
 
+use GoPhp\Env\ValueConverter\AddressableValueConverter;
+use GoPhp\Env\ValueConverter\TypeableValueConverter;
+use GoPhp\Env\ValueConverter\ValueConverter;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
-use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedNilType;
-use GoPhp\GoType\UntypedType;
-use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\SimpleNumber;
-use GoPhp\GoValue\String\BaseString;
-use GoPhp\GoValue\TypeValue;
 use GoPhp\Operator;
 
 use function GoPhp\assert_types_compatible;
@@ -27,10 +24,21 @@ final class EnvValue
 
     public function __construct(string $name, GoValue $value, ?GoType $type = null)
     {
+        /** @var iterable<ValueConverter> $valueConverters */
+        static $valueConverters = [
+            new TypeableValueConverter(),
+            new AddressableValueConverter(),
+        ];
+
         $this->name = $name;
 
         if ($type !== null) {
-            $value = self::convertIfNeeded($value, $type);
+            foreach ($valueConverters as $converter) {
+                if ($converter->supports($value, $type)) {
+                    $value = $converter->convert($value, $type);
+                    break;
+                }
+            }
 
             if ($type instanceof UntypedNilType) {
                 throw RuntimeError::untypedNilInVarDecl();
@@ -66,29 +74,5 @@ final class EnvValue
         $opResult = $this->value->operateOn(Operator::EqEq, $other->value);
 
         return $opResult->unwrap();
-    }
-
-    private static function convertIfNeeded(GoValue $value, GoType $type): GoValue
-    {
-        if (
-            (
-                $value instanceof SimpleNumber
-                || $value instanceof BaseString
-            )
-            && $type instanceof NamedType
-            && $value->type() instanceof UntypedType
-        ) {
-            return $value->becomeTyped($type);
-        }
-
-        if (
-            $type instanceof WrappedType
-            && !$value instanceof TypeValue
-            && $value instanceof AddressableValue
-        ) {
-            return $type->convert($value);
-        }
-
-        return $value;
     }
 }

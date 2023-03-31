@@ -22,8 +22,6 @@ use const GoPhp\NIL;
  */
 final class InterfaceValue implements AddressableValue
 {
-    // fixme: this is a stub for now
-
     use AddressableTrait;
 
     public const NAME = 'interface';

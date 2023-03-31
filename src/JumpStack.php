@@ -6,6 +6,7 @@ namespace GoPhp;
 
 use GoPhp\Error\InternalError;
 
+use function array_key_last;
 use function array_pop;
 
 final class JumpStack
@@ -20,7 +21,7 @@ final class JumpStack
 
     public function peek(): JumpHandler
     {
-        return $this->stack[\array_key_last($this->stack) ?? throw InternalError::jumpStackUnderflow()];
+        return $this->stack[array_key_last($this->stack) ?? throw InternalError::jumpStackUnderflow()];
     }
 
     public function pop(): JumpHandler

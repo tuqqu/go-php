@@ -33,7 +33,6 @@ interface AddressableValue extends GoValue
      */
     public function addressedWithName(string $name): void;
 
-
     /**
      * Copying an addressable value results in an addressable value.
      */

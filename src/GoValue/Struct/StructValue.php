@@ -131,4 +131,9 @@ final class StructValue implements Hashable, AddressableValue
 
         return $hash;
     }
+
+    public function getFields(): EnvMap
+    {
+        return $this->fields;
+    }
 }

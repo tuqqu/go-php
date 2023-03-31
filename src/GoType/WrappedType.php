@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\GoType;
 
+use GoPhp\Error\InterfaceTypeError;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Hashable;
@@ -67,6 +68,9 @@ final class WrappedType implements Unwindable, Hashable, GoType
         );
     }
 
+    /**
+     * @return callable(GoValue): WrappedValue
+     */
     public function valueCallback(): callable
     {
         return fn (GoValue $value): WrappedValue => new WrappedValue($value, $this);
@@ -74,10 +78,13 @@ final class WrappedType implements Unwindable, Hashable, GoType
 
     public function convert(AddressableValue $value): WrappedValue
     {
-        return new WrappedValue(
-            $this->underlyingType->convert($value),
-            $this,
-        );
+        try {
+            $convertedValue = $this->underlyingType->convert($value);
+        } catch (InterfaceTypeError $e) {
+            throw InterfaceTypeError::fromOther($e, $this);
+        }
+
+        return new WrappedValue($convertedValue, $this);
     }
 
     public function isLocal(string $package): bool

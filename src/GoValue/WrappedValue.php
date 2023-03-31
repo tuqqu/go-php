@@ -11,9 +11,11 @@ use GoPhp\Operator;
 /**
  * Value with a wrapped type, i.e. a defined type.
  *
+ * ```
  * type myInt int
  * var x myInt = 42
  *     ^ x is a wrapped value
+ *```
  *
  * @template-implements AddressableValue<never>
  * @template-implements Unwindable<GoValue>
@@ -26,11 +28,6 @@ final class WrappedValue implements Unwindable, AddressableValue
         public readonly GoValue $underlyingValue,
         public readonly WrappedType $wrappedType,
     ) {}
-
-    public function unwrap(): never
-    {
-        throw InternalError::unreachable($this);
-    }
 
     public function unwind(): GoValue
     {
@@ -78,6 +75,11 @@ final class WrappedValue implements Unwindable, AddressableValue
     public function toString(): string
     {
         return $this->underlyingValue->toString();
+    }
+
+    public function unwrap(): never
+    {
+        throw InternalError::unreachable($this);
     }
 
     private function enwrapNew(GoValue $value): self

@@ -15,14 +15,17 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\Sequence;
+use GoPhp\GoValue\Struct\StructValue;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\UntypedNilValue;
+use GoPhp\GoValue\WrappedValue;
 use GoPhp\JumpStatus;
 use GoPhp\Operator;
 use RuntimeException;
 
 use function array_map;
 use function count;
+use function GoPhp\normalize_unwindable;
 use function implode;
 use function is_array;
 use function is_int;
@@ -667,6 +670,18 @@ class RuntimeError extends RuntimeException
                 $value->getName(),
                 $value->type()->name(),
                 $valueString,
+            );
+        }
+
+        if (
+            $value instanceof WrappedValue
+            && ($normalizedValue = normalize_unwindable($value)) instanceof StructValue
+        ) {
+            return sprintf(
+                '%s%s (value of type %s)',
+                $value->type()->name(),
+                $normalizedValue->getFields()->empty() ? '{}' : '{…}',
+                $value->type()->name(),
             );
         }
 

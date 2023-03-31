@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use GoPhp\Builtin\BuiltinFunc\BuiltinFunc;
+use GoPhp\Error\InterfaceTypeError;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
+use GoPhp\GoType\InterfaceType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
+use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Float\FloatNumber;
 use GoPhp\GoValue\Func\Func;
@@ -18,6 +21,7 @@ use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Castable;
 use GoPhp\GoValue\UntypedNilValue;
+use GoPhp\GoValue\WrappedValue;
 
 /**
  * Asserts that two types are compatible with each other,
@@ -32,6 +36,10 @@ use GoPhp\GoValue\UntypedNilValue;
 function assert_types_compatible(GoType $a, GoType $b): void
 {
     if (!$a->isCompatible($b)) {
+        if ($a instanceof InterfaceType && ($b instanceof WrappedType || $b instanceof WrappedValue)) {
+            throw InterfaceTypeError::cannotUseAsInterfaceType($b, $a);
+        }
+
         throw RuntimeError::mismatchedTypes($a, $b);
     }
 }
