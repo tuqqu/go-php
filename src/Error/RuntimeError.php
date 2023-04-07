@@ -419,9 +419,14 @@ class RuntimeError extends RuntimeException
         return new self('invalid use of [...] array (outside a composite literal)');
     }
 
-    public static function noEntryPoint(string $funcName): self
+    public static function noEntryPointFunction(string $funcName, string $packageName): self
     {
-        return new self(sprintf('function %s is undeclared in the main package', $funcName));
+        return new self(sprintf('function %s is undeclared in the %s package', $funcName, $packageName));
+    }
+
+    public static function notEntryPointPackage(string $currentPackage, string $entryPointPackage): self
+    {
+        return new self(sprintf('package %s is not a %s package', $currentPackage, $entryPointPackage));
     }
 
     public static function nonDeclarationOnTopLevel(): self

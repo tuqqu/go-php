@@ -196,7 +196,17 @@ final class Interpreter
             $this->evalDeclsInOrder();
 
             if ($this->entryPoint === null) {
-                throw RuntimeError::noEntryPoint($this->entryPointValidator->getFuncName());
+                if ($this->scopeResolver->entryPointPackage === $this->entryPointValidator->getPackageName()) {
+                    throw RuntimeError::noEntryPointFunction(
+                        $this->entryPointValidator->getFuncName(),
+                        $this->entryPointValidator->getPackageName(),
+                    );
+                }
+
+                throw RuntimeError::notEntryPointPackage(
+                    $this->scopeResolver->entryPointPackage,
+                    $this->entryPointValidator->getPackageName(),
+                );
             }
 
             $call = new InvokableCall($this->entryPoint, $this->argv);
@@ -295,6 +305,7 @@ final class Interpreter
     private function setAst(Ast $ast): void
     {
         $this->ast = $ast;
+        $this->scopeResolver->entryPointPackage = $ast->package->identifier->name;
         $this->scopeResolver->currentPackage = $ast->package->identifier->name;
     }
 
