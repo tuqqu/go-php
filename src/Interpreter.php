@@ -1127,16 +1127,27 @@ final class Interpreter
             throw RuntimeError::expectedAssignmentOperator($op);
         }
 
-        $lhs = [];
-        foreach ($stmt->lhs->exprs as $expr) {
-            $lhs[] = $this->evalLhsExpr($expr);
-        }
-
-        $lhsLen = count($lhs);
+        $lhsLen = count($stmt->lhs->exprs);
         $rhs = $this->collectValuesFromExprList($stmt->rhs, $lhsLen);
 
-        for ($i = 0; $i < $lhsLen; ++$i) {
-            $lhs[$i]->mutate($op, $rhs[$i]);
+        if ($lhsLen === 1) {
+            $this->evalLhsExpr($stmt->lhs->exprs[0])->mutate($op, $rhs[0]);
+
+            return None::None;
+        }
+
+        $lhs = [];
+        $lhsCopies = [];
+        foreach ($stmt->lhs->exprs as $i => $expr) {
+            $lhsVal = $this->evalLhsExpr($expr);
+            $lhsValCopy = $lhsVal->copy();
+            $lhsValCopy->mutate($op, $rhs[$i]);
+            $lhs[] = $lhsVal;
+            $lhsCopies[] = $lhsValCopy;
+        }
+
+        foreach ($lhs as $i => $lhsVal) {
+            $lhsVal->mutate(Operator::Eq, $lhsCopies[$i]);
         }
 
         return None::None;
