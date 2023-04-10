@@ -8,13 +8,13 @@ use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoValue\AddressableValue;
 
-use function GoPhp\normalize_unwindable;
+use function GoPhp\try_unwind;
 
 final class DefaultConverter
 {
     public static function convert(AddressableValue $value, GoType $type): AddressableValue
     {
-        $value = normalize_unwindable($value);
+        $value = try_unwind($value);
 
         return $type->equals($value->type())
             ? $value

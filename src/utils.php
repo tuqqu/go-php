@@ -63,7 +63,7 @@ const INIT_FUNC_NAME = 'init';
  * @param T $object
  * @psalm-return ($object is Unwindable<V> ? V : T)
  */
-function normalize_unwindable(object $object): object
+function try_unwind(object $object): object
 {
     if ($object instanceof Unwindable) {
         $object = $object->unwind();

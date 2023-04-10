@@ -51,7 +51,7 @@ class StdBuiltinProvider implements BuiltinProvider
 
     public function env(): Environment
     {
-        $env = new Environment();
+        $env = Environment::new();
 
         $this->defineConsts($env);
         $this->defineVars($env);

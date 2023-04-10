@@ -8,6 +8,8 @@ use GoPhp\Argv;
 use GoPhp\GoValue\VoidValue;
 use GoPhp\Stream\OutputStream;
 
+use function implode;
+
 /**
  * @see https://pkg.go.dev/builtin#print
  */
@@ -28,7 +30,7 @@ class Print_ extends BaseBuiltinFunc
             $output[] = $arg->value->toString();
         }
 
-        $this->stderr->write(\implode('', $output));
+        $this->stderr->write(implode('', $output));
 
         return new VoidValue();
     }

@@ -23,7 +23,7 @@ use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
-use function GoPhp\normalize_unwindable;
+use function GoPhp\try_unwind;
 use function sprintf;
 
 /**
@@ -94,7 +94,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
     {
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_unwindable($rhs);
+        $rhs = try_unwind($rhs);
 
         if ($rhs instanceof SimpleNumber && $rhs->type() instanceof UntypedType) {
             $rhs = static::fromSimpleNumber($rhs);
@@ -117,7 +117,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
 
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_unwindable($rhs);
+        $rhs = try_unwind($rhs);
 
         if ($rhs instanceof SimpleNumber && $rhs->type() instanceof UntypedType) {
             $rhs = static::fromSimpleNumber($rhs);

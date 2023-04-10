@@ -9,8 +9,10 @@ use GoPhp\GoType\BasicType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\SimpleNumber;
+use GoPhp\Operator;
 
 use function sprintf;
 
@@ -104,16 +106,31 @@ abstract class FloatNumber extends SimpleNumber
 
     final protected function doBecomeTyped(NamedType $type): AddressableValue&Sealable
     {
-        $number = $this->unwrap();
-
         if ($type->isInt() && $this->type() === UntypedType::UntypedRoundFloat) {
             return $this->convertTo($type);
         }
+
+        $number = $this->unwrap();
 
         return match ($type) {
             NamedType::Float32 => new Float32Value($number),
             NamedType::Float64 => new Float64Value($number),
             default => throw RuntimeError::implicitConversionError($this, $type),
         };
+    }
+
+    final protected function completeOperate(Operator $op): never
+    {
+        throw RuntimeError::undefinedOperator($op, $this, true);
+    }
+
+    final protected function completeOperateOn(Operator $op, GoValue $rhs): never
+    {
+        throw RuntimeError::undefinedOperator($op, $this);
+    }
+
+    final protected function completeMutate(Operator $op, GoValue $rhs): void
+    {
+        throw RuntimeError::undefinedOperator($op, $this);
     }
 }

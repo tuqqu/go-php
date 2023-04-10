@@ -55,7 +55,7 @@ final class Func
         $this->namespace = $namespace;
         $this->type = $type;
         $this->receiver = $receiver;
-        $this->enclosure = new Environment(enclosing: $enclosure); // remove?
+        $this->enclosure = Environment::fromEnclosing($enclosure);
     }
 
     public function bind(AddressableValue $instance): void
@@ -67,8 +67,7 @@ final class Func
     {
         assert_argc($this, $argv, $this->type->arity, $this->type->variadic);
 
-        $env = new Environment(enclosing: $this->enclosure);
-
+        $env = Environment::fromEnclosing($this->enclosure);
         $namedReturns = [];
 
         if ($this->type->returns->named) {

@@ -6,6 +6,8 @@ namespace GoPhp\GoValue\Int;
 
 use GoPhp\GoType\NamedType;
 
+use function mb_ord;
+
 final class Uint8Value extends IntNumber
 {
     public const MIN = 0;
@@ -13,7 +15,7 @@ final class Uint8Value extends IntNumber
 
     public static function fromByte(string $byte): self
     {
-        return new self(\mb_ord($byte));
+        return new self(mb_ord($byte));
     }
 
     public function type(): NamedType

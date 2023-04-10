@@ -18,7 +18,7 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_map_key;
 use function GoPhp\assert_values_compatible;
-use function GoPhp\normalize_unwindable;
+use function GoPhp\try_unwind;
 use function implode;
 use function sprintf;
 
@@ -60,7 +60,7 @@ final class StructValue implements Hashable, AddressableValue
     {
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_unwindable($rhs);
+        $rhs = try_unwind($rhs);
 
         return match ($op) {
             Operator::EqEq => $this->equals($rhs),
@@ -75,7 +75,7 @@ final class StructValue implements Hashable, AddressableValue
             assert_values_compatible($this, $rhs);
 
             /** @var self $rhs */
-            $rhs = normalize_unwindable($rhs);
+            $rhs = try_unwind($rhs);
 
             $this->fields = $rhs->fields->copy();
 

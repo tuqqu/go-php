@@ -18,12 +18,12 @@ final class Environment
 {
     public const BLANK_IDENT = '_';
 
+    public readonly string $blankIdent;
     private readonly EnvMap $envMap;
     private readonly MethodSet $registeredMethods;
     private readonly ?self $enclosing;
-    private readonly string $blankIdent;
 
-    public function __construct(?self $enclosing = null, string $blankIdent = self::BLANK_IDENT)
+    private function __construct(?self $enclosing, string $blankIdent)
     {
         $this->envMap = new EnvMap();
         $this->registeredMethods = new MethodSet();
@@ -31,8 +31,17 @@ final class Environment
         $this->enclosing = $enclosing;
         $this->blankIdent = $blankIdent;
 
-        $blankValue = new EnvValue(self::BLANK_IDENT, new BlankValue());
-        $this->envMap->add($blankValue);
+        $this->envMap->add(new EnvValue($this->blankIdent, new BlankValue()));
+    }
+
+    public static function new(string $blankIdent = self::BLANK_IDENT): self
+    {
+        return new self(null, $blankIdent);
+    }
+
+    public static function fromEnclosing(self $enclosing): self
+    {
+        return new self($enclosing, $enclosing->blankIdent);
     }
 
     public function defineConst(string $name, AddressableValue $value, GoType $type, string $namespace = EnvMap::NAMESPACE_TOP): void

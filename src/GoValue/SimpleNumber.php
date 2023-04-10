@@ -26,7 +26,7 @@ use GoPhp\GoValue\Int\UintValue;
 use GoPhp\Operator;
 
 use function GoPhp\assert_values_compatible;
-use function GoPhp\normalize_unwindable;
+use function GoPhp\try_unwind;
 
 /**
  * @template N = int|float
@@ -40,25 +40,22 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Typeable, A
     use SealableTrait;
     use AddressableTrait;
 
-    // fixme move this to child classes
     final public function convertTo(NamedType $type): self|ComplexNumber
     {
-        $number = $this->unwrap();
-
         return match ($type) {
-            NamedType::Int => new IntValue((int) $number),
-            NamedType::Int8 => new Int8Value((int) $number),
-            NamedType::Int16 => new Int16Value((int) $number),
-            NamedType::Int32 => new Int32Value((int) $number),
-            NamedType::Int64 => new Int64Value((int) $number),
-            NamedType::Uint => new UintValue((int) $number),
-            NamedType::Uint8 => new Uint8Value((int) $number),
-            NamedType::Uint16 => new Uint16Value((int) $number),
-            NamedType::Uint32 => new Uint32Value((int) $number),
-            NamedType::Uint64 => new Uint64Value((int) $number),
-            NamedType::Uintptr => new UintptrValue((int) $number),
-            NamedType::Float32 => new Float32Value((float) $number),
-            NamedType::Float64 => new Float64Value((float) $number),
+            NamedType::Int => new IntValue((int) $this->unwrap()),
+            NamedType::Int8 => new Int8Value((int) $this->unwrap()),
+            NamedType::Int16 => new Int16Value((int) $this->unwrap()),
+            NamedType::Int32 => new Int32Value((int) $this->unwrap()),
+            NamedType::Int64 => new Int64Value((int) $this->unwrap()),
+            NamedType::Uint => new UintValue((int) $this->unwrap()),
+            NamedType::Uint8 => new Uint8Value((int) $this->unwrap()),
+            NamedType::Uint16 => new Uint16Value((int) $this->unwrap()),
+            NamedType::Uint32 => new Uint32Value((int) $this->unwrap()),
+            NamedType::Uint64 => new Uint64Value((int) $this->unwrap()),
+            NamedType::Uintptr => new UintptrValue((int) $this->unwrap()),
+            NamedType::Float32 => new Float32Value((float) $this->unwrap()),
+            NamedType::Float64 => new Float64Value((float) $this->unwrap()),
             NamedType::Complex64 => Complex64Value::fromSimpleNumber($this),
             NamedType::Complex128 => Complex128Value::fromSimpleNumber($this),
             default => throw RuntimeError::implicitConversionError($this, $type),
@@ -86,7 +83,7 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Typeable, A
     {
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_unwindable($rhs);
+        $rhs = try_unwind($rhs);
 
         if ($rhs instanceof ComplexNumber && $this->type() instanceof UntypedType) {
             return $rhs::fromSimpleNumber($this)->operateOn($op, $rhs);
@@ -114,7 +111,7 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Typeable, A
 
         assert_values_compatible($this, $rhs);
 
-        $rhs = normalize_unwindable($rhs);
+        $rhs = try_unwind($rhs);
 
         match ($op) {
             Operator::Eq => $this->assign($rhs),
@@ -127,7 +124,7 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Typeable, A
         };
     }
 
-    final public function hash(): int
+    final public function hash(): int|float
     {
         return $this->unwrap();
     }
@@ -177,41 +174,18 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Typeable, A
     }
 
     abstract protected function negate(): static;
-
     abstract protected function add(self $value): static;
-
     abstract protected function sub(self $value): static;
-
     abstract protected function div(self $value): static;
-
     abstract protected function mod(self $value): static;
-
     abstract protected function mul(self $value): static;
-
     abstract protected function mutAdd(self $value): void;
-
     abstract protected function mutSub(self $value): void;
-
     abstract protected function mutDiv(self $value): void;
-
     abstract protected function mutMod(self $value): void;
-
     abstract protected function mutMul(self $value): void;
-
     abstract protected function assign(self $value): void;
-
-    protected function completeOperate(Operator $op): static|PointerValue
-    {
-        throw RuntimeError::undefinedOperator($op, $this, true);
-    }
-
-    protected function completeOperateOn(Operator $op, GoValue $rhs): static
-    {
-        throw RuntimeError::undefinedOperator($op, $this);
-    }
-
-    protected function completeMutate(Operator $op, GoValue $rhs): void
-    {
-        throw RuntimeError::undefinedOperator($op, $this);
-    }
+    abstract protected function completeOperate(Operator $op): static|PointerValue;
+    abstract protected function completeOperateOn(Operator $op, GoValue $rhs): static;
+    abstract protected function completeMutate(Operator $op, GoValue $rhs): void;
 }

@@ -7,7 +7,7 @@ namespace GoPhp\GoType;
 use GoPhp\Error\InternalError;
 use GoPhp\GoValue\AddressableValue;
 
-use function GoPhp\normalize_unwindable;
+use function GoPhp\try_unwind;
 
 /**
  * Primitive type that is not yet assigned to any variable
@@ -42,7 +42,7 @@ enum UntypedType implements BasicType
 
     public function isCompatible(GoType $other): bool
     {
-        $other = normalize_unwindable($other);
+        $other = try_unwind($other);
 
         if (!$other instanceof BasicType) {
             return false;

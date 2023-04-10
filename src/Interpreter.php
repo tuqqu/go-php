@@ -100,7 +100,6 @@ use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\Sliceable;
-use GoPhp\GoValue\String\BaseString;
 use GoPhp\GoValue\String\UntypedStringValue;
 use GoPhp\GoValue\Struct\StructBuilder;
 use GoPhp\GoValue\Struct\StructValue;
@@ -119,6 +118,7 @@ use GoPhp\Stream\StdStreamProvider;
 use GoPhp\Stream\StreamProvider;
 
 use function count;
+use function trim;
 
 final class Interpreter
 {
@@ -175,7 +175,7 @@ final class Interpreter
 
         $this->iota = $builtin->iota();
         $this->panicPointer = $builtin->panicPointer();
-        $this->env = new Environment($builtin->env());
+        $this->env = Environment::fromEnclosing($builtin->env());
         $this->argv = (new ArgvBuilder($argv))->build();
         $this->source = $toplevel ? self::wrapSource($source) : $source;
         $this->typeResolver = new TypeResolver(
@@ -661,7 +661,7 @@ final class Interpreter
     private function evalIndexExpr(IndexExpr $expr): GoValue
     {
         $sequence = $this->evalExpr($expr->expr);
-        $sequence = normalize_unwindable($sequence);
+        $sequence = try_unwind($sequence);
 
         if (!$sequence instanceof Sequence) {
             throw RuntimeError::cannotIndex($sequence->type());
@@ -672,7 +672,7 @@ final class Interpreter
         return $sequence->get($index);
     }
 
-    private function evalSliceExpr(SimpleSliceExpr|FullSliceExpr $expr): BaseString|SliceValue
+    private function evalSliceExpr(SimpleSliceExpr|FullSliceExpr $expr): GoValue&Sliceable
     {
         $sequence = $this->evalExpr($expr->expr);
 
@@ -798,7 +798,7 @@ final class Interpreter
      */
     private function evalWithEnvWrap(?Environment $env, callable $code): StmtJump
     {
-        [$prevEnv, $this->env] = [$this->env, $env ?? new Environment($this->env)];
+        [$prevEnv, $this->env] = [$this->env, $env ?? Environment::fromEnclosing($this->env)];
 
         try {
             return $code();
@@ -1330,17 +1330,17 @@ final class Interpreter
 
     private function evalRuneLit(RuneLit $lit): UntypedIntValue
     {
-        return UntypedIntValue::fromRune(\trim($lit->rune, '\''));
+        return UntypedIntValue::fromRune(trim($lit->rune, '\''));
     }
 
     private function evalStringLit(StringLit $lit): UntypedStringValue
     {
-        return new UntypedStringValue(\trim($lit->str, '"'));
+        return new UntypedStringValue(trim($lit->str, '"'));
     }
 
     private function evalRawStringLit(RawStringLit $lit): UntypedStringValue
     {
-        return new UntypedStringValue(\trim($lit->str, '`'));
+        return new UntypedStringValue(trim($lit->str, '`'));
     }
 
     private function evalIntLit(IntLit $lit): UntypedIntValue
@@ -1395,11 +1395,12 @@ final class Interpreter
     private function evalSelectorExpr(SelectorExpr $expr): GoValue
     {
         // package access
-        if (
-            $expr->expr instanceof Ident
-            && $this->env->isNamespaceDefined($expr->expr->name)
-        ) {
-            return $this->env->get($expr->selector->name, $expr->expr->name, implicit: false)->unwrap();
+        if ($expr->expr instanceof Ident && $this->env->isNamespaceDefined($expr->expr->name)) {
+            return $this->env->get(
+                $expr->selector->name,
+                $expr->expr->name,
+                implicit: false,
+            )->unwrap();
         }
 
         // struct access
@@ -1430,7 +1431,7 @@ final class Interpreter
 
         do {
             $check = false;
-            $value = normalize_unwindable($value);
+            $value = try_unwind($value);
 
             if ($value instanceof PointerValue) {
                 $value = $value->getPointsTo();

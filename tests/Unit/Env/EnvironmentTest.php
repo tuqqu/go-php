@@ -13,7 +13,7 @@ final class EnvironmentTest extends TestCase
 {
     public function testWithoutEnclosing(): void
     {
-        $env = new Environment();
+        $env = Environment::new();
 
         $valueA = new IntValue(1);
         $valueB = new IntValue(2);
@@ -30,8 +30,8 @@ final class EnvironmentTest extends TestCase
 
     public function testWithEnclosing(): void
     {
-        $enclosing = new Environment();
-        $env = new Environment(enclosing: $enclosing);
+        $enclosing = Environment::new();
+        $env = Environment::fromEnclosing($enclosing);
 
         $valueA = new IntValue(1);
         $valueB = new IntValue(2);

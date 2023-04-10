@@ -26,7 +26,7 @@ use GoPhp\GoValue\Int\UintptrValue;
 use GoPhp\GoValue\Int\UintValue;
 use GoPhp\GoValue\String\StringValue;
 
-use function GoPhp\normalize_unwindable;
+use function GoPhp\try_unwind;
 
 /**
  * Named types are primitive types that have a name.
@@ -110,7 +110,7 @@ enum NamedType: string implements BasicType
 
     public function isCompatible(GoType $other): bool
     {
-        $other = normalize_unwindable($other);
+        $other = try_unwind($other);
 
         if (!$other instanceof BasicType) {
             return false;

@@ -12,7 +12,7 @@ use GoPhp\GoValue\Struct\StructValue;
 use function count;
 use function implode;
 use function sprintf;
-use function GoPhp\normalize_unwindable;
+use function GoPhp\try_unwind;
 
 /**
  * @see https://golang.org/ref/spec#Struct_types
@@ -42,7 +42,7 @@ final class StructType implements GoType
 
     public function equals(GoType $other): bool
     {
-        $other = normalize_unwindable($other);
+        $other = try_unwind($other);
 
         if (!$other instanceof self) {
             return false;

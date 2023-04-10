@@ -25,7 +25,7 @@ use RuntimeException;
 
 use function array_map;
 use function count;
-use function GoPhp\normalize_unwindable;
+use function GoPhp\try_unwind;
 use function implode;
 use function is_array;
 use function is_int;
@@ -680,7 +680,7 @@ class RuntimeError extends RuntimeException
 
         if (
             $value instanceof WrappedValue
-            && ($normalizedValue = normalize_unwindable($value)) instanceof StructValue
+            && ($normalizedValue = try_unwind($value)) instanceof StructValue
         ) {
             return sprintf(
                 '%s%s (value of type %s)',
