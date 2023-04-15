@@ -46,13 +46,12 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
     public const NAME = 'slice';
 
     public readonly SliceType $type;
-    private int $pos = 0;
-
-    private int $len;
-    private int $cap;
 
     /** @var UnderlyingArray<V>|null */
     private ?UnderlyingArray $values;
+    private int $pos = 0;
+    private int $len;
+    private int $cap;
 
     /**
      * @param UnderlyingArray<V>|null $array
@@ -163,7 +162,6 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
     public function append(GoValue $value): void
     {
         if ($this->values === NIL) {
-            /** @var UnderlyingArray<V> $this->values */
             $this->values = UnderlyingArray::fromEmpty();
         }
 
@@ -244,14 +242,27 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
     }
 
     /**
-     * Types must be checked beforehand
-     *
-     * @param V $value
+     * @param Sequence<IntNumber, V> $seq
      */
-    public function setBlindly(GoValue $value, int $at): void
+    public function copyFromSequence(Sequence $seq): int
     {
-        /** @psalm-suppress PossiblyNullReference */
-        $this->values[$at + $this->pos] = $value;
+        if ($this->values === NIL) {
+            return 0;
+        }
+
+        $until = $this->len();
+        $i = 0;
+
+        foreach ($seq->iter() as $value) {
+            if ($i >= $until) {
+                break;
+            }
+
+            $this->values[$i + $this->pos] = $value;
+            ++$i;
+        }
+
+        return $i;
     }
 
     private function exceedsCapacity(): bool
@@ -267,11 +278,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
         }
 
         $this->pos = 0;
-        if ($this->cap === 0) {
-            $this->cap = 1;
-        } else {
-            $this->cap <<= 1;
-        }
+        $this->cap = CapGrowthHelper::calculateCap($this->cap);
 
         /** @var V[] $copies */
         $this->values = new UnderlyingArray($copies);

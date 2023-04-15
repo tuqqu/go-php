@@ -8,9 +8,11 @@ use GoPhp\Argv;
 use GoPhp\GoType\BasicType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\SliceType;
+use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\IntValue;
+use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceValue;
-use GoPhp\GoValue\String\BaseString;
 
 use function GoPhp\assert_arg_type;
 use function GoPhp\assert_arg_value;
@@ -44,21 +46,11 @@ class Copy extends BaseBuiltinFunc
         $src = $src->value;
 
         /**
-         * @var SliceValue $dst
-         * @var SliceValue|BaseString $src
+         * @var SliceValue<AddressableValue> $dst
+         * @var Sequence<IntNumber, AddressableValue> $src
          */
-        $until = $dst->len();
-        $i = 0;
+        $copied = $dst->copyFromSequence($src);
 
-        foreach ($src->iter() as $value) {
-            if ($i >= $until) {
-                break;
-            }
-
-            $dst->setBlindly($value, $i);
-            ++$i;
-        }
-
-        return new IntValue($i);
+        return new IntValue($copied);
     }
 }

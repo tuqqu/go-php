@@ -39,6 +39,9 @@ final class UnderlyingArray implements Countable, ArrayAccess, Iterator
         $this->array = $array;
     }
 
+    /**
+     * @return self<empty>
+     */
     public static function fromEmpty(): self
     {
         return new self([]);
