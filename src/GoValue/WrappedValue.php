@@ -77,13 +77,13 @@ final class WrappedValue implements Unwindable, AddressableValue
         return $this->underlyingValue->toString();
     }
 
-    public function unwrap(): never
-    {
-        throw InternalError::unreachable($this);
-    }
-
     private function enwrapNew(GoValue $value): self
     {
         return new self($value, $this->wrappedType);
+    }
+
+    public function unwrap(): never
+    {
+        throw InternalError::unreachableMethodCall();
     }
 }

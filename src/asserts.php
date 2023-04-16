@@ -21,7 +21,6 @@ use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Castable;
 use GoPhp\GoValue\UntypedNilValue;
-use GoPhp\GoValue\WrappedValue;
 
 /**
  * Asserts that two types are compatible with each other,
@@ -36,7 +35,27 @@ use GoPhp\GoValue\WrappedValue;
 function assert_types_compatible(GoType $a, GoType $b): void
 {
     if (!$a->isCompatible($b)) {
-        if ($a instanceof InterfaceType && ($b instanceof WrappedType || $b instanceof WrappedValue)) {
+        if ($a instanceof InterfaceType && $b instanceof WrappedType) {
+            throw InterfaceTypeError::cannotUseAsInterfaceType($b, $a);
+        }
+
+        throw RuntimeError::mismatchedTypes($a, $b);
+    }
+}
+
+/**
+ * Asserts that two types are equal
+ *
+ * @internal
+ *
+ * @template T of GoType
+ * @param T $a
+ * @psalm-assert T $b
+ */
+function assert_types_equal(GoType $a, GoType $b): void
+{
+    if (!$a->equals($b)) {
+        if ($a instanceof InterfaceType && $b instanceof WrappedType) {
             throw InterfaceTypeError::cannotUseAsInterfaceType($b, $a);
         }
 

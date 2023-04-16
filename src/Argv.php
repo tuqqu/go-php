@@ -20,12 +20,12 @@ final class Argv implements ArrayAccess, Countable
      */
     public function __construct(
         public readonly array $values,
-        public readonly int $argc = 0,
+        public readonly int $argc,
     ) {}
 
     public static function fromEmpty(): self
     {
-        return new self([]);
+        return new self([], 0);
     }
 
     public function offsetExists(mixed $offset): bool

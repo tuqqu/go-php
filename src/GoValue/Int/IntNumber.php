@@ -35,7 +35,6 @@ abstract class IntNumber extends SimpleNumber
     public function __construct(int $value)
     {
         $this->assertInBounds($value);
-
         $this->value = $value;
     }
 

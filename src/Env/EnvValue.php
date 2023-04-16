@@ -10,12 +10,14 @@ use GoPhp\Env\ValueConverter\ValueConverter;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\UntypedNilType;
+use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\Operator;
 
 use function GoPhp\assert_types_compatible;
+use function GoPhp\assert_types_equal;
 
 final class EnvValue
 {
@@ -24,13 +26,15 @@ final class EnvValue
 
     public function __construct(string $name, GoValue $value, ?GoType $type = null)
     {
+        if ($type instanceof UntypedNilType) {
+            throw RuntimeError::untypedNilInVarDecl();
+        }
+
         /** @var iterable<ValueConverter> $valueConverters */
         static $valueConverters = [
             new TypeableValueConverter(),
             new AddressableValueConverter(),
         ];
-
-        $this->name = $name;
 
         if ($type !== null) {
             foreach ($valueConverters as $converter) {
@@ -40,13 +44,14 @@ final class EnvValue
                 }
             }
 
-            if ($type instanceof UntypedNilType) {
-                throw RuntimeError::untypedNilInVarDecl();
+            if ($type instanceof UntypedType || $value->type() instanceof UntypedType) {
+                assert_types_compatible($type, $value->type());
+            } else {
+                assert_types_equal($type, $value->type());
             }
-
-            assert_types_compatible($type, $value->type());
         }
 
+        $this->name = $name;
         $this->value = $value;
     }
 
