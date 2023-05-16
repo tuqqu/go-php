@@ -24,7 +24,7 @@ use function GoPhp\assert_index_type;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_types_compatible;
 
-use const GoPhp\NIL;
+use const GoPhp\GoValue\NIL;
 
 /**
  * @template K of Hashable&GoValue

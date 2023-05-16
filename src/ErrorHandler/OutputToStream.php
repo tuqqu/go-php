@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\ErrorHandler;
 
+use GoPhp\Error\GoError;
 use GoPhp\Stream\OutputStream;
 
 /**
@@ -15,8 +16,8 @@ final class OutputToStream implements ErrorHandler
         private readonly OutputStream $stream
     ) {}
 
-    public function onError(string $error): void
+    public function onError(GoError $error): void
     {
-        $this->stream->writeln($error);
+        $this->stream->writeln($error->getMessage());
     }
 }

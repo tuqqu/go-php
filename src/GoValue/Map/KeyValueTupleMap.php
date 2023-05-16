@@ -22,7 +22,7 @@ use GoPhp\GoValue\Hashable;
  */
 final class KeyValueTupleMap implements Map
 {
-    /** @var array<scalar|null, array{key: K, value: V}> */
+    /** @var array<scalar, array{key: K, value: V}> */
     private array $values = [];
     private int $len = 0;
 

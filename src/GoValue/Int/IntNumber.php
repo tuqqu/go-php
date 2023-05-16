@@ -25,7 +25,7 @@ use const PHP_INT_MIN;
  */
 abstract class IntNumber extends SimpleNumber
 {
-    public const NAME = 'int';
+    final public const NAME = 'int';
 
     public const MIN = PHP_INT_MIN;
     public const MAX = PHP_INT_MAX;

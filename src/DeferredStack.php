@@ -8,18 +8,18 @@ use function array_reverse;
 
 final class DeferredStack
 {
-    /** @var InvokableCall[][] */
+    /** @var array<int, InvokableCallList> */
     private array $stack = [];
     private int $context = 0;
 
     public function newContext(): void
     {
-        $this->stack[$this->context++] = [];
+        $this->stack[$this->context++] = new InvokableCallList();
     }
 
     public function push(InvokableCall $fn): void
     {
-        $this->stack[$this->context - 1][] = $fn;
+        $this->stack[$this->context - 1]->add($fn);
     }
 
     /**
@@ -27,11 +27,15 @@ final class DeferredStack
      */
     public function iter(): iterable
     {
-        $defers = $this->stack[$this->context - 1] ?? [];
+        if (!isset($this->stack[$this->context - 1])) {
+            return;
+        }
+
+        yield from array_reverse(
+            $this->stack[$this->context - 1]->get()
+        );
 
         unset($this->stack[$this->context - 1]);
         $this->context--;
-
-        yield from array_reverse($defers);
     }
 }

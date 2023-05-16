@@ -20,17 +20,15 @@ use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Sliceable;
 use GoPhp\Operator;
 
+use function implode;
+use function sprintf;
 use function GoPhp\assert_index_exists;
 use function GoPhp\assert_index_int;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_index_sliceable;
 use function GoPhp\assert_values_compatible;
 
-use function implode;
-
-use function sprintf;
-
-use const GoPhp\NIL;
+use const GoPhp\GoValue\NIL;
 
 /**
  * @template V of AddressableValue

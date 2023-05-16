@@ -21,7 +21,7 @@ use function sprintf;
  */
 abstract class FloatNumber extends SimpleNumber
 {
-    public const NAME = 'float';
+    final public const NAME = 'float';
 
     protected float $value;
 

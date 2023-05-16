@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace GoPhp\ErrorHandler;
 
+use GoPhp\Error\GoError;
+
 /**
  * Error handler that collects given errors into an array.
  */
 final class Collector implements ErrorHandler
 {
-    /** @var list<string> */
+    /** @var list<GoError> */
     private array $errors = [];
 
-    public function onError(string $error): void
+    public function onError(GoError $error): void
     {
         $this->errors[] = $error;
     }

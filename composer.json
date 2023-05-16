@@ -27,7 +27,8 @@
         },
         "files": [
             "src/asserts.php",
-            "src/utils.php"
+            "src/utils.php",
+            "src/GoValue/utils.php"
         ]
     },
     "autoload-dev": {

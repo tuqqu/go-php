@@ -9,12 +9,9 @@ use GoPhp\Error\PanicError;
 use GoPhp\GoType\PointerType;
 use GoPhp\Operator;
 
-use function GoPhp\assert_values_compatible;
 use function spl_object_id;
 use function sprintf;
-
-use const GoPhp\NIL;
-use const GoPhp\ZERO_ADDRESS;
+use function GoPhp\assert_values_compatible;
 
 /**
  * @psalm-type Address = int

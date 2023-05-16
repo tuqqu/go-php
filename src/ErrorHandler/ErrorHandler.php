@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\ErrorHandler;
 
+use GoPhp\Error\GoError;
+
 interface ErrorHandler
 {
-    // fixme change to interface
-    public function onError(string $error): void;
+    public function onError(GoError $error): void;
 }

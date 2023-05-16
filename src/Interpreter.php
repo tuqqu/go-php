@@ -67,6 +67,7 @@ use GoPhp\Env\Environment;
 use GoPhp\Error\AbortExecutionError;
 use GoPhp\Error\InternalError;
 use GoPhp\Error\PanicError;
+use GoPhp\Error\ParserError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\ErrorHandler\ErrorHandler;
 use GoPhp\ErrorHandler\OutputToStream;
@@ -129,10 +130,9 @@ final class Interpreter
     private JumpStack $jumpStack;
     private DeferredStack $deferredStack;
     private ScopeResolver $scopeResolver;
+    private InvokableCallList $initializers;
     private bool $constContext = false;
     private int $switchContext = 0;
-    /** @var array<InvokableCall> */
-    private array $initializers = [];
     private readonly Argv $argv;
     private readonly ErrorHandler $errorHandler;
     private ?FuncValue $entryPoint = null;
@@ -152,14 +152,18 @@ final class Interpreter
         array $argv = [],
         ?ErrorHandler $errorHandler = null,
         StreamProvider $streams = new StdStreamProvider(),
-        FuncTypeValidator $entryPointValidator = new ZeroArityValidator(MAIN_FUNC_NAME, MAIN_PACK_NAME),
-        FuncTypeValidator $initValidator = new ZeroArityValidator(INIT_FUNC_NAME),
+        FuncTypeValidator $entryPointValidator = new ZeroArityValidator(
+            DEFAULT_ENTRY_POINT_FUNC_NAME,
+            DEFAULT_ENTRY_POINT_PACK_NAME
+        ),
+        FuncTypeValidator $initValidator = new ZeroArityValidator(DEFAULT_INITIALIZER_FUNC_NAME),
         EnvVarSet $envVars = new EnvVarSet(),
         bool $toplevel = false,
     ) {
         $this->jumpStack = new JumpStack();
         $this->deferredStack = new DeferredStack();
         $this->scopeResolver = new ScopeResolver();
+        $this->initializers = new InvokableCallList();
         $this->importHandler = new ImportHandler($envVars);
         $this->streams = $streams;
         $this->entryPointValidator = $entryPointValidator;
@@ -211,8 +215,8 @@ final class Interpreter
 
             $call = new InvokableCall($this->entryPoint, $this->argv);
             $this->callFunc($call);
-        } catch (RuntimeError $error) {
-            $this->errorHandler->onError($error->getMessage());
+        } catch (RuntimeError|PanicError $error) {
+            $this->errorHandler->onError($error);
             return ExitCode::Failure;
         } catch (AbortExecutionError) {
             return ExitCode::Failure;
@@ -275,11 +279,11 @@ final class Interpreter
             $this->evalMethodDeclStmt($decl);
         }
 
-        foreach ($this->initializers as $initializer) {
+        foreach ($this->initializers->get() as $initializer) {
             $this->callFunc($initializer);
         }
 
-        $this->initializers = [];
+        $this->initializers->empty();
         $this->scopeResolver->exitPackageScope();
     }
 
@@ -318,7 +322,8 @@ final class Interpreter
 
         if ($parser->hasErrors()) {
             foreach ($parser->getErrors() as $error) {
-                $this->errorHandler->onError((string) $error);
+                $error = ParserError::fromInternalParserError($error);
+                $this->errorHandler->onError($error);
             }
 
             throw new AbortExecutionError();
@@ -523,7 +528,7 @@ final class Interpreter
             $this->initValidator->validate($funcValue->type);
             // the identifier itself is not declared
             // init functions cannot be referred to from anywhere in a program
-            $this->initializers[] = new InvokableCall($funcValue, Argv::fromEmpty());
+            $this->initializers->add(new InvokableCall($funcValue, Argv::fromEmpty()));
 
             return;
         }
@@ -577,7 +582,7 @@ final class Interpreter
 
         /** @var Invokable $func */
         $exprLen = count($expr->args->exprs);
-        $nValuedContext = 1;
+        $nValuedContext = VALUE_CONTEXT_SINGLE;
         $argvBuilder = new ArgvBuilder();
         $startFrom = 0;
 
@@ -598,7 +603,7 @@ final class Interpreter
             $arg = $this->evalExpr($expr->args->exprs[$i]);
 
             if ($arg instanceof TupleValue) {
-                if ($exprLen !== 1) {
+                if ($exprLen !== VALUE_CONTEXT_SINGLE) {
                     throw RuntimeError::multipleValueInSingleContext($arg);
                 }
 
@@ -615,7 +620,7 @@ final class Interpreter
         }
 
         if ($expr->ellipsis !== null) {
-            if ($nValuedContext > 1) {
+            if ($nValuedContext > VALUE_CONTEXT_SINGLE) {
                 throw RuntimeError::cannotSplatMultipleValuedReturn($nValuedContext);
             }
 
@@ -627,9 +632,9 @@ final class Interpreter
 
     private function evalCallExpr(CallExpr $expr): GoValue
     {
-        $fn = $this->evalCallExprWithoutCall($expr);
-
-        return $this->callFunc($fn);
+        return $this->callFunc(
+            $this->evalCallExprWithoutCall($expr)
+        );
     }
 
     private function callFunc(InvokableCall $fn): GoValue
@@ -1057,9 +1062,9 @@ final class Interpreter
         };
 
         [$keyVar, $valVar] = match (count($iterVars)) {
-            0 => [null, null],
-            1 => [$iterVars[0], null],
-            2 => $iterVars,
+            VALUE_CONTEXT_ZERO => [null, null],
+            VALUE_CONTEXT_SINGLE => [$iterVars[0], null],
+            VALUE_CONTEXT_DOUBLE => $iterVars,
             default => throw RuntimeError::tooManyRangeVars(),
         };
 
@@ -1130,7 +1135,7 @@ final class Interpreter
         $lhsLen = count($stmt->lhs->exprs);
         $rhs = $this->collectValuesFromExprList($stmt->rhs, $lhsLen);
 
-        if ($lhsLen === 1) {
+        if ($lhsLen === VALUE_CONTEXT_SINGLE) {
             $this->evalLhsExpr($stmt->lhs->exprs[0])->mutate($op, $rhs[0]);
 
             return None::None;
@@ -1183,7 +1188,7 @@ final class Interpreter
         $exprLen = count($exprList->exprs);
 
         if ($value instanceof TupleValue) {
-            if ($exprLen !== 1) {
+            if ($exprLen !== VALUE_CONTEXT_SINGLE) {
                 throw RuntimeError::multipleValueInSingleContext($value);
             }
 
@@ -1195,8 +1200,8 @@ final class Interpreter
         }
 
         if (
-            $expectedLen === 2
-            && $exprLen === 1
+            $expectedLen === VALUE_CONTEXT_DOUBLE
+            && $exprLen === VALUE_CONTEXT_SINGLE
             && $value instanceof MapLookupValue
         ) {
             return [$value->value, $value->ok];

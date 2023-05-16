@@ -108,5 +108,4 @@ final class Params implements ArrayAccess
     {
         throw InternalError::unreachableMethodCall();
     }
-
 }

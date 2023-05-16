@@ -15,7 +15,7 @@ use GoPhp\Operator;
 
 use function GoPhp\assert_nil_comparison;
 
-use const GoPhp\NIL;
+use const GoPhp\GoValue\NIL;
 
 /**
  * @template-implements AddressableValue<never>

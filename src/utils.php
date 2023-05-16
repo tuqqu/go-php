@@ -18,39 +18,40 @@ use GoPhp\GoValue\Unwindable;
 const VERSION = '0.2.0';
 
 /**
- * Alias for `null` in place of `nil` value in reference types.
- *
- * @internal
- */
-const NIL = null;
-
-/**
- * Default address for values of reference types
- *
- * @internal
- */
-const ZERO_ADDRESS = 0x0;
-
-/**
  * Default name of the main package
  *
  * @internal
  */
-const MAIN_PACK_NAME = 'main';
+const DEFAULT_ENTRY_POINT_PACK_NAME = 'main';
 
 /**
  * Default name of the main function
  *
  * @internal
  */
-const MAIN_FUNC_NAME = 'main';
+const DEFAULT_ENTRY_POINT_FUNC_NAME = 'main';
 
 /**
  * Default name of the init function
  *
  * @internal
  */
-const INIT_FUNC_NAME = 'init';
+const DEFAULT_INITIALIZER_FUNC_NAME = 'init';
+
+/**
+ * @internal
+ */
+const VALUE_CONTEXT_ZERO = 0;
+
+/**
+ * @internal
+ */
+const VALUE_CONTEXT_SINGLE = 1;
+
+/**
+ * @internal
+ */
+const VALUE_CONTEXT_DOUBLE = 2;
 
 /**
  * Unwindable object normalization.

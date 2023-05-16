@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
+use GoParser\Lexer\Position;
 use GoPhp\Arg;
 use GoPhp\Argv;
 use GoPhp\GoType\GoType;
@@ -25,16 +26,16 @@ use RuntimeException;
 
 use function array_map;
 use function count;
-use function GoPhp\try_unwind;
 use function implode;
 use function is_array;
 use function is_int;
 use function is_string;
 use function sprintf;
 use function strtolower;
+use function GoPhp\try_unwind;
 use function GoPhp\construct_qualified_name;
 
-class RuntimeError extends RuntimeException
+class RuntimeError extends RuntimeException implements GoError
 {
     public static function numberOverflow(GoValue $value, GoType $type): self
     {
@@ -63,7 +64,7 @@ class RuntimeError extends RuntimeException
         return self::cannotUseArgumentAsType($value, $type, $name);
     }
 
-    public static function cannotUseArgumentAsType(GoValue $value, GoType|string $type, string $func)
+    public static function cannotUseArgumentAsType(GoValue $value, GoType|string $type, string $func): self
     {
         return new self(
             sprintf(
@@ -607,6 +608,11 @@ class RuntimeError extends RuntimeException
     public static function methodOnNonLocalType(GoType $type): self
     {
         return new self(sprintf('cannot define new methods on non-local type %s', $type->name()));
+    }
+
+    public function getPosition(): ?Position
+    {
+        return null;
     }
 
     final protected static function fullName(string $name, string $selector): string

@@ -21,14 +21,13 @@ use GoPhp\GoValue\SealableTrait;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Operator;
 
+use function spl_object_id;
+use function sprintf;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_values_compatible;
 
-use function spl_object_id;
-use function sprintf;
-
-use const GoPhp\NIL;
-use const GoPhp\ZERO_ADDRESS;
+use const GoPhp\GoValue\NIL;
+use const GoPhp\GoValue\ZERO_ADDRESS;
 
 /**
  * @psalm-type FuncCallable = callable(Argv): GoValue

@@ -22,9 +22,9 @@ use GoPhp\GoValue\SealableTrait;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
+use function sprintf;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\try_unwind;
-use function sprintf;
 
 /**
  * @psalm-type ComplexTuple = array{float, float}
