@@ -6,6 +6,4 @@ namespace GoPhp\Error;
 
 use LogicException;
 
-final class AbortExecutionError extends LogicException
-{
-}
+final class AbortExecutionError extends LogicException {}

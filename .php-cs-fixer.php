@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 const CONFIG = new PhpCsFixer\Config();
 const RULES = [
-    '@PSR12' => true,
+    '@PER' => true,
     'strict_param' => true,
-    'braces' => false,
     'single_import_per_statement' => false,
-    'no_break_comment' => false,                // false positive with match
     'no_unused_imports' => true,
     'array_syntax' => ['syntax' => 'short'],
+    'single_line_empty_body' => true,
+    'statement_indentation' => false,
 ];
 
 CONFIG->setRules(RULES);

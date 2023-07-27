@@ -7,6 +7,4 @@ namespace GoPhp\GoType;
 /**
  * Reference type is a type whose zero value is `nil`
  */
-interface RefType extends GoType
-{
-}
+interface RefType extends GoType {}

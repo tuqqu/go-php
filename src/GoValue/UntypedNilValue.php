@@ -58,7 +58,7 @@ final class UntypedNilValue implements AddressableValue
 
     public function type(): UntypedNilType
     {
-       return $this->type;
+        return $this->type;
     }
 
     public function toString(): string

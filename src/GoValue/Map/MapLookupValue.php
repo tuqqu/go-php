@@ -36,7 +36,7 @@ final class MapLookupValue implements GoValue
     public function operate(Operator $op): GoValue
     {
        if ($op === Operator::BitAnd) {
-            throw RuntimeError::cannotTakeAddressOfMapValue($this->value->type());
+           throw RuntimeError::cannotTakeAddressOfMapValue($this->value->type());
        }
 
        return $this->value->operate($op);
@@ -66,7 +66,7 @@ final class MapLookupValue implements GoValue
      */
     public function unwrap(): GoValue
     {
-        return $this->value;
+         return $this->value;
     }
 
     public function type(): GoType

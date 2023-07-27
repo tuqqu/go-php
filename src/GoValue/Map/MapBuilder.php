@@ -19,8 +19,7 @@ final class MapBuilder implements CompositeValueBuilder
     private function __construct(
         private readonly MapType $type,
         private readonly Map $innerMap = new KeyValueTupleMap(),
-    ) {
-    }
+    ) {}
 
     public static function fromType(MapType $type): self
     {

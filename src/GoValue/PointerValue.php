@@ -96,7 +96,7 @@ final class PointerValue implements AddressableValue
 
     public function type(): PointerType
     {
-       return $this->type;
+        return $this->type;
     }
 
     public function toString(): string

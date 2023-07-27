@@ -7,6 +7,4 @@ namespace GoPhp\GoValue;
 /**
  * Value that is invokable in a constant context.
  */
-interface ConstInvokable extends Invokable
-{
-}
+interface ConstInvokable extends Invokable {}

@@ -64,7 +64,7 @@ final class ArgvBuilder
             $unpackable = array_pop($argv);
 
             foreach ($unpackable->value->unpack() as $value) {
-                $argv[] = new Arg($unpackable->pos, $value);;
+                $argv[] = new Arg($unpackable->pos, $value);
             }
         }
 

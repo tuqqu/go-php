@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
-use GoParser\Lexer\Position;
 use GoPhp\Arg;
 use GoPhp\Argv;
 use GoPhp\GoType\GoType;
@@ -610,7 +609,7 @@ class RuntimeError extends RuntimeException implements GoError
         return new self(sprintf('cannot define new methods on non-local type %s', $type->name()));
     }
 
-    public function getPosition(): ?Position
+    public function getPosition(): null
     {
         return null;
     }

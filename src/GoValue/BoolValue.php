@@ -102,7 +102,7 @@ final class BoolValue implements Hashable, Castable, Sealable, AddressableValue
         throw RuntimeError::undefinedOperator($op, $this);
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         $cloned = clone $this;
         $cloned->sealed = false;

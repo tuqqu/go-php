@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
-use GoParser\Lexer\Position;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\String\UntypedStringValue;
 use RuntimeException;
@@ -32,7 +31,7 @@ class PanicError extends RuntimeException implements GoError
         return new self(new UntypedStringValue('assignment to entry in nil map'));
     }
 
-    public function getPosition(): ?Position
+    public function getPosition(): null
     {
         return null;
     }
