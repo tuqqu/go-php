@@ -12,13 +12,22 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#panic
  */
-class Panic extends BaseBuiltinFunc
+class Panic implements BuiltinFunc
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): never
     {
         assert_argc($this, $argv, 1);
         $v = $argv[0];
 
         throw new PanicError($v->value);
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

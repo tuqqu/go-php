@@ -7,6 +7,7 @@ use GoPhp\EnvVarSet;
 use GoPhp\ErrorHandler\OutputToStream;
 use GoPhp\Interpreter;
 use GoPhp\Stream\ResourceOutputStream;
+
 use const GoPhp\VERSION;
 
 const AUTOLOAD_PATHS = [
@@ -29,7 +30,7 @@ function require_autoload(array $paths): void
 
 function exit_with_error(string $msg): never
 {
-    fwrite(STDERR, sprintf("Error: %s\n", $msg));
+    fwrite(STDERR, sprintf("error: %s\n", $msg));
 
     exit(1);
 }
@@ -119,7 +120,7 @@ enum Flag: string
 
         $value = substr($str, strlen($this->value) + 3);
 
-        if ($value === false) {
+        if ($value === '') {
             exit_with_error(sprintf('invalid value for flag "%s"', $this->value));
         }
 
@@ -172,7 +173,8 @@ function main(array $argv): never
     }
 
     if ($file === null && $script === null) {
-        exit_with_error('no input file');
+        print_help();
+        exit(0);
     }
 
     $src = $script !== null

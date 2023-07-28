@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
+use GoPhp\Builtin\BuiltinFunc\Marker\ExpectsTypeAsFirstArg;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\TypeValue;
 
@@ -14,8 +15,12 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#new
  */
-class New_ extends BaseBuiltinFunc
+class New_ implements BuiltinFunc, ExpectsTypeAsFirstArg
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): PointerValue
     {
         assert_argc($this, $argv, 1);
@@ -26,8 +31,8 @@ class New_ extends BaseBuiltinFunc
         return PointerValue::fromValue($type->unwrap()->zeroValue());
     }
 
-    public function expectsTypeAsFirstArg(): bool
+    public function name(): string
     {
-        return true;
+        return $this->name;
     }
 }

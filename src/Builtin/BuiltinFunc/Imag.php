@@ -14,13 +14,22 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#imag
  */
-class Imag extends BaseBuiltinFunc
+class Imag implements BuiltinFunc
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): FloatNumber
     {
         assert_argc($this, $argv, 1);
         assert_arg_value($argv[0], ComplexNumber::class, ComplexNumber::NAME);
 
         return $argv[0]->value->imag();
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

@@ -32,6 +32,15 @@ GO);
 $interpreter->run();
 ```
 
+See [examples](examples/) for more.
+
+To run examples:
+
+```
+cd ./examples/{name}
+php main.php
+```
+
 ## WIP
 
 This is a work-in-progress project.

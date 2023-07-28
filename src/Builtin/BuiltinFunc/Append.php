@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
+use GoPhp\Builtin\BuiltinFunc\Marker\PermitsStringUnpacking;
 use GoPhp\GoValue\Slice\SliceValue;
 
 use function array_slice;
@@ -13,10 +14,25 @@ use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
 
 /**
+ *
+ * As a special case, it is legal to append a string to a byte slice, like this:
+ * ```
+ * slice = append([]byte("hello "), "world"...)
+ * ```
+ *
  * @see https://pkg.go.dev/builtin#append
  */
-class Append extends BaseBuiltinFunc
+class Append implements BuiltinFunc, PermitsStringUnpacking
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
+    public function name(): string
+    {
+        return $this->name;
+    }
+
     public function __invoke(Argv $argv): SliceValue
     {
         assert_argc($this, $argv, 2, true);
@@ -33,16 +49,5 @@ class Append extends BaseBuiltinFunc
         }
 
         return $slice;
-    }
-
-    /**
-     * As a special case, it is legal to append a string to a byte slice, like this:
-     * ```
-     * slice = append([]byte("hello "), "world"...)
-     * ```
-     */
-    public function permitsStringUnpacking(): bool
-    {
-        return true;
     }
 }

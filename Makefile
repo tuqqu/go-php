@@ -8,7 +8,6 @@ help:
 	@echo "Usage: make [target]"
 	@echo
 	@echo "Targets:"
-	@echo "  help     	Show this help message"
 	@echo "  test     	Run all tests"
 	@echo "  test-unit 	Run unit tests"
 	@echo "  test-func 	Run functional tests"
@@ -16,6 +15,7 @@ help:
 	@echo "  cs-fix   	Fix code style"
 	@echo "  cs-check 	Run code style checker"
 	@echo "  analyse  	Run type checker"
+	@echo "  help     	Show this help message"
 
 .PHONY: cs-fix
 cs-fix:

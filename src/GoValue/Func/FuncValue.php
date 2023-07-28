@@ -93,7 +93,7 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
         $this->innerFunc->bind($instance);
     }
 
-    public function copy(): static
+    public function copy(): self
     {
         return $this;
     }

@@ -14,8 +14,12 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#delete
  */
-class Delete extends BaseBuiltinFunc
+class Delete implements BuiltinFunc
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): VoidValue
     {
         assert_argc($this, $argv, 2);
@@ -27,5 +31,10 @@ class Delete extends BaseBuiltinFunc
         $m->delete($key);
 
         return new VoidValue();
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

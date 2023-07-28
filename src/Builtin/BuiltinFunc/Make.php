@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
+use GoPhp\Builtin\BuiltinFunc\Marker\ExpectsTypeAsFirstArg;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\MapType;
 use GoPhp\GoType\SliceType;
@@ -23,8 +24,12 @@ use function GoPhp\assert_index_positive;
 /**
  * @see https://pkg.go.dev/builtin#make
  */
-class Make extends BaseBuiltinFunc
+class Make implements BuiltinFunc, ExpectsTypeAsFirstArg
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): SliceValue|MapValue
     {
         assert_argc($this, $argv, 2, true);
@@ -86,8 +91,8 @@ class Make extends BaseBuiltinFunc
         throw RuntimeError::wrongArgumentType($argv[0], 'slice, map or channel');
     }
 
-    public function expectsTypeAsFirstArg(): bool
+    public function name(): string
     {
-        return true;
+        return $this->name;
     }
 }

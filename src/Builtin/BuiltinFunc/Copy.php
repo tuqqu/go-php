@@ -21,8 +21,12 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#copy
  */
-class Copy extends BaseBuiltinFunc
+class Copy implements BuiltinFunc
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): IntValue
     {
         assert_argc($this, $argv, 2);
@@ -52,5 +56,10 @@ class Copy extends BaseBuiltinFunc
         $copied = $dst->copyFromSequence($src);
 
         return new IntValue($copied);
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

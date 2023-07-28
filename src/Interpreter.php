@@ -60,6 +60,7 @@ use GoParser\Ast\Stmt\VarDecl;
 use GoParser\Ast\StmtList;
 use GoParser\Ast\TypeDef;
 use GoParser\Parser;
+use GoPhp\Builtin\BuiltinFunc\Marker\ExpectsTypeAsFirstArg;
 use GoPhp\Builtin\BuiltinProvider;
 use GoPhp\Builtin\Iota;
 use GoPhp\Builtin\StdBuiltinProvider;
@@ -123,6 +124,8 @@ use function trim;
 
 final class Interpreter
 {
+    private static None $noneJump;
+
     private Ast $ast;
     private Iota $iota;
     private PanicPointer $panicPointer;
@@ -187,6 +190,7 @@ final class Interpreter
             $this->tryEvalConstExpr(...),
             $this->env,
         );
+        self::$noneJump = new None();
     }
 
     /**
@@ -412,7 +416,7 @@ final class Interpreter
 
         $this->constContext = false;
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalVarDeclStmt(VarDecl $decl): None
@@ -447,7 +451,7 @@ final class Interpreter
             }
         }
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalTypeDeclStmt(TypeDecl $decl): None
@@ -459,7 +463,7 @@ final class Interpreter
             };
         }
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalAliasDeclStmt(AliasDecl $decl): void
@@ -565,7 +569,7 @@ final class Interpreter
         $fn = $this->evalCallExprWithoutCall($stmt->expr);
         $this->deferredStack->push($fn);
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalCallExprWithoutCall(CallExpr $expr): InvokableCall
@@ -588,7 +592,7 @@ final class Interpreter
 
         if (
             $func instanceof BuiltinFuncValue
-            && $func->func->expectsTypeAsFirstArg()
+            && $func->func instanceof ExpectsTypeAsFirstArg
             && isset($expr->args->exprs[0])
         ) {
             if (!$expr->args->exprs[0] instanceof AstType) {
@@ -708,7 +712,7 @@ final class Interpreter
 
     private function evalEmptyStmt(EmptyStmt $stmt): None
     {
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalBreakStmt(BreakStmt $stmt): BreakJump
@@ -734,7 +738,7 @@ final class Interpreter
     {
         $this->evalExpr($stmt->expr);
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalBlockStmt(BlockStmt $blockStmt, ?Environment $env = null): StmtJump
@@ -748,7 +752,7 @@ final class Interpreter
         $jump->setContext($stmtList);
 
         return $this->evalWithEnvWrap($env, function () use ($stmtList, $jump): StmtJump {
-            $stmtJump = None::None;
+            $stmtJump = self::$noneJump;
             $len = count($stmtList->stmts);
             $gotoIndex = 0;
 
@@ -857,7 +861,7 @@ final class Interpreter
     {
         $this->evalCallExpr($stmt->expr);
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalIfStmt(IfStmt $stmt): StmtJump
@@ -877,7 +881,7 @@ final class Interpreter
                 return $this->evalStmt($stmt->elseBody);
             }
 
-            return None::None;
+            return self::$noneJump;
         });
     }
 
@@ -929,7 +933,7 @@ final class Interpreter
                         continue 2;
                     case $stmtJump instanceof BreakJump:
                         if ($stmtJump->label === null) {
-                            return None::None;
+                            return self::$noneJump;
                         }
                         $this->jumpStack->peek()->setStatus(JumpStatus::Break);
                         return $stmtJump;
@@ -944,7 +948,7 @@ final class Interpreter
                 }
             }
 
-            return None::None;
+            return self::$noneJump;
         });
     }
 
@@ -961,7 +965,7 @@ final class Interpreter
                 ? BoolValue::true()
                 : $this->evalExpr($stmt->condition);
 
-            $stmtJump = None::None;
+            $stmtJump = self::$noneJump;
             $defaultCaseIndex = null;
 
             foreach ($stmt->caseClauses as $i => $caseClause) {
@@ -1007,7 +1011,7 @@ final class Interpreter
         }
 
         if ($stmtJump instanceof BreakJump) {
-            $stmtJump = None::None;
+            $stmtJump = self::$noneJump;
         }
 
         return $stmtJump;
@@ -1015,7 +1019,7 @@ final class Interpreter
 
     private function evalSwitchWithFallthrough(ExprSwitchStmt|TypeSwitchStmt $stmt, int $fromCase): StmtJump
     {
-        $stmtJump = None::None;
+        $stmtJump = self::$noneJump;
 
         for (
             $i = $fromCase,
@@ -1030,7 +1034,7 @@ final class Interpreter
                     throw RuntimeError::fallthroughFinalCase();
                 }
 
-                $stmtJump = None::None;
+                $stmtJump = self::$noneJump;
 
                 continue;
             }
@@ -1101,7 +1105,7 @@ final class Interpreter
                 case $stmtJump instanceof ContinueJump:
                     continue 2;
                 case $stmtJump instanceof BreakJump:
-                    return None::None;
+                    return self::$noneJump;
                 case $stmtJump instanceof ReturnJump || $stmtJump instanceof GotoJump:
                     return $stmtJump;
                 default:
@@ -1109,7 +1113,7 @@ final class Interpreter
             }
         }
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalIncDecStmt(IncDecStmt $stmt): None
@@ -1121,7 +1125,7 @@ final class Interpreter
                 new UntypedIntValue(1)
             );
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalAssignmentStmt(AssignmentStmt $stmt): None
@@ -1138,7 +1142,7 @@ final class Interpreter
         if ($lhsLen === VALUE_CONTEXT_SINGLE) {
             $this->evalLhsExpr($stmt->lhs->exprs[0])->mutate($op, $rhs[0]);
 
-            return None::None;
+            return self::$noneJump;
         }
 
         $lhs = [];
@@ -1155,7 +1159,7 @@ final class Interpreter
             $lhsVal->mutate(Operator::Eq, $lhsCopies[$i]);
         }
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function evalShortVarDeclStmt(ShortVarDecl $stmt): None
@@ -1179,7 +1183,7 @@ final class Interpreter
             throw RuntimeError::noNewVarsInShortAssignment();
         }
 
-        return None::None;
+        return self::$noneJump;
     }
 
     private function collectValuesFromExprList(ExprList $exprList, int $expectedLen): array

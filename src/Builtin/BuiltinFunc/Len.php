@@ -14,8 +14,12 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#len
  */
-class Len extends BaseBuiltinFunc
+class Len implements BuiltinFunc
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): IntValue
     {
         assert_argc($this, $argv, 1);
@@ -24,5 +28,10 @@ class Len extends BaseBuiltinFunc
         $v = $argv[0]->value;
 
         return new IntValue($v->len());
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

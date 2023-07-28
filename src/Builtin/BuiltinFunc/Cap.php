@@ -15,8 +15,12 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#cap
  */
-class Cap extends BaseBuiltinFunc
+class Cap implements BuiltinFunc
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): IntValue
     {
         assert_argc($this, $argv, 1);
@@ -32,5 +36,10 @@ class Cap extends BaseBuiltinFunc
         }
 
         throw RuntimeError::wrongArgumentType($capable, 'slice, array');
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

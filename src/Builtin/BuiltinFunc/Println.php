@@ -13,14 +13,12 @@ use function implode;
 /**
  * @see https://pkg.go.dev/builtin#println
  */
-class Println extends BaseBuiltinFunc
+class Println implements BuiltinFunc
 {
     public function __construct(
-        string $name,
+        private readonly string $name,
         private readonly OutputStream $stderr,
-    ) {
-        parent::__construct($name);
-    }
+    ) {}
 
     public function __invoke(Argv $argv): VoidValue
     {
@@ -33,5 +31,10 @@ class Println extends BaseBuiltinFunc
         $this->stderr->writeln(implode(' ', $output));
 
         return new VoidValue();
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

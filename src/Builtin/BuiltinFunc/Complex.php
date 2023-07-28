@@ -19,8 +19,12 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#complex
  */
-class Complex extends BaseBuiltinFunc
+class Complex implements BuiltinFunc
 {
+    public function __construct(
+        private readonly string $name,
+    ) {}
+
     public function __invoke(Argv $argv): ComplexNumber
     {
         assert_argc($this, $argv, 2);
@@ -41,5 +45,10 @@ class Complex extends BaseBuiltinFunc
         }
 
         return new UntypedComplexValue($real->unwrap(), $imag->unwrap());
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

@@ -9,8 +9,4 @@ use GoPhp\GoValue\ConstInvokable;
 interface BuiltinFunc extends ConstInvokable
 {
     public function name(): string;
-
-    public function expectsTypeAsFirstArg(): bool;
-
-    public function permitsStringUnpacking(): bool;
 }

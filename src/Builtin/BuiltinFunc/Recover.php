@@ -14,14 +14,12 @@ use function GoPhp\assert_argc;
 /**
  * @see https://pkg.go.dev/builtin#recover
  */
-class Recover extends BaseBuiltinFunc
+class Recover implements BuiltinFunc
 {
     public function __construct(
-        string $name,
+        private readonly string $name,
         private readonly PanicPointer $panicPointer,
-    ) {
-        parent::__construct($name);
-    }
+    ) {}
 
     public function __invoke(Argv $argv): InterfaceValue
     {
@@ -36,5 +34,10 @@ class Recover extends BaseBuiltinFunc
 
         // fixme type
         return InterfaceValue::nil(new InterfaceType());
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 }

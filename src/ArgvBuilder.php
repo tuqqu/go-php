@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use GoPhp\Builtin\BuiltinFunc\Marker\PermitsStringUnpacking;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\BuiltinFuncValue;
@@ -46,7 +47,7 @@ final class ArgvBuilder
             $unpackable instanceof SliceValue,
             $unpackable instanceof BaseString
             && $func instanceof BuiltinFuncValue
-            && $func->func->permitsStringUnpacking() => true,
+            && $func->func instanceof PermitsStringUnpacking => true,
             default => throw RuntimeError::expectedSliceInArgumentUnpacking($unpackable, $func),
         };
     }
