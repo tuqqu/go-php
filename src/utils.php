@@ -22,21 +22,21 @@ const VERSION = '0.2.0';
  *
  * @internal
  */
-const DEFAULT_ENTRY_POINT_PACK_NAME = 'main';
+const ENTRY_POINT_PACKAGE = 'main';
 
 /**
  * Default name of the main function
  *
  * @internal
  */
-const DEFAULT_ENTRY_POINT_FUNC_NAME = 'main';
+const ENTRY_POINT_FUNC = 'main';
 
 /**
  * Default name of the init function
  *
  * @internal
  */
-const DEFAULT_INITIALIZER_FUNC_NAME = 'init';
+const INITIALIZER_FUNC = 'init';
 
 /**
  * @internal

@@ -97,7 +97,6 @@ use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapLookupValue;
 use GoPhp\GoValue\PointerValue;
-use GoPhp\GoValue\RecoverableInvokable;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
@@ -125,7 +124,6 @@ use function trim;
 final class Interpreter
 {
     private static None $noneJump;
-
     private Ast $ast;
     private Iota $iota;
     private PanicPointer $panicPointer;
@@ -151,15 +149,12 @@ final class Interpreter
      */
     public function __construct(
         string $source,
-        ?BuiltinProvider $builtin = null,
         array $argv = [],
+        ?BuiltinProvider $builtin = null,
         ?ErrorHandler $errorHandler = null,
         StreamProvider $streams = new StdStreamProvider(),
-        FuncTypeValidator $entryPointValidator = new ZeroArityValidator(
-            DEFAULT_ENTRY_POINT_FUNC_NAME,
-            DEFAULT_ENTRY_POINT_PACK_NAME
-        ),
-        FuncTypeValidator $initValidator = new ZeroArityValidator(DEFAULT_INITIALIZER_FUNC_NAME),
+        FuncTypeValidator $entryPointValidator = new ZeroArityValidator(ENTRY_POINT_FUNC, ENTRY_POINT_PACKAGE),
+        FuncTypeValidator $initValidator = new ZeroArityValidator(INITIALIZER_FUNC),
         EnvVarSet $envVars = new EnvVarSet(),
         bool $toplevel = false,
     ) {
@@ -217,7 +212,7 @@ final class Interpreter
                 );
             }
 
-            $call = new InvokableCall($this->entryPoint, $this->argv);
+            $call = new InvokableCall($this->entryPoint, Argv::fromEmpty());
             $this->callFunc($call);
         } catch (RuntimeError|PanicError $error) {
             $this->errorHandler->onError($error);
@@ -236,51 +231,34 @@ final class Interpreter
         }
 
         $mapping = [
+            TypeDecl::class => [],
             ConstDecl::class => [],
             VarDecl::class => [],
-            TypeDecl::class => [],
             FuncDecl::class => [],
             MethodDecl::class => [],
         ];
 
         foreach ($this->ast->decls as $decl) {
-            $key = match (true) {
-                $decl instanceof ConstDecl,
-                $decl instanceof VarDecl,
-                $decl instanceof TypeDecl,
-                $decl instanceof FuncDecl,
-                $decl instanceof MethodDecl, => $decl::class,
-                default => throw RuntimeError::nonDeclarationOnTopLevel(),
-            };
+            if (!isset($mapping[$decl::class])) {
+                throw RuntimeError::nonDeclarationOnTopLevel();
+            }
 
-            $mapping[$key][] = $decl;
+            $mapping[$decl::class][] = $decl;
         }
 
         $this->scopeResolver->enterPackageScope();
 
-        foreach ($mapping[TypeDecl::class] as $decl) {
-            /** @var TypeDecl $decl */
-            $this->evalTypeDeclStmt($decl);
-        }
-
-        foreach ($mapping[ConstDecl::class] as $decl) {
-            /** @var ConstDecl $decl */
-            $this->evalConstDeclStmt($decl);
-        }
-
-        foreach ($mapping[VarDecl::class] as $decl) {
-            /** @var VarDecl $decl */
-            $this->evalVarDeclStmt($decl);
-        }
-
-        foreach ($mapping[FuncDecl::class] as $decl) {
-            /** @var FuncDecl $decl */
-            $this->evalFuncDeclStmt($decl);
-        }
-
-        foreach ($mapping[MethodDecl::class] as $decl) {
-            /** @var MethodDecl $decl */
-            $this->evalMethodDeclStmt($decl);
+        foreach ($mapping as $decls) {
+            foreach ($decls as $decl) {
+                /** @psalm-suppress all */
+                (match ($decl::class) {
+                    TypeDecl::class => $this->evalTypeDeclStmt(...),
+                    ConstDecl::class => $this->evalConstDeclStmt(...),
+                    VarDecl::class => $this->evalVarDeclStmt(...),
+                    FuncDecl::class => $this->evalFuncDeclStmt(...),
+                    MethodDecl::class => $this->evalMethodDeclStmt(...),
+                })($decl);
+            }
         }
 
         foreach ($this->initializers->get() as $initializer) {
@@ -655,10 +633,8 @@ final class Interpreter
             $this->panicPointer->panic = $panic;
             $this->releaseDeferredStack();
 
-            if ($this->panicPointer->panic === null) {
-                if ($fn->func instanceof RecoverableInvokable) {
-                    return $fn->func->zeroReturnValue();
-                }
+            if ($this->panicPointer->panic === null && ($recover = $fn->tryRecover()) !== null) {
+                return $recover;
             }
 
             throw $panic;
