@@ -849,7 +849,7 @@ final class Interpreter
 
             $condition = $this->evalExpr($stmt->condition);
 
-            if (self::isTrue($condition)) {
+            if (self::isTrue($condition, $stmt)) {
                 return $this->evalBlockStmt($stmt->ifBody);
             }
 
@@ -896,7 +896,7 @@ final class Interpreter
                     throw throw InternalError::unreachable($stmt->iteration);
             }
 
-            while ($condition === null || self::isTrue($this->evalExpr($condition))) {
+            while ($condition === null || self::isTrue($this->evalExpr($condition), $stmt)) {
                 $stmtJump = $this->evalBlockStmt($stmt->body);
 
                 switch (true) {
@@ -1464,10 +1464,10 @@ final class Interpreter
         return $value;
     }
 
-    private static function isTrue(GoValue $value): bool
+    private static function isTrue(GoValue $value, Stmt $context): bool
     {
         if (!$value instanceof BoolValue) {
-            throw RuntimeError::valueOfWrongType($value, NamedType::Bool);
+            throw RuntimeError::nonBooleanCondition($context);
         }
 
         return $value->isTrue();

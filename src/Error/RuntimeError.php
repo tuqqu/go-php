@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace GoPhp\Error;
 
+use GoParser\Ast\Keyword;
+use GoParser\Ast\Stmt\IfStmt;
+use GoParser\Ast\Stmt\Stmt;
 use GoPhp\Arg;
 use GoPhp\Argv;
 use GoPhp\GoType\GoType;
@@ -31,8 +34,8 @@ use function is_int;
 use function is_string;
 use function sprintf;
 use function strtolower;
-use function GoPhp\try_unwind;
 use function GoPhp\construct_qualified_name;
+use function GoPhp\try_unwind;
 
 class RuntimeError extends RuntimeException implements GoError
 {
@@ -124,15 +127,17 @@ class RuntimeError extends RuntimeException implements GoError
         return new self('use of untyped nil in variable declaration');
     }
 
-    public static function valueOfWrongType(GoValue $value, GoType|string $expected): self
+    public static function nonBooleanCondition(Stmt $context): self
     {
-        return new self(
-            sprintf(
-                'Got value of type "%s", whilst expecting "%s"',
-                $value->type()->name(),
-                is_string($expected) ? $expected : $expected->name(),
-            )
-        );
+        /** @psalm-suppress NoInterfaceProperties */
+        $keyword = match (true) {
+            $context instanceof IfStmt => $context->if,
+            isset($context->keyword)
+            && $context->keyword instanceof Keyword => $context->keyword,
+            default => throw InternalError::unreachable($context),
+        };
+
+        return new self(sprintf('non-boolean condition in %s statement', $keyword->word));
     }
 
     public static function multipleValueInSingleContext(TupleValue $value): self

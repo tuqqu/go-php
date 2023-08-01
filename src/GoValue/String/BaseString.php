@@ -16,17 +16,20 @@ use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Int\Uint8Value;
 use GoPhp\GoValue\Int\UntypedIntValue;
-use GoPhp\GoValue\Typeable;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\SealableTrait;
 use GoPhp\GoValue\Sequence;
 use GoPhp\GoValue\Sliceable;
+use GoPhp\GoValue\Typeable;
 use GoPhp\GoValue\TypeableTrait;
 use GoPhp\GoValue\Unpackable;
 use GoPhp\Operator;
 
 use function mb_str_split;
+use function mb_strlen;
+use function mb_substr;
+use function min;
 use function strlen;
 use function substr;
 use function GoPhp\assert_index_exists;
@@ -107,6 +110,10 @@ abstract class BaseString implements
             Operator::Plus => $this->add($rhs),
             Operator::EqEq => $this->equals($rhs),
             Operator::NotEq => $this->equals($rhs)->invert(),
+            Operator::Less => $this->less($rhs),
+            Operator::LessEq => $this->lessEq($rhs),
+            Operator::Greater => $this->greater($rhs),
+            Operator::GreaterEq => $this->greaterEq($rhs),
             default => throw RuntimeError::undefinedOperator($op, $this, true),
         };
     }
@@ -145,25 +152,55 @@ abstract class BaseString implements
         return clone $this;
     }
 
-//    public function greater(self $other): BoolValue
-//    {
-//        // TODO: Implement greater() method.
-//    }
-//
-//    public function greaterEq(self $other): BoolValue
-//    {
-//        // TODO: Implement greaterEq() method.
-//    }
-//
-//    public function less(self $other): BoolValue
-//    {
-//        // TODO: Implement less() method.
-//    }
-//
-//    public function lessEq(self $other): BoolValue
-//    {
-//        // TODO: Implement lessEq() method.
-//    }
+    public function greater(self $other): BoolValue
+    {
+        $lenA = mb_strlen($this->value);
+        $lenB = mb_strlen($other->value);
+        $minLen = min($lenA, $lenB);
+
+        for ($i = 0; $i < $minLen; $i++) {
+            $a = mb_substr($this->value, $i, 1);
+            $b = mb_substr($other->value, $i, 1);
+
+            if ($a > $b) {
+                return BoolValue::true();
+            } elseif ($a < $b) {
+                return BoolValue::false();
+            }
+        }
+
+        return new BoolValue($lenA > $lenB);
+    }
+
+    public function greaterEq(self $other): BoolValue
+    {
+        return $this->equals($other)->operateOn(Operator::LogicOr, $this->greater($other));
+    }
+
+    public function less(self $other): BoolValue
+    {
+        $lenA = mb_strlen($this->value);
+        $lenB = mb_strlen($other->value);
+        $minLen = min($lenA, $lenB);
+
+        for ($i = 0; $i < $minLen; $i++) {
+            $a = mb_substr($this->value, $i, 1);
+            $b = mb_substr($other->value, $i, 1);
+
+            if ($a < $b) {
+                return BoolValue::true();
+            } elseif ($a > $b) {
+                return BoolValue::false();
+            }
+        }
+
+        return new BoolValue($lenA < $lenB);
+    }
+
+    public function lessEq(self $other): BoolValue
+    {
+        return $this->equals($other)->operateOn(Operator::LogicOr, $this->less($other));
+    }
 
     public function get(GoValue $at): Uint8Value
     {
