@@ -30,7 +30,7 @@ class Delete implements BuiltinFunc
 
         $m->delete($key);
 
-        return new VoidValue();
+        return VoidValue::get();
     }
 
     public function name(): string

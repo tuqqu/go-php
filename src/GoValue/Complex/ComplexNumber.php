@@ -22,9 +22,9 @@ use GoPhp\GoValue\SealableTrait;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
 
-use function sprintf;
 use function GoPhp\assert_values_compatible;
 use function GoPhp\try_unwind;
+use function sprintf;
 
 /**
  * @psalm-type ComplexTuple = array{float, float}
@@ -250,7 +250,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
      */
     private static function computeForDiv(self $lhs, self $rhs): array
     {
-        $denominator = $rhs->real**2 + $rhs->imag**2;
+        $denominator = $rhs->real ** 2 + $rhs->imag ** 2;
         $real = ($lhs->real * $rhs->real + $lhs->imag * $rhs->imag) / $denominator;
         $imag = ($lhs->imag * $rhs->real - $lhs->real * $rhs->imag) / $denominator;
 

@@ -1098,7 +1098,7 @@ final class Interpreter
             ->evalExpr($stmt->lhs)
             ->mutate(
                 Operator::fromAst($stmt->op),
-                new UntypedIntValue(1)
+                new UntypedIntValue(1),
             );
 
         return self::$noneJump;

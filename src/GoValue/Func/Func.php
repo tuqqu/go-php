@@ -128,7 +128,7 @@ final class Func
 
         if ($stmtJump instanceof None) {
             return $this->type->returnArity === ReturnJump::LEN_VOID
-                ? new VoidValue()
+                ? VoidValue::get()
                 : throw RuntimeError::wrongReturnValueNumber([], $this->type->returns);
         }
 
@@ -165,7 +165,7 @@ final class Func
         }
 
         return match (count($zeroValues)) {
-            ReturnJump::LEN_VOID => new VoidValue(),
+            ReturnJump::LEN_VOID => VoidValue::get(),
             ReturnJump::LEN_SINGLE => $zeroValues[0],
             default => new TupleValue($zeroValues),
         };

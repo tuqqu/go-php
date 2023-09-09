@@ -29,7 +29,7 @@ final class ReturnJump implements StmtJump
      */
     public static function fromVoid(): self
     {
-        return new self(new VoidValue(), self::LEN_VOID);
+        return new self(VoidValue::get(), self::LEN_VOID);
     }
 
     /**

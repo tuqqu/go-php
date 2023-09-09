@@ -30,7 +30,7 @@ class Print_ implements BuiltinFunc
 
         $this->stderr->write(implode('', $output));
 
-        return new VoidValue();
+        return VoidValue::get();
     }
 
     public function name(): string

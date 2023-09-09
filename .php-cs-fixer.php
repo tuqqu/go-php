@@ -11,6 +11,11 @@ const RULES = [
     'array_syntax' => ['syntax' => 'short'],
     'single_line_empty_body' => true,
     'statement_indentation' => false,
+    'global_namespace_import' => [
+        'import_classes' => true,
+        'import_constants' => true,
+        'import_functions' => true,
+    ],
 ];
 
 CONFIG->setRules(RULES);

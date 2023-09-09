@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp;
 
 use Closure;
+use GoParser\Ast\EmbeddedFieldDecl;
 use GoParser\Ast\Expr\ArrayType as AstArrayType;
 use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\Expr\FuncType as AstFuncType;
@@ -156,18 +157,26 @@ final class TypeResolver
     {
         /** @var array<string, GoType> $fields */
         $fields = [];
+        $promotedNames = [];
 
         foreach ($structType->fieldDecls as $fieldDecl) {
-            if ($fieldDecl->identList === null) {
-                // fixme add anonymous fields
-                throw InternalError::unimplemented();
-            }
-
-            if ($fieldDecl->type === null) {
-                throw InternalError::unimplemented();
-            }
-
             $type = $this->resolve($fieldDecl->type, $composite);
+
+            if ($fieldDecl instanceof EmbeddedFieldDecl) {
+                $name = self::getNameForEmbeddedField($fieldDecl);
+
+                if (isset($fields[$name])) {
+                    throw RuntimeError::redeclaredName($name);
+                }
+
+                $fields[$name] = $type;
+
+                if (try_unwind($type) instanceof StructType) {
+                    $promotedNames[] = $name;
+                }
+
+                continue;
+            }
 
             foreach ($fieldDecl->identList->idents as $ident) {
                 if (isset($fields[$ident->name])) {
@@ -178,7 +187,7 @@ final class TypeResolver
             }
         }
 
-        return new StructType($fields);
+        return new StructType($fields, $promotedNames);
     }
 
     private function resolveInterfaceType(AstInterfaceType $interfaceType, bool $composite): InterfaceType
@@ -226,5 +235,21 @@ final class TypeResolver
         }
 
         return $value->unwrap();
+    }
+
+    private static function getNameForEmbeddedField(EmbeddedFieldDecl $fieldDecl): string
+    {
+        $type = $fieldDecl->type;
+
+        if ($type instanceof AstPointerType) {
+            $type = $type->type;
+        }
+
+        if ($type instanceof QualifiedTypeName) {
+            $type = $type->typeName;
+        }
+
+        /** @var SingleTypeName $type */
+        return $type->name->name;
     }
 }

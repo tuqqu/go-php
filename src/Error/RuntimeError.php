@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GoPhp\Error;
 
 use GoParser\Ast\Keyword;
-use GoParser\Ast\Stmt\IfStmt;
 use GoParser\Ast\Stmt\Stmt;
 use GoPhp\Arg;
 use GoPhp\Argv;
@@ -118,7 +117,7 @@ class RuntimeError extends RuntimeException implements GoError
                 'invalid operation: mismatched types %s and %s',
                 $a->name(),
                 $b->name(),
-            )
+            ),
         );
     }
 
@@ -130,14 +129,16 @@ class RuntimeError extends RuntimeException implements GoError
     public static function nonBooleanCondition(Stmt $context): self
     {
         /** @psalm-suppress NoInterfaceProperties */
-        $keyword = match (true) {
-            $context instanceof IfStmt => $context->if,
-            isset($context->keyword)
-            && $context->keyword instanceof Keyword => $context->keyword,
-            default => throw InternalError::unreachable($context),
-        };
+        if (!isset($context->keyword) || !$context->keyword instanceof Keyword) {
+            throw InternalError::unreachable($context);
+        }
 
-        return new self(sprintf('non-boolean condition in %s statement', $keyword->word));
+        return new self(
+            sprintf(
+                'non-boolean condition in %s statement',
+                $context->keyword->word,
+            ),
+        );
     }
 
     public static function multipleValueInSingleContext(TupleValue $value): self

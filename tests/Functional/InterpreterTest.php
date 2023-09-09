@@ -10,6 +10,11 @@ use GoPhp\Stream\StringStreamProvider;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+use function glob;
+use function file_get_contents;
+use function sprintf;
+use function basename;
+
 final class InterpreterTest extends TestCase
 {
     private const SRC_FILES_PATH = __DIR__ . '/files';
@@ -43,12 +48,12 @@ final class InterpreterTest extends TestCase
 
     public static function sourceFileProvider(): iterable
     {
-        $files = \glob(\sprintf('%s/*.go', self::SRC_FILES_PATH));
+        $files = glob(sprintf('%s/*.go', self::SRC_FILES_PATH));
 
         foreach ($files as $file) {
-            $goProgram = \file_get_contents($file);
-            $expectedOutput = \file_get_contents(
-                \sprintf('%s/%s.out', self::OUTPUT_FILES_PATH, \basename($file, '.go'))
+            $goProgram = file_get_contents($file);
+            $expectedOutput = file_get_contents(
+                sprintf('%s/%s.out', self::OUTPUT_FILES_PATH, basename($file, '.go'))
             );
 
             yield $file => [$goProgram, $expectedOutput];

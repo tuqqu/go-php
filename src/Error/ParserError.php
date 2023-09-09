@@ -24,7 +24,7 @@ final class ParserError implements GoError
             match (true) {
                 $error instanceof LexError => $error->pos,
                 $error instanceof SyntaxError => $error->pos,
-                default => throw new InternalError(sprintf('Unknown error type %s', $error::class)),
+                default => throw new InternalError(sprintf('unknown error type %s', $error::class)),
             },
             (string) $error,
         );

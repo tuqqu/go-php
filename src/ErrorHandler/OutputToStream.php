@@ -8,7 +8,7 @@ use GoPhp\Error\GoError;
 use GoPhp\Stream\OutputStream;
 
 /**
- * Error handler that outputs error messages to a given stream.
+ * Error handler that outputs error messages to a stream.
  */
 final class OutputToStream implements ErrorHandler
 {

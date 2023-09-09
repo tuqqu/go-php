@@ -49,12 +49,6 @@ Already implemented:
 
 * see [tests](tests/Functional/files/)
 
-To be implemented:
-
-* channels and select statements
-* type assertions
-* generics
-
 ## Development
 
 install dependencies:

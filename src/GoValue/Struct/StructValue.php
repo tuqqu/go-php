@@ -102,7 +102,25 @@ final class StructValue implements Hashable, AddressableValue
 
     public function accessField(string $name): GoValue
     {
-        return $this->fields->get($name)->unwrap();
+        $field = $this->fields->tryGet($name);
+
+        if ($field === null) {
+            foreach ($this->type->promotedNames as $promotedName) {
+                $field = $this->fields->get($promotedName);
+                /** @var StructValue $promotedField */
+                $promotedField = try_unwind($field->unwrap());
+
+                if ($promotedField->type->hasField($name)) {
+                    return $promotedField->accessField($name);
+                }
+            }
+        }
+
+        if ($field === null) {
+            throw RuntimeError::redeclaredName($name);
+        }
+
+        return $field->unwrap();
     }
 
     private function equals(self $rhs): BoolValue

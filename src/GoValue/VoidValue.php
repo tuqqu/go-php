@@ -14,6 +14,13 @@ use GoPhp\Operator;
  */
 final class VoidValue implements GoValue
 {
+    private static ?self $instance = null;
+
+    public static function get(): self
+    {
+        return self::$instance ??= new self();
+    }
+
     public function unwrap(): never
     {
         throw RuntimeError::noValueUsedAsValue();

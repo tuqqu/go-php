@@ -30,7 +30,7 @@ class Println implements BuiltinFunc
 
         $this->stderr->writeln(implode(' ', $output));
 
-        return new VoidValue();
+        return VoidValue::get();
     }
 
     public function name(): string

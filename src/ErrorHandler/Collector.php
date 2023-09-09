@@ -7,7 +7,7 @@ namespace GoPhp\ErrorHandler;
 use GoPhp\Error\GoError;
 
 /**
- * Error handler that collects given errors into an array.
+ * Error handler that collects errors into an array.
  */
 final class Collector implements ErrorHandler
 {

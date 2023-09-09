@@ -21,9 +21,11 @@ final class StructType implements GoType
 {
     /**
      * @param array<string, GoType> $fields
+     * @param list<string> $promotedNames
      */
     public function __construct(
         public readonly array $fields,
+        public readonly array $promotedNames,
     ) {}
 
     public function name(): string
@@ -77,5 +79,10 @@ final class StructType implements GoType
     public function convert(AddressableValue $value): AddressableValue
     {
         return DefaultConverter::convert($value, $this);
+    }
+
+    public function hasField(string $name): bool
+    {
+        return isset($this->fields[$name]);
     }
 }
