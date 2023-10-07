@@ -124,104 +124,161 @@ use function trim;
 final class Interpreter
 {
     private static None $noneJump;
+    private readonly JumpStack $jumpStack;
+    private readonly DeferredStack $deferredStack;
+    private readonly ScopeResolver $scopeResolver;
+    private readonly InvokableCallList $initializers;
+    private readonly TypeResolver $typeResolver;
     private Ast $ast;
-    private Iota $iota;
-    private PanicPointer $panicPointer;
-    private Environment $env;
-    private JumpStack $jumpStack;
-    private DeferredStack $deferredStack;
-    private ScopeResolver $scopeResolver;
-    private InvokableCallList $initializers;
     private bool $constContext = false;
     private int $switchContext = 0;
-    private readonly Argv $argv;
-    private readonly ErrorHandler $errorHandler;
     private ?FuncValue $entryPoint = null;
-    private ImportHandler $importHandler;
-    private readonly string $source;
-    private readonly StreamProvider $streams;
-    private readonly FuncTypeValidator $entryPointValidator;
-    private readonly FuncTypeValidator $initValidator;
-    private readonly TypeResolver $typeResolver;
 
-    /**
-     * @param list<GoValue> $argv
-     */
     public function __construct(
-        string $source,
-        array $argv = [],
-        ?BuiltinProvider $builtin = null,
-        ?ErrorHandler $errorHandler = null,
-        StreamProvider $streams = new StdStreamProvider(),
-        FuncTypeValidator $entryPointValidator = new ZeroArityValidator(ENTRY_POINT_FUNC, ENTRY_POINT_PACKAGE),
-        FuncTypeValidator $initValidator = new ZeroArityValidator(INITIALIZER_FUNC),
-        EnvVarSet $envVars = new EnvVarSet(),
-        bool $toplevel = false,
+        private readonly string $source,
+        private readonly Argv $argv,
+        private readonly ErrorHandler $errorHandler,
+        private readonly StreamProvider $streams,
+        private readonly FuncTypeValidator $entryPointValidator,
+        private readonly FuncTypeValidator $initValidator,
+        private readonly ImportHandler $importHandler,
+        private readonly Iota $iota,
+        private PanicPointer $panicPointer,
+        private Environment $env,
+        private readonly ?Debugger $debugger,
     ) {
         $this->jumpStack = new JumpStack();
         $this->deferredStack = new DeferredStack();
         $this->scopeResolver = new ScopeResolver();
         $this->initializers = new InvokableCallList();
-        $this->importHandler = new ImportHandler($envVars);
-        $this->streams = $streams;
-        $this->entryPointValidator = $entryPointValidator;
-        $this->initValidator = $initValidator;
-
-        $this->errorHandler = $errorHandler === null
-            ? new OutputToStream($this->streams->stderr())
-            : $errorHandler;
-
-        if ($builtin === null) {
-            $builtin = new StdBuiltinProvider($this->streams->stderr());
-        }
-
-        $this->iota = $builtin->iota();
-        $this->panicPointer = $builtin->panicPointer();
-        $this->env = Environment::fromEnclosing($builtin->env());
-        $this->argv = (new ArgvBuilder($argv))->build();
-        $this->source = $toplevel ? self::wrapSource($source) : $source;
         $this->typeResolver = new TypeResolver(
             $this->scopeResolver,
             $this->tryEvalConstExpr(...),
             $this->env,
         );
-        self::$noneJump = new None();
     }
 
     /**
-     * @throws InternalError unexpected error during execution
+     * Creates an interpreter instance
+     *
+     * @param string $source Source code to execute
+     * @param array $argv Command line arguments
+     * @param BuiltinProvider|null $builtin Builtin package provider
+     * @param ErrorHandler|null $errorHandler Error handler
+     * @param StreamProvider $streams Stream provider of stdout, stderr, stdin
+     * @param FuncTypeValidator $entryPointValidator Validator for entry point function
+     * @param FuncTypeValidator $initValidator Validator for package initializer functions
+     * @param EnvVarSet $envVars Environment variables
+     * @param bool $toplevel Whether the source is a top level code or not
+     * @param bool $debug Whether to enable debug mode or not
+     * @param Debugger|null $debugger Debugger, if $debug is set to false, this is ignored
+     * @param array $customFileExtensions Custom file extensions to include when importing
+     *
+     * @return self
      */
-    public function run(): ExitCode
+    public static function create(
+        string $source,
+        array $argv = [],
+        ?BuiltinProvider $builtin = null,
+        ?ErrorHandler $errorHandler = null,
+        StreamProvider $streams = new StdStreamProvider(),
+        FuncTypeValidator $entryPointValidator = new ZeroArityValidator(
+            ENTRY_POINT_FUNC,
+            ENTRY_POINT_PACKAGE,
+        ),
+        FuncTypeValidator $initValidator = new ZeroArityValidator(INITIALIZER_FUNC),
+        EnvVarSet $envVars = new EnvVarSet(),
+        bool $toplevel = false,
+        bool $debug = false,
+        ?Debugger $debugger = null,
+        array $customFileExtensions = [],
+    ): self {
+        static $init = false;
+        if (!$init) {
+            $init = true;
+            self::$noneJump = new None();
+        }
+
+        $errorHandler ??= new OutputToStream($streams->stderr());
+        $builtin ??= new StdBuiltinProvider($streams->stderr());
+        $importHandler = new ImportHandler($envVars, $customFileExtensions);
+
+        if ($debug) {
+            $debugger ??= new CallStackCollectorDebugger();
+        } else {
+            $debugger = null;
+        }
+
+        return new self(
+            source: $toplevel ? self::wrapSource($source, $entryPointValidator) : $source,
+            argv: (new ArgvBuilder($argv))->build(),
+            errorHandler: $errorHandler,
+            streams: $streams,
+            entryPointValidator: $entryPointValidator,
+            initValidator: $initValidator,
+            importHandler: $importHandler,
+            iota: $builtin->iota(),
+            panicPointer: $builtin->panicPointer(),
+            env: Environment::fromEnclosing($builtin->env()),
+            debugger: $debugger,
+        );
+    }
+
+    /**
+     * @throws InternalError Unexpected error during execution
+     * @return RuntimeResult Result of execution
+     */
+    public function run(): RuntimeResult
     {
+        $resultBuilder = new RuntimeResultBuilder();
+        if ($this->debugger !== null) {
+            $resultBuilder->setDebugger($this->debugger);
+        }
+
         try {
             $ast = $this->parseSourceToAst($this->source);
             $this->setAst($ast);
             $this->evalDeclsInOrder();
-
-            if ($this->entryPoint === null) {
-                if ($this->scopeResolver->entryPointPackage === $this->entryPointValidator->getPackageName()) {
-                    throw RuntimeError::noEntryPointFunction(
-                        $this->entryPointValidator->getFuncName(),
-                        $this->entryPointValidator->getPackageName(),
-                    );
-                }
-
-                throw RuntimeError::notEntryPointPackage(
-                    $this->scopeResolver->entryPointPackage,
-                    $this->entryPointValidator->getPackageName(),
-                );
-            }
-
+            $this->checkEntryPoint();
             $call = new InvokableCall($this->entryPoint, Argv::fromEmpty());
             $this->callFunc($call);
         } catch (RuntimeError|PanicError $error) {
             $this->errorHandler->onError($error);
-            return ExitCode::Failure;
+            $resultBuilder->setExitCode(ExitCode::Failure);
+            $resultBuilder->setError($error);
+
+            return $resultBuilder->build();
         } catch (AbortExecutionError) {
-            return ExitCode::Failure;
+            $resultBuilder->setExitCode(ExitCode::Failure);
+
+            return $resultBuilder->build();
         }
 
-        return ExitCode::Success;
+        $resultBuilder->setExitCode(ExitCode::Success);
+
+        return $resultBuilder->build();
+    }
+
+    /**
+     * @psalm-assert !null $this->entryPoint
+     */
+    private function checkEntryPoint(): void
+    {
+        if ($this->entryPoint !== null) {
+            return;
+        }
+
+        if ($this->scopeResolver->entryPointPackage === $this->entryPointValidator->getPackageName()) {
+            throw RuntimeError::noEntryPointFunction(
+                $this->entryPointValidator->getFuncName(),
+                $this->entryPointValidator->getPackageName(),
+            );
+        }
+
+        throw RuntimeError::notEntryPointPackage(
+            $this->scopeResolver->entryPointPackage,
+            $this->entryPointValidator->getPackageName(),
+        );
     }
 
     private function evalDeclsInOrder(): void
@@ -626,6 +683,7 @@ final class Interpreter
 
         try {
             $value = $fn();
+            $this->debugger?->addStackTrace($fn);
             $this->releaseDeferredStack();
 
             return $value;
@@ -1511,12 +1569,12 @@ final class Interpreter
         }
     }
 
-    private function wrapSource(string $source): string
+    private static function wrapSource(string $source, FuncTypeValidator $entryPointValidator): string
     {
         return <<<GO
-        package {$this->entryPointValidator->getPackageName()}
+        package {$entryPointValidator->getPackageName()}
         
-        func {$this->entryPointValidator->getFuncName()}() {
+        func {$entryPointValidator->getFuncName()}() {
             {$source}
         }
         GO;

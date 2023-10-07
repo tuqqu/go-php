@@ -184,7 +184,7 @@ function main(array $argv): never
     $stderr = new ResourceOutputStream(STDERR);
     $errorHandler = new OutputToStream($stderr);
 
-    $runtime = new Interpreter(
+    $runtime = Interpreter::create(
         source: $src,
         errorHandler: $errorHandler,
         envVars: new EnvVarSet(
@@ -196,7 +196,7 @@ function main(array $argv): never
 
     $result = $runtime->run();
 
-    exit($result->value);
+    exit($result->exitCode->value);
 }
 
 error_reporting(E_ALL);

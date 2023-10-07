@@ -17,6 +17,5 @@
 
     <issueHandlers>
         <ImplicitToStringCast errorLevel="suppress" />
-        <TypeDoesNotContainType errorLevel="suppress" />
     </issueHandlers>
 </psalm>

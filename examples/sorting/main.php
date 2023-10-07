@@ -11,16 +11,15 @@ use GoPhp\Stream\StringStreamProvider;
 $goRoot = __DIR__;
 $goFile = __DIR__ . '/src/main.go';
 $goSrc = file_get_contents($goFile);
-
 $stdout = '';
 
-$interp = new Interpreter(
+$interp = Interpreter::create(
     source: $goSrc,
     streams: new StringStreamProvider($stdout, $stdout),
     envVars: new EnvVarSet($goRoot)
 );
 
-$exitCode = $interp->run();
+$result = $interp->run();
 
 print "Output:\n$stdout\n";
-print "Exit code: $exitCode->value\n";
+print "Exit code: $result->exitCode->value\n";

@@ -8,7 +8,5 @@ use GoPhp\Error\PanicError;
 
 final class PanicPointer
 {
-    public function __construct(
-        public ?PanicError $panic = null,
-    ) {}
+    public ?PanicError $panic = null;
 }

@@ -167,7 +167,6 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
             $this->grow();
         }
 
-        /** @psalm-suppress PossiblyNullReference */
         $this->values[$this->len++] = $value;
     }
 
@@ -268,6 +267,9 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
         return $this->len - $this->pos + 1 > $this->cap;
     }
 
+    /**
+     * @psalm-assert !null $this->values
+     */
     private function grow(): void
     {
         $copies = [];

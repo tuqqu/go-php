@@ -2,12 +2,12 @@
 
 Golang interpreter written in PHP.
 
-# Example
+## Example
 
 ```php
 use GoPhp\Interpreter;
 
-$interpreter = new Interpreter(<<<GO
+$interp = Interpreter::create(<<<GO
     package main
     
     type person struct {
@@ -29,11 +29,10 @@ $interpreter = new Interpreter(<<<GO
     }
 GO);
 
-$interpreter->run();
+$result = $interp->run();
 ```
 
 See [examples](examples/) for more.
-
 To run examples:
 
 ```
@@ -43,11 +42,9 @@ php main.php
 
 ## WIP
 
-This is a work-in-progress project.
+This is a toy project, currently work-in-progress.
 
-Already implemented:
-
-* see [tests](tests/Functional/files/)
+To see what is already implemented, refer to [tests](tests/Functional/files/).
 
 ## Development
 

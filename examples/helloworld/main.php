@@ -8,7 +8,7 @@ use GoPhp\Interpreter;
 use GoPhp\Stream\StringStreamProvider;
 
 $stdout = '';
-$interp = new Interpreter(
+$interp = Interpreter::create(
     source: <<<'GO'
         package main
         
@@ -19,7 +19,7 @@ $interp = new Interpreter(
     streams: new StringStreamProvider($stdout, $stdout),
 );
 
-$exitCode = $interp->run();
+$result = $interp->run();
 
 print "Output:\n$stdout\n";
-print "Exit code: $exitCode->value\n";
+print "Exit code: $result->exitCode->value\n";

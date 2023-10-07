@@ -34,7 +34,7 @@ class InterfaceTypeError extends RuntimeError
     public static function fromOther(self $error, WrappedType $interfaceType): self
     {
         if (!isset($error->value, $error->missingMethod)) {
-            throw InternalError::unreachable('Cannot convert error from other error');
+            throw InternalError::unreachable('cannot convert error from other error');
         }
 
         return self::cannotUseAsType(

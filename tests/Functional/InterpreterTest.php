@@ -33,7 +33,7 @@ final class InterpreterTest extends TestCase
             $stdin,
         );
 
-        $interpreter = new Interpreter(
+        $interpreter = Interpreter::create(
             source: $goProgram,
             streams: $streams,
             envVars: new EnvVarSet(
