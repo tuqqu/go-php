@@ -15,24 +15,32 @@ final class RuntimeResultBuilder
     private ?GoError $error = null;
     private ?ExitCode $exitCode = null;
 
-    public function setExitCode(ExitCode $exitCode): void
+    public function setExitCode(ExitCode $exitCode): self
     {
         $this->exitCode = $exitCode;
+
+        return $this;
     }
 
-    public function setResult(GoValue $result): void
+    public function setResult(?GoValue $result): self
     {
         $this->result = $result;
+
+        return $this;
     }
 
-    public function setDebugger(Debugger $debugger): void
+    public function setDebugger(?Debugger $debugger): self
     {
         $this->debugger = $debugger;
+
+        return $this;
     }
 
-    public function setError(GoError $error): void
+    public function setError(?GoError $error): self
     {
         $this->error = $error;
+
+        return $this;
     }
 
     public function build(): RuntimeResult

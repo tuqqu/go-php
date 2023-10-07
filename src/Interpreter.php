@@ -162,7 +162,7 @@ final class Interpreter
      * Creates an interpreter instance
      *
      * @param string $source Source code to execute
-     * @param array $argv Command line arguments
+     * @param list<GoValue> $argv Command line arguments
      * @param BuiltinProvider|null $builtin Builtin package provider
      * @param ErrorHandler|null $errorHandler Error handler
      * @param StreamProvider $streams Stream provider of stdout, stderr, stdin
@@ -172,7 +172,7 @@ final class Interpreter
      * @param bool $toplevel Whether the source is a top level code or not
      * @param bool $debug Whether to enable debug mode or not
      * @param Debugger|null $debugger Debugger, if $debug is set to false, this is ignored
-     * @param array $customFileExtensions Custom file extensions to include when importing
+     * @param list<string> $customFileExtensions Custom file extensions to include when importing
      *
      * @return self
      */
@@ -231,9 +231,7 @@ final class Interpreter
     public function run(): RuntimeResult
     {
         $resultBuilder = new RuntimeResultBuilder();
-        if ($this->debugger !== null) {
-            $resultBuilder->setDebugger($this->debugger);
-        }
+        $resultBuilder->setDebugger($this->debugger);
 
         try {
             $ast = $this->parseSourceToAst($this->source);
@@ -244,19 +242,20 @@ final class Interpreter
             $this->callFunc($call);
         } catch (RuntimeError|PanicError $error) {
             $this->errorHandler->onError($error);
-            $resultBuilder->setExitCode(ExitCode::Failure);
-            $resultBuilder->setError($error);
 
-            return $resultBuilder->build();
+            return $resultBuilder
+                ->setExitCode(ExitCode::Failure)
+                ->setError($error)
+                ->build();
         } catch (AbortExecutionError) {
-            $resultBuilder->setExitCode(ExitCode::Failure);
-
-            return $resultBuilder->build();
+            return $resultBuilder
+                ->setExitCode(ExitCode::Failure)
+                ->build();
         }
 
-        $resultBuilder->setExitCode(ExitCode::Success);
-
-        return $resultBuilder->build();
+        return $resultBuilder
+            ->setExitCode(ExitCode::Success)
+            ->build();
     }
 
     /**
