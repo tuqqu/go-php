@@ -23,7 +23,7 @@ class Real implements BuiltinFunc
     public function __invoke(Argv $argv): FloatNumber
     {
         assert_argc($this, $argv, 1);
-        assert_arg_value($argv[0], ComplexNumber::class, ComplexNumber::NAME);
+        assert_arg_value($argv[0], ComplexNumber::class);
 
         return $argv[0]->value->real();
     }

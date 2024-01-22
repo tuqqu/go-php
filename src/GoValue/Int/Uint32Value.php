@@ -8,8 +8,8 @@ use GoPhp\GoType\NamedType;
 
 final class Uint32Value extends IntNumber
 {
-    public const MIN = 0;
-    public const MAX = 4_294_967_295;
+    public const int MIN = 0;
+    public const int MAX = 4_294_967_295;
 
     public function type(): NamedType
     {

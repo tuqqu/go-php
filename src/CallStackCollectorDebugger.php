@@ -11,7 +11,7 @@ use function array_shift;
 
 final class CallStackCollectorDebugger implements Debugger
 {
-    public const DEFAULT_STACK_TRACE_DEPTH = 128;
+    public const int DEFAULT_STACK_TRACE_DEPTH = 128;
 
     /** @var list<InvokableCall|PanicError> */
     private array $stackTrace = [];

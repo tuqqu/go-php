@@ -22,7 +22,7 @@ use GoPhp\GoValue\Hashable;
  */
 final class KeyValueTupleMap implements Map
 {
-    /** @var array<scalar, array{key: K, value: V}> */
+    /** @var array<string, array{key: K, value: V}> */
     private array $values = [];
     private int $len = 0;
 
@@ -49,7 +49,10 @@ final class KeyValueTupleMap implements Map
             throw InternalError::unexpectedValue($at);
         }
 
-        $this->values[$at->hash()] = ['key' => $at, 'value' => $value];
+        $this->values[$at->hash()] = [
+            'key' => $at,
+            'value' => $value,
+        ];
     }
 
     public function len(): int

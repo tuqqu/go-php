@@ -36,7 +36,7 @@ class Append implements BuiltinFunc, PermitsStringUnpacking
     public function __invoke(Argv $argv): SliceValue
     {
         assert_argc($this, $argv, 2, true);
-        assert_arg_value($argv[0], SliceValue::class, SliceValue::NAME);
+        assert_arg_value($argv[0], SliceValue::class);
 
         /** @var SliceValue $slice */
         $slice = $argv[0]->value->clone();

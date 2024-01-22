@@ -39,7 +39,7 @@ final class ArrayValue implements Hashable, Sliceable, Sequence, AddressableValu
 {
     use AddressableTrait;
 
-    public const NAME = 'array';
+    public const string NAME = 'array';
 
     /** @var UnderlyingArray<V> */
     private UnderlyingArray $values;

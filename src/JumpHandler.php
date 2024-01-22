@@ -15,7 +15,7 @@ use GoPhp\Error\InternalError;
 
 final class JumpHandler
 {
-    private const DEFAULT_STATUS = JumpStatus::Goto;
+    private const JumpStatus DEFAULT_STATUS = JumpStatus::Goto;
 
     /** @var array<LabeledStmt> */
     private array $labeledStmts = [];

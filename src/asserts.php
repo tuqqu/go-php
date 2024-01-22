@@ -22,6 +22,8 @@ use GoPhp\GoValue\Int\IntNumber;
 use GoPhp\GoValue\Castable;
 use GoPhp\GoValue\UntypedNilValue;
 
+use function is_a;
+
 /**
  * Asserts that two types are compatible with each other,
  * i.e. values of those types can be used in an operation.
@@ -108,6 +110,7 @@ function assert_nil_comparison(GoValue $a, GoValue $b, string $name = ''): void
 
 /**
  * @internal
+ *
  * @psalm-assert AddressableValue $b
  */
 function assert_types_compatible_with_cast(GoType $a, GoValue &$b): void
@@ -150,9 +153,11 @@ function assert_argc(Func|BuiltinFunc $context, Argv $argv, int $expectedArgc, b
  * @psalm-param class-string<C> $value
  * @psalm-assert Arg<C> $arg
  */
-function assert_arg_value(Arg $arg, string $value, string $name): void
+function assert_arg_value(Arg $arg, string $value, ?string $name = null): void
 {
     if (!$arg->value instanceof $value) {
+        $name ??= is_a($value, AddressableValue::class, true) ? $value::NAME : $value;
+
         throw RuntimeError::wrongArgumentType($arg, $name);
     }
 }
@@ -168,7 +173,7 @@ function assert_arg_int(Arg $arg): void
         !$arg->value instanceof IntNumber
         && ($arg->value instanceof FloatNumber && $arg->value->type() !== UntypedType::UntypedRoundFloat)
     ) {
-        throw RuntimeError::wrongArgumentType($arg, 'int');
+        throw RuntimeError::wrongArgumentType($arg, IntNumber::NAME);
     }
 }
 
@@ -183,7 +188,7 @@ function assert_arg_float(Arg $arg): void
         !$arg->value instanceof FloatNumber
         && !$arg->value instanceof IntNumber
     ) {
-        throw RuntimeError::wrongArgumentType($arg, 'float');
+        throw RuntimeError::wrongArgumentType($arg, FloatNumber::NAME);
     }
 }
 

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace GoPhp\GoValue;
 
 /**
- * @template H = scalar
+ * @psalm-type Hash = string|int|float|bool
+ * @template H = Hash
  */
 interface Hashable
 {

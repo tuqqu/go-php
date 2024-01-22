@@ -10,8 +10,8 @@ use function mb_ord;
 
 final class Uint8Value extends IntNumber
 {
-    public const MIN = 0;
-    public const MAX = 255;
+    public const int MIN = 0;
+    public const int MAX = 255;
 
     public static function fromByte(string $byte): self
     {

@@ -33,8 +33,8 @@ use function GoPhp\try_unwind;
  */
 enum NamedType: string implements BasicType
 {
-    public const Rune = self::Int32;
-    public const Byte = self::Uint8;
+    public const self Rune = self::Int32;
+    public const self Byte = self::Uint8;
 
     // signed integer types
     case Int = 'int';

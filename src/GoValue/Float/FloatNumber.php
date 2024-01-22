@@ -13,6 +13,7 @@ use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Sealable;
 use GoPhp\GoValue\SimpleNumber;
 use GoPhp\Operator;
+use Override;
 
 use function sprintf;
 
@@ -21,7 +22,7 @@ use function sprintf;
  */
 abstract class FloatNumber extends SimpleNumber
 {
-    final public const NAME = 'float';
+    final public const string NAME = 'float';
 
     protected float $value;
 
@@ -35,6 +36,7 @@ abstract class FloatNumber extends SimpleNumber
         return $this->value;
     }
 
+    #[Override]
     public function toString(): string
     {
         return sprintf('%f', $this->value);

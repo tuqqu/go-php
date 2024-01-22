@@ -72,12 +72,12 @@ enum Flag: string
     case Goroot = 'goroot';
     case Gopath = 'gopath';
 
-    private const FLAGS_WITH_VALUE = [
+    private const array FLAGS_WITH_VALUE = [
         self::Goroot,
         self::Gopath,
     ];
 
-    private const FLAGS_WITHOUT_VALUE = [
+    private const array FLAGS_WITHOUT_VALUE = [
         self::Help,
         self::Version,
         self::Eval,

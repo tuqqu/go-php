@@ -24,7 +24,7 @@ final class InterfaceValue implements AddressableValue
 {
     use AddressableTrait;
 
-    public const NAME = 'interface';
+    public const string NAME = 'interface';
 
     public function __construct(
         public readonly ?AddressableValue $value,

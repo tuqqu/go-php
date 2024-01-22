@@ -34,7 +34,7 @@ class Copy implements BuiltinFunc
         $dst = $argv[0];
         $src = $argv[1];
 
-        assert_arg_value($dst, SliceValue::class, SliceValue::NAME);
+        assert_arg_value($dst, SliceValue::class);
 
         // As a special case, if the destination's type is []byte,
         // copy also accepts a source argument with type string.

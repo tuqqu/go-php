@@ -31,7 +31,7 @@ use GoPhp\Stream\OutputStream;
 
 class StdBuiltinProvider implements BuiltinProvider
 {
-    protected const IOTA_START = 0;
+    protected const int IOTA_START = 0;
 
     public function __construct(
         private readonly OutputStream $stderr,

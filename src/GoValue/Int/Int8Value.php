@@ -8,8 +8,8 @@ use GoPhp\GoType\NamedType;
 
 final class Int8Value extends IntNumber
 {
-    public const MIN = -128;
-    public const MAX = +127;
+    public const int MIN = -128;
+    public const int MAX = +127;
 
     public function type(): NamedType
     {

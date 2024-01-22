@@ -41,7 +41,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
 {
     use AddressableTrait;
 
-    public const NAME = 'slice';
+    public const string NAME = 'slice';
 
     public readonly SliceType $type;
 

@@ -73,7 +73,7 @@ final class WrappedType implements Unwindable, Hashable, GoType
      */
     public function valueCallback(): callable
     {
-        return fn (GoValue $value): WrappedValue => new WrappedValue($value, $this);
+        return fn(GoValue $value): WrappedValue => new WrappedValue($value, $this);
     }
 
     public function convert(AddressableValue $value): WrappedValue

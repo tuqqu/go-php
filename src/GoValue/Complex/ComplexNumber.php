@@ -36,7 +36,7 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
     use SealableTrait;
     use AddressableTrait;
 
-    public const NAME = 'complex';
+    public const string NAME = 'complex';
 
     public static function fromSimpleNumber(SimpleNumber $number): static
     {

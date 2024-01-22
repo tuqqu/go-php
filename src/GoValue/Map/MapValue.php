@@ -40,7 +40,7 @@ final class MapValue implements Map, AddressableValue
 {
     use AddressableTrait;
 
-    public const NAME = 'map';
+    public const string NAME = 'map';
 
     /**
      * @param Map<K, V>|null $innerMap

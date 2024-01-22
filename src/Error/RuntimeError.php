@@ -642,7 +642,7 @@ class RuntimeError extends RuntimeException implements GoError
             "%s\nhave (%s)\nwant (%s)",
             $type,
             implode(', ', array_map(
-                static fn (GoValue $value): string => $value->type()->name(),
+                static fn(GoValue $value): string => $value->type()->name(),
                 $values,
             )),
             $params,
@@ -715,7 +715,7 @@ class RuntimeError extends RuntimeException implements GoError
             implode(
                 ', ',
                 array_map(
-                    static fn (GoValue $value): string => $value->type()->name(),
+                    static fn(GoValue $value): string => $value->type()->name(),
                     $tuple->values,
                 ),
             ),

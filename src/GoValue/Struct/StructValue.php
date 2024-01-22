@@ -30,7 +30,7 @@ final class StructValue implements Hashable, AddressableValue
 {
     use AddressableTrait;
 
-    public const NAME = 'struct';
+    public const string NAME = 'struct';
 
     public function __construct(
         private EnvMap $fields,

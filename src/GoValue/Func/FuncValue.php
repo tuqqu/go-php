@@ -39,7 +39,7 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
     use AddressableTrait;
     use SealableTrait;
 
-    public const NAME = 'func';
+    public const string NAME = 'func';
 
     private function __construct(
         public ?Func $innerFunc,

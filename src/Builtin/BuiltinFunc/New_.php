@@ -24,7 +24,7 @@ class New_ implements BuiltinFunc, ExpectsTypeAsFirstArg
     public function __invoke(Argv $argv): PointerValue
     {
         assert_argc($this, $argv, 1);
-        assert_arg_value($argv[0], TypeValue::class, 'type');
+        assert_arg_value($argv[0], TypeValue::class);
 
         $type = $argv[0]->value;
 

@@ -57,7 +57,7 @@ abstract class BaseString implements
     use SealableTrait;
     use AddressableTrait;
 
-    public const NAME = 'string';
+    public const string NAME = 'string';
 
     private string $value;
     private int $byteLen;

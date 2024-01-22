@@ -23,7 +23,7 @@ class Delete implements BuiltinFunc
     public function __invoke(Argv $argv): VoidValue
     {
         assert_argc($this, $argv, 2);
-        assert_arg_value($argv[0], MapValue::class, MapValue::NAME);
+        assert_arg_value($argv[0], MapValue::class);
 
         $m = $argv[0]->value;
         $key = $argv[1]->value;

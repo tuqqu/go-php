@@ -16,7 +16,7 @@ use GoPhp\GoValue\TypeValue;
 
 final class Environment
 {
-    public const BLANK_IDENT = '_';
+    public const string BLANK_IDENT = '_';
 
     public readonly string $blankIdent;
     private readonly EnvMap $envMap;
@@ -25,12 +25,10 @@ final class Environment
 
     private function __construct(?self $enclosing, string $blankIdent)
     {
-        $this->envMap = new EnvMap();
         $this->registeredMethods = new MethodSet();
-
         $this->enclosing = $enclosing;
         $this->blankIdent = $blankIdent;
-
+        $this->envMap = new EnvMap();
         $this->envMap->add(new EnvValue($this->blankIdent, new BlankValue()));
     }
 

@@ -30,7 +30,7 @@ final class InternalError extends LogicException
             $context === null => '',
         };
 
-        return new self('unreachable' . $context ? sprintf(': %s', $context) : '');
+        return new self('unreachable' . ($context ? sprintf(': %s', $context) : ''));
     }
 
     public static function unexpectedValue(mixed $value, ?string $expected = null): self

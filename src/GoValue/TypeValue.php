@@ -25,6 +25,8 @@ final class TypeValue implements ConstInvokable, AddressableValue
 {
     use AddressableTrait;
 
+    public const string NAME = 'type';
+
     public function __construct(
         public readonly GoType $type,
     ) {}

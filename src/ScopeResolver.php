@@ -8,7 +8,7 @@ use GoPhp\Env\EnvMap;
 
 final class ScopeResolver
 {
-    private const NO_PACKAGE = EnvMap::NAMESPACE_TOP;
+    private const string NO_PACKAGE = EnvMap::NAMESPACE_TOP;
 
     public string $currentPackage = self::NO_PACKAGE;
     public string $entryPointPackage = self::NO_PACKAGE;

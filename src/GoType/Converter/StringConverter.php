@@ -18,7 +18,7 @@ use function mb_chr;
 
 final class StringConverter
 {
-    private const INVALID_RANGE_CHAR = "\u{FFFD}";
+    private const string INVALID_RANGE_CHAR = "\u{FFFD}";
 
     public static function convert(GoValue $value): BaseString
     {

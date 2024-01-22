@@ -8,7 +8,7 @@ use GoPhp\Error\RuntimeError;
 
 final class EnvMap
 {
-    public const NAMESPACE_TOP = '';
+    public const string NAMESPACE_TOP = '';
 
     /** @var array<string, array<string, EnvValue>> */
     private array $values = [];

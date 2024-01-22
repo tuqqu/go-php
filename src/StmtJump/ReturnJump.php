@@ -13,8 +13,8 @@ use GoPhp\GoValue\VoidValue;
  */
 final class ReturnJump implements StmtJump
 {
-    public const LEN_VOID = 0;
-    public const LEN_SINGLE = 1;
+    public const int LEN_VOID = 0;
+    public const int LEN_SINGLE = 1;
 
     /**
      * @param V $value

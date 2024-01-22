@@ -13,6 +13,11 @@ namespace GoPhp\GoValue;
 interface AddressableValue extends GoValue
 {
     /**
+     * Constant name of the value.
+     */
+    public const string NAME = 'value';
+
+    /**
      * Must be called wherever the value becomes stored (e.g. in a variable).
      */
     public function makeAddressable(): void;

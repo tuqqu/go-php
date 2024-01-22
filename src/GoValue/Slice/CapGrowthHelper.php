@@ -6,7 +6,7 @@ namespace GoPhp\GoValue\Slice;
 
 final class CapGrowthHelper
 {
-    private const THRESHOLD = 256;
+    private const int THRESHOLD = 256;
 
     private function __construct() {}
 

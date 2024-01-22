@@ -14,10 +14,10 @@ use function sprintf;
 
 class ImportHandler
 {
-    final protected const EXTENSION_GO = '.go';
-    final protected const EXTENSION_GO_PHP = '.gop';
+    final protected const string EXTENSION_GO = '.go';
+    final protected const string EXTENSION_GO_PHP = '.gop';
 
-    protected const EXTENSIONS = [
+    protected const array EXTENSIONS = [
         self::EXTENSION_GO,
         self::EXTENSION_GO_PHP,
     ];

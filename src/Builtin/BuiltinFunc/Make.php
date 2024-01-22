@@ -33,7 +33,7 @@ class Make implements BuiltinFunc, ExpectsTypeAsFirstArg
     public function __invoke(Argv $argv): SliceValue|MapValue
     {
         assert_argc($this, $argv, 2, true);
-        assert_arg_value($argv[0], TypeValue::class, 'type');
+        assert_arg_value($argv[0], TypeValue::class);
 
         /** @var TypeValue $type */
         $type = $argv[0]->value;
@@ -81,7 +81,7 @@ class Make implements BuiltinFunc, ExpectsTypeAsFirstArg
 
             if (isset($argv[1])) {
                 // we do not use this value, just validating it
-                assert_arg_value($argv[1], IntNumber::class, IntNumber::NAME);
+                assert_arg_value($argv[1], IntNumber::class);
                 assert_index_positive($argv[1]->value->unwrap());
             }
 
