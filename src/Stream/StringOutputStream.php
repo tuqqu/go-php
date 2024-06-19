@@ -7,7 +7,7 @@ namespace GoPhp\Stream;
 class StringOutputStream implements OutputStream
 {
     public function __construct(
-        private string &$buffer
+        private string &$buffer,
     ) {}
 
     public function write(string $str): void

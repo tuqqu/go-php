@@ -22,4 +22,4 @@ $interp = Interpreter::create(
 $result = $interp->run();
 
 print "Output:\n$stdout\n";
-print "Exit code: $result->exitCode->value\n";
+print "Exit code: {$result->exitCode->value}\n";

@@ -96,7 +96,7 @@ class RuntimeError extends RuntimeException implements GoError
                 self::valueToString($value),
                 $type->name(),
                 $context === null ? '' : ' ' . $context,
-            )
+            ),
         );
     }
 
@@ -196,21 +196,21 @@ class RuntimeError extends RuntimeException implements GoError
                 'invalid operation: operator %s not defined on %s',
                 $op->value,
                 self::valueToString($value),
-            )
+            ),
         );
     }
 
     public static function cannotIndex(GoType $type): self
     {
         return new self(
-            sprintf('invalid operation: cannot index (%s)', $type->name())
+            sprintf('invalid operation: cannot index (%s)', $type->name()),
         );
     }
 
     public static function cannotSlice(GoType $type): self
     {
         return new self(
-            sprintf('invalid operation: cannot slice (%s)', $type->name())
+            sprintf('invalid operation: cannot slice (%s)', $type->name()),
         );
     }
 
@@ -245,7 +245,7 @@ class RuntimeError extends RuntimeException implements GoError
             sprintf(
                 'invalid operation: cannot take address of value (map index expression of type %s)',
                 $type->name(),
-            )
+            ),
         );
     }
 
@@ -255,7 +255,7 @@ class RuntimeError extends RuntimeException implements GoError
             sprintf(
                 'invalid operation: cannot take address of %s',
                 self::valueToString($value),
-            )
+            ),
         );
     }
 
@@ -266,7 +266,7 @@ class RuntimeError extends RuntimeException implements GoError
                 'Value of type "%s" does not support "%s" operation',
                 $value->type()->name(),
                 $operation,
-            )
+            ),
         );
     }
 
@@ -281,7 +281,7 @@ class RuntimeError extends RuntimeException implements GoError
             sprintf(
                 'invalid operation: cannot call non-function %s',
                 self::valueToString($value),
-            )
+            ),
         );
     }
 
@@ -291,7 +291,7 @@ class RuntimeError extends RuntimeException implements GoError
             sprintf(
                 'Unexpected operator "%s" in assignment',
                 $op->value,
-            )
+            ),
         );
     }
 
@@ -314,7 +314,7 @@ class RuntimeError extends RuntimeException implements GoError
                 $arg->pos,
                 $arg->value->type()->name(),
                 is_string($expectedType) ? $expectedType : $expectedType->name(),
-            )
+            ),
         );
     }
 
@@ -357,7 +357,7 @@ class RuntimeError extends RuntimeException implements GoError
                 $index->type()->name(),
                 $type,
                 $where,
-            )
+            ),
         );
     }
 

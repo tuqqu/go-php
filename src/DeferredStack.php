@@ -32,7 +32,7 @@ final class DeferredStack
         }
 
         yield from array_reverse(
-            $this->stack[$this->context - 1]->get()
+            $this->stack[$this->context - 1]->get(),
         );
 
         unset($this->stack[$this->context - 1]);

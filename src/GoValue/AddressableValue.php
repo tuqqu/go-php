@@ -34,9 +34,14 @@ interface AddressableValue extends GoValue
     public function getName(): string;
 
     /**
+     * Returns the fully qualified name.
+     */
+    public function getQualifiedName(): string;
+
+    /**
      * Sets the name with which current value has been addressed.
      */
-    public function addressedWithName(string $name): void;
+    public function addressedWithName(string $name, ?string $namespace = null): void;
 
     /**
      * Copying an addressable value results in an addressable value.

@@ -10,8 +10,10 @@ use GoPhp\GoValue\RecoverableInvokable;
 
 final class InvokableCall
 {
+    use PositionAwareTrait;
+
     public function __construct(
-        private readonly Invokable $func,
+        public readonly Invokable $func,
         private readonly Argv $argv,
     ) {}
 

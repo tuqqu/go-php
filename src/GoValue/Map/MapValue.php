@@ -64,7 +64,7 @@ final class MapValue implements Map, AddressableValue
             $str[] = sprintf(
                 '%s:%s',
                 $key->toString(),
-                $value->toString()
+                $value->toString(),
             );
         }
 

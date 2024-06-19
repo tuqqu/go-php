@@ -31,6 +31,11 @@ class ImportHandler
         $this->extensions = self::EXTENSIONS + $customExtensions;
     }
 
+    public function importFromFile(string $path): string
+    {
+        return file_get_contents($path);
+    }
+
     /**
      * @return iterable<string>
      */
@@ -48,7 +53,7 @@ class ImportHandler
             $file = $path . $extension;
 
             if (is_file($file)) {
-                yield self::importFromFile($file);
+                yield $this->importFromFile($file);
 
                 return;
             }
@@ -73,10 +78,5 @@ class ImportHandler
             // fixme add _ . support
             // fixme add go.mod support
         }
-    }
-
-    protected static function importFromFile(string $path): string
-    {
-        return file_get_contents($path);
     }
 }

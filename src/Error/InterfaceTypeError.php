@@ -20,7 +20,7 @@ class InterfaceTypeError extends RuntimeError
         $missingMethod = (string) $interfaceType->tryGetMissingMethod(
             $value instanceof WrappedType
                 ? $value
-                : $value->type()
+                : $value->type(),
         );
 
         $error = self::cannotUseAsType($value, $interfaceType, $missingMethod);

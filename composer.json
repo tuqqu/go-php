@@ -14,7 +14,7 @@
         "tuqqu/go-parser": "^0.5.1"
     },
     "require-dev": {
-        "symfony/var-dumper": "^6",
+        "symfony/var-dumper": "^7",
         "friendsofphp/php-cs-fixer": "^3.48",
         "phpunit/phpunit": "^10.5",
         "vimeo/psalm": "^5.20"
@@ -29,6 +29,7 @@
         "files": [
             "src/asserts.php",
             "src/utils.php",
+            "src/Debug/utils.php",
             "src/GoValue/utils.php"
         ]
     },

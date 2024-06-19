@@ -8,5 +8,20 @@ use GoPhp\Error\PanicError;
 
 final class PanicPointer
 {
-    public ?PanicError $panic = null;
+    private ?PanicError $panic = null;
+
+    public function set(PanicError $panic): void
+    {
+        $this->panic = $panic;
+    }
+
+    public function clear(): void
+    {
+        $this->panic = null;
+    }
+
+    public function pointsTo(): ?PanicError
+    {
+        return $this->panic;
+    }
 }

@@ -135,7 +135,7 @@ final class Environment
         string $namespace,
     ): void {
         $value->makeAddressable();
-        $envValue = new EnvValue($name, $value, $type);
+        $envValue = new EnvValue($name, $value, $type, $namespace);
 
         if ($name === $this->blankIdent) {
             return;

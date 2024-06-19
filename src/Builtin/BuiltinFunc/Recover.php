@@ -24,10 +24,10 @@ class Recover implements BuiltinFunc
     public function __invoke(Argv $argv): InterfaceValue
     {
         assert_argc($this, $argv, 0);
+        $lastPanic = $this->panicPointer->pointsTo();
 
-        if ($this->panicPointer->panic !== null) {
-            $lastPanic = $this->panicPointer->panic;
-            $this->panicPointer->panic = null;
+        if ($lastPanic !== null) {
+            $this->panicPointer->clear();
 
             return new InterfaceValue($lastPanic->panicValue);
         }

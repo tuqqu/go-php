@@ -13,7 +13,7 @@ class ResourceInputStream implements InputStream
      * @param resource $stream
      */
     public function __construct(
-        private readonly mixed $stream
+        private readonly mixed $stream,
     ) {}
 
     public function getChar(): ?string
@@ -25,8 +25,8 @@ class ResourceInputStream implements InputStream
 
     public function getLine(): ?string
     {
-        $char = fgets($this->stream);
+        $line = fgets($this->stream);
 
-        return $char === false ? null : $char;
+        return $line === false ? null : $line;
     }
 }

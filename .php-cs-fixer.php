@@ -18,10 +18,12 @@ const rules = [
 ];
 
 config->setRules(rules);
-config->setFinder(PhpCsFixer\Finder::create()
-    ->in(__DIR__ . '/bin')
-    ->in(__DIR__ . '/src')
-    ->in(__DIR__ . '/tests')
+config->setRiskyAllowed(true);
+config->setFinder(
+    PhpCsFixer\Finder::create()
+        ->in(__DIR__ . '/bin')
+        ->in(__DIR__ . '/src')
+        ->in(__DIR__ . '/tests'),
 );
 
 return config;

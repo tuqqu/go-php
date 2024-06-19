@@ -22,10 +22,15 @@ use function GoPhp\assert_types_equal;
 final class EnvValue
 {
     public readonly string $name;
+    public readonly ?string $namespace;
     private readonly GoValue $value;
 
-    public function __construct(string $name, GoValue $value, ?GoType $type = null)
-    {
+    public function __construct(
+        string $name,
+        GoValue $value,
+        ?GoType $type = null,
+        ?string $namespace = null,
+    ) {
         if ($type instanceof UntypedNilType) {
             throw RuntimeError::untypedNilInVarDecl();
         }
@@ -51,14 +56,19 @@ final class EnvValue
             }
         }
 
+        if ($value instanceof AddressableValue) {
+            $value->addressedWithName($name, $namespace);
+        }
+
         $this->name = $name;
+        $this->namespace = $namespace;
         $this->value = $value;
     }
 
     public function unwrap(): GoValue
     {
         if ($this->value instanceof AddressableValue) {
-            $this->value->addressedWithName($this->name);
+            $this->value->addressedWithName($this->name, $this->namespace);
         }
 
         return $this->value;
@@ -66,7 +76,7 @@ final class EnvValue
 
     public function copy(): self
     {
-        return new self($this->name, $this->value->copy());
+        return new self($this->name, $this->value->copy(), namespace: $this->namespace);
     }
 
     public function equals(self $other): bool

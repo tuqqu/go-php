@@ -64,6 +64,8 @@ use GoPhp\Builtin\BuiltinFunc\Marker\ExpectsTypeAsFirstArg;
 use GoPhp\Builtin\BuiltinProvider;
 use GoPhp\Builtin\Iota;
 use GoPhp\Builtin\StdBuiltinProvider;
+use GoPhp\Debug\CallStackCollectorDebugger;
+use GoPhp\Debug\Debugger;
 use GoPhp\Env\Environment;
 use GoPhp\Error\AbortExecutionError;
 use GoPhp\Error\InternalError;
@@ -71,7 +73,7 @@ use GoPhp\Error\PanicError;
 use GoPhp\Error\ParserError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\ErrorHandler\ErrorHandler;
-use GoPhp\ErrorHandler\OutputToStream;
+use GoPhp\ErrorHandler\StreamWriter;
 use GoPhp\GoType\ArrayType;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\InterfaceType;
@@ -129,13 +131,14 @@ final class Interpreter
     private readonly ScopeResolver $scopeResolver;
     private readonly InvokableCallList $initializers;
     private readonly TypeResolver $typeResolver;
-    private Ast $ast;
     private bool $constContext = false;
     private int $switchContext = 0;
     private ?FuncValue $entryPoint = null;
+    private Ast $ast;
 
     public function __construct(
         private readonly string $source,
+        private readonly ?string $filename,
         private readonly Argv $argv,
         private readonly ErrorHandler $errorHandler,
         private readonly StreamProvider $streams,
@@ -147,6 +150,7 @@ final class Interpreter
         private Environment $env,
         private readonly ?Debugger $debugger,
     ) {
+        self::init();
         $this->jumpStack = new JumpStack();
         $this->deferredStack = new DeferredStack();
         $this->scopeResolver = new ScopeResolver();
@@ -161,7 +165,7 @@ final class Interpreter
     /**
      * Creates an interpreter instance
      *
-     * @param string $source Source code to execute
+     * @param string|null $source Source code to execute
      * @param list<GoValue> $argv Command line arguments
      * @param BuiltinProvider|null $builtin Builtin package provider
      * @param ErrorHandler|null $errorHandler Error handler
@@ -169,6 +173,7 @@ final class Interpreter
      * @param FuncTypeValidator $entryPointValidator Validator for entry point function
      * @param FuncTypeValidator $initValidator Validator for package initializer functions
      * @param EnvVarSet $envVars Environment variables
+     * @param string|null $filename Filename of the source code
      * @param bool $toplevel Whether the source is a top level code or not
      * @param bool $debug Whether to enable debug mode or not
      * @param Debugger|null $debugger Debugger, if $debug is set to false, this is ignored
@@ -177,7 +182,7 @@ final class Interpreter
      * @return self
      */
     public static function create(
-        string $source,
+        ?string $source,
         array $argv = [],
         ?BuiltinProvider $builtin = null,
         ?ErrorHandler $errorHandler = null,
@@ -188,18 +193,15 @@ final class Interpreter
         ),
         FuncTypeValidator $initValidator = new ZeroArityValidator(INITIALIZER_FUNC),
         EnvVarSet $envVars = new EnvVarSet(),
+        ?string $filename = null,
         bool $toplevel = false,
         bool $debug = false,
         ?Debugger $debugger = null,
         array $customFileExtensions = [],
     ): self {
-        static $init = false;
-        if (!$init) {
-            $init = true;
-            self::$noneJump = new None();
-        }
+        self::init();
 
-        $errorHandler ??= new OutputToStream($streams->stderr());
+        $errorHandler ??= new StreamWriter($streams->stderr());
         $builtin ??= new StdBuiltinProvider($streams->stderr());
         $importHandler = new ImportHandler($envVars, $customFileExtensions);
 
@@ -209,8 +211,17 @@ final class Interpreter
             $debugger = null;
         }
 
+        if ($source === null) {
+            if ($filename === null) {
+                throw new InternalError('source or filename must be provided');
+            }
+
+            $source = $importHandler->importFromFile($filename);
+        }
+
         return new self(
             source: $toplevel ? self::wrapSource($source, $entryPointValidator) : $source,
+            filename: $filename,
             argv: (new ArgvBuilder($argv))->build(),
             errorHandler: $errorHandler,
             streams: $streams,
@@ -353,7 +364,7 @@ final class Interpreter
 
     private function parseSourceToAst(string $source): Ast
     {
-        $parser = new Parser($source);
+        $parser = new Parser($source, $this->filename);
 
         /** @var Ast $ast */
         $ast = $parser->parse();
@@ -665,13 +676,16 @@ final class Interpreter
             $argvBuilder->markUnpacked($func);
         }
 
-        return new InvokableCall($func, $argvBuilder->build());
+        $call = new InvokableCall($func, $argvBuilder->build());
+        $call->setPosition($expr->lParen->pos);
+
+        return $call;
     }
 
     private function evalCallExpr(CallExpr $expr): GoValue
     {
         return $this->callFunc(
-            $this->evalCallExprWithoutCall($expr)
+            $this->evalCallExprWithoutCall($expr),
         );
     }
 
@@ -679,18 +693,19 @@ final class Interpreter
     {
         $this->jumpStack->push(new JumpHandler());
         $this->deferredStack->newContext();
+        $this->debugger?->addStackTrace($fn);
 
         try {
             $value = $fn();
-            $this->debugger?->addStackTrace($fn);
             $this->releaseDeferredStack();
+            $this->debugger?->releaseLastStackTrace();
 
             return $value;
         } catch (PanicError $panic) {
-            $this->panicPointer->panic = $panic;
+            $this->panicPointer->set($panic);
             $this->releaseDeferredStack();
 
-            if ($this->panicPointer->panic === null && ($recover = $fn->tryRecover()) !== null) {
+            if ($this->panicPointer->pointsTo() === null && ($recover = $fn->tryRecover()) !== null) {
                 return $recover;
             }
 
@@ -1500,7 +1515,7 @@ final class Interpreter
     {
         $value = $this->env->get(
             $ident->name,
-            $this->scopeResolver->currentPackage
+            $this->scopeResolver->currentPackage,
         )->unwrap();
 
         if ($value === $this->iota && !$this->constContext) {
@@ -1577,5 +1592,17 @@ final class Interpreter
             {$source}
         }
         GO;
+    }
+
+    private static function init(): void
+    {
+        static $init = false;
+
+        if ($init) {
+            return;
+        }
+
+        $init = true;
+        self::$noneJump = new None();
     }
 }

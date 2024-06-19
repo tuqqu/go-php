@@ -40,7 +40,7 @@ final class FuncType implements RefType
                 0 => '',
                 1 => sprintf(' %s', $this->returns),
                 default => sprintf(' (%s)', $this->returns),
-            }
+            },
         );
     }
 

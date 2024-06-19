@@ -42,7 +42,7 @@ php main.php
 
 ## WIP
 
-This is a toy project, currently work-in-progress.
+This is a toy project, not intended for production use.
 
 To see what is already implemented, refer to [tests](tests/Functional/files/).
 
@@ -61,3 +61,7 @@ make test
 ```
 
 run `make help` for more commands.
+
+## Differences from the Go compiler
+
+- No support for real goroutines, go statements run sequentially

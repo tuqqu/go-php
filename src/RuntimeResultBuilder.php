@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GoPhp;
 
+use GoPhp\Debug\Debugger;
 use GoPhp\Error\GoError;
 use GoPhp\Error\InternalError;
 use GoPhp\GoValue\GoValue;

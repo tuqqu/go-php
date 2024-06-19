@@ -12,7 +12,7 @@ class ResourceOutputStream implements OutputStream
      * @param resource $stream
      */
     public function __construct(
-        private readonly mixed $stream
+        private readonly mixed $stream,
     ) {}
 
     public function write(string $str): void

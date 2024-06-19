@@ -4,11 +4,14 @@
 declare(strict_types=1);
 
 use GoPhp\EnvVarSet;
-use GoPhp\ErrorHandler\OutputToStream;
+use GoPhp\ErrorHandler\StreamWriter;
+use GoPhp\ExitCode;
 use GoPhp\Interpreter;
 use GoPhp\Stream\ResourceOutputStream;
 
 use const GoPhp\VERSION;
+
+use function GoPhp\Debug\dump_call_stack;
 
 const AUTOLOAD_PATHS = [
     __DIR__ . '/../vendor/autoload.php',
@@ -55,6 +58,7 @@ function print_help(): void
         -e, --eval          Evaluate given code
         --goroot            Set GOROOT environment variable
         --gopath            Set GOPATH environment variable
+        --dump-stack-trace  Dump stack trace on error
 
     HELP, VERSION));
 }
@@ -71,6 +75,7 @@ enum Flag: string
     case Eval = 'eval';
     case Goroot = 'goroot';
     case Gopath = 'gopath';
+    case DumpStackTrace = 'dump-stack-trace';
 
     private const array FLAGS_WITH_VALUE = [
         self::Goroot,
@@ -81,6 +86,7 @@ enum Flag: string
         self::Help,
         self::Version,
         self::Eval,
+        self::DumpStackTrace,
     ];
 
     /**
@@ -139,6 +145,7 @@ function main(array $argv): never
     $gopath = EnvVarSet::DEFAULT_GOPATH;
     $eval = false;
     $script = null;
+    $dumpTrace = false;
 
     foreach ($argv as $arg) {
         if ($eval) {
@@ -166,6 +173,9 @@ function main(array $argv): never
             case Flag::Eval:
                 $eval = true;
                 break;
+            case Flag::DumpStackTrace:
+                $dumpTrace = true;
+                break;
             default:
                 $file = $arg;
                 break 2;
@@ -177,24 +187,29 @@ function main(array $argv): never
         exit(0);
     }
 
-    $src = $script !== null
-        ? $script
-        : file_get_contents($file);
-
     $stderr = new ResourceOutputStream(STDERR);
-    $errorHandler = new OutputToStream($stderr);
+    $errorHandler = new StreamWriter($stderr);
 
     $runtime = Interpreter::create(
-        source: $src,
+        source: $script !== null ? $script : null,
         errorHandler: $errorHandler,
         envVars: new EnvVarSet(
             goroot: $goroot,
             gopath: $gopath,
         ),
+        filename: $file,
         toplevel: $script !== null,
+        debug: $dumpTrace,
     );
 
     $result = $runtime->run();
+
+    if ($dumpTrace && $result->exitCode === ExitCode::Failure) {
+        $callStack = $result->debugger?->getCallStack();
+
+        fwrite(STDERR, "\n");
+        dump_call_stack($callStack);
+    }
 
     exit($result->exitCode->value);
 }
