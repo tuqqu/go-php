@@ -134,6 +134,7 @@ enum NamedType: string implements BasicType
             },
             self::Float64,
             self::Float32 => match ($other) {
+                UntypedType::UntypedInt,
                 UntypedType::UntypedFloat,
                 UntypedType::UntypedRoundFloat => true,
                 default => $this->equals($other),

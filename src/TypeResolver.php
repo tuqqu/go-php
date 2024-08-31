@@ -195,16 +195,18 @@ final class TypeResolver
         // fixme use composite param
         $methods = [];
         foreach ($interfaceType->items as $item) {
-            if ($item instanceof TypeTerm) {
-                throw InternalError::unimplemented();
-            }
+            switch (true) {
+                case $item instanceof TypeTerm:
+                    throw InternalError::unimplemented();
+                case $item instanceof MethodElem:
+                    if (isset($methods[$item->methodName->name])) {
+                        throw RuntimeError::duplicateMethod($item->methodName->name);
+                    }
 
-            if ($item instanceof MethodElem) {
-                if (isset($methods[$item->methodName->name])) {
-                    throw RuntimeError::duplicateMethod($item->methodName->name);
-                }
-
-                $methods[$item->methodName->name] = $this->resolveTypeFromAstSignature($item->signature);
+                    $methods[$item->methodName->name] = $this->resolveTypeFromAstSignature($item->signature);
+                    break;
+                default:
+                    throw InternalError::unreachable($item);
             }
         }
 

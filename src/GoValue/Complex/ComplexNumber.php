@@ -28,7 +28,7 @@ use function sprintf;
 
 /**
  * @psalm-type ComplexTuple = array{float, float}
- * @template-implements Hashable<float>
+ * @template-implements Hashable<int>
  * @template-implements AddressableValue<ComplexTuple>
  */
 abstract class ComplexNumber implements Hashable, Castable, Sealable, AddressableValue
@@ -67,10 +67,10 @@ abstract class ComplexNumber implements Hashable, Castable, Sealable, Addressabl
         );
     }
 
-    final public function hash(): float
+    final public function hash(): int
     {
         // Cantor Pairing Hash
-        return 0.5 * ($this->real + $this->imag) * ($this->real + $this->imag + 1) + $this->imag;
+        return (int) (100 * ($this->real + $this->imag) * ($this->real + $this->imag + 1) + $this->imag);
     }
 
     final public function cast(NamedType $to): self

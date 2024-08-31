@@ -9,7 +9,7 @@ use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Sequence;
 
 /**
- * @template K of Hashable&GoValue
+ * @template K of GoValue&Hashable
  * @template V of GoValue
  *
  * @template-extends Sequence<K, V>
@@ -19,16 +19,16 @@ interface Map extends Sequence
     /**
      * @param K $at
      */
-    public function has(Hashable&GoValue $at): bool;
+    public function has(GoValue&Hashable $at): bool;
 
     /**
      * @param K $at
      */
-    public function delete(Hashable&GoValue $at): void;
+    public function delete(GoValue&Hashable $at): void;
 
     /**
      * @param V $value
      * @param K $at
      */
-    public function set(GoValue $value, Hashable&GoValue $at): void;
+    public function set(GoValue $value, GoValue&Hashable $at): void;
 }

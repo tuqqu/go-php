@@ -14,10 +14,10 @@
         "tuqqu/go-parser": "^0.5.1"
     },
     "require-dev": {
-        "symfony/var-dumper": "^7",
-        "friendsofphp/php-cs-fixer": "^3.48",
+        "symfony/var-dumper": "^7.1",
+        "friendsofphp/php-cs-fixer": "^3.63",
         "phpunit/phpunit": "^10.5",
-        "vimeo/psalm": "^5.20"
+        "vimeo/psalm": "5.20"
     },
     "bin": [
         "bin/go-php"

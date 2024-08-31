@@ -11,7 +11,7 @@ use GoPhp\GoType\NamedType;
 use function GoPhp\assert_values_compatible;
 
 /**
- * @template-implements Hashable<bool>
+ * @template-implements Hashable<int>
  * @template-implements AddressableValue<bool>
  */
 final class BoolValue implements Hashable, Castable, Sealable, AddressableValue
@@ -125,9 +125,9 @@ final class BoolValue implements Hashable, Castable, Sealable, AddressableValue
         return new self($this->value && $other->value);
     }
 
-    public function hash(): bool
+    public function hash(): int
     {
-        return $this->unwrap();
+        return (int) $this->unwrap();
     }
 
     public function cast(NamedType $to): self

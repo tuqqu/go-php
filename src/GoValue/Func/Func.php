@@ -75,7 +75,7 @@ final class Func
                 $defaultValue = $param->type->zeroValue();
                 $namedReturns[] = $defaultValue;
 
-                /** @var string $param->name */
+                /** @psalm-assert string $param->name */
                 $env->defineVar(
                     $param->name,
                     $defaultValue,

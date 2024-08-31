@@ -9,7 +9,7 @@ use GoPhp\Builtin\BuiltinFunc\Marker\PermitsStringUnpacking;
 use GoPhp\GoValue\Slice\SliceValue;
 
 use function array_slice;
-use function GoPhp\assert_arg_type_for;
+use function GoPhp\assert_arg_type;
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
 
@@ -43,7 +43,7 @@ class Append implements BuiltinFunc, PermitsStringUnpacking
         $elems = array_slice($argv->values, 1);
 
         foreach ($elems as $elem) {
-            assert_arg_type_for($elem->value, $slice->type->elemType, $this->name);
+            assert_arg_type($elem, $slice->type->elemType, $this->name);
 
             $slice->append($elem->value);
         }

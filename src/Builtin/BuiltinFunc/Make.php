@@ -16,7 +16,7 @@ use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\Slice\SliceValue;
 use GoPhp\GoValue\TypeValue;
 
-use function GoPhp\assert_arg_int;
+use function GoPhp\assert_arg_int_for_builtin;
 use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
 use function GoPhp\assert_index_positive;
@@ -46,7 +46,7 @@ class Make implements BuiltinFunc, ExpectsTypeAsFirstArg
             $builder = SliceBuilder::fromType($type->type);
 
             if (isset($argv[1])) {
-                assert_arg_int($argv[1]);
+                assert_arg_int_for_builtin($argv[1]);
 
                 $len = (int) $argv[1]->value->unwrap();
 
@@ -58,7 +58,7 @@ class Make implements BuiltinFunc, ExpectsTypeAsFirstArg
             }
 
             if (isset($argv[2])) {
-                assert_arg_int($argv[2]);
+                assert_arg_int_for_builtin($argv[2]);
 
                 $cap = (int) $argv[2]->value->unwrap();
 
@@ -88,7 +88,8 @@ class Make implements BuiltinFunc, ExpectsTypeAsFirstArg
             return MapBuilder::fromType($type->type)->build();
         }
 
-        throw RuntimeError::wrongArgumentType($argv[0], 'slice, map or channel');
+        /** @psalm-suppress InvalidArgument */
+        throw RuntimeError::wrongArgumentTypeForMake($argv[0]);
     }
 
     public function name(): string

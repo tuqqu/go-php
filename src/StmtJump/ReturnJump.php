@@ -60,7 +60,7 @@ final class ReturnJump implements StmtJump
     }
 
     /**
-     * @return V[]
+     * @return list<V>
      */
     public function values(): array
     {

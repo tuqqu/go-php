@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
+use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\Map\MapValue;
 use GoPhp\GoValue\VoidValue;
 
@@ -28,6 +29,7 @@ class Delete implements BuiltinFunc
         $m = $argv[0]->value;
         $key = $argv[1]->value;
 
+        /** @psalm-var Hashable $key */
         $m->delete($key);
 
         return VoidValue::get();

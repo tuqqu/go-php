@@ -134,7 +134,7 @@ final class Interpreter
     private bool $constContext = false;
     private int $switchContext = 0;
     private ?FuncValue $entryPoint = null;
-    private Ast $ast;
+    private ?Ast $ast = null;
 
     public function __construct(
         private readonly string $source,
@@ -293,6 +293,8 @@ final class Interpreter
 
     private function evalDeclsInOrder(): void
     {
+        $this->assertAstIsSet();
+
         foreach ($this->ast->imports as $import) {
             $this->evalImportDeclStmt($import);
         }
@@ -338,6 +340,7 @@ final class Interpreter
 
     private function evalImportDeclStmt(ImportDecl $decl): void
     {
+        $this->assertAstIsSet();
         $mainAst = $this->ast;
 
         foreach (iter_spec($decl->spec) as $spec) {
@@ -426,7 +429,7 @@ final class Interpreter
                 throw RuntimeError::invalidConstantType($type);
             }
 
-            if (!empty($spec->initList->exprs)) {
+            if ($spec->initList !== null && !empty($spec->initList->exprs)) {
                 $initExprs = $spec->initList->exprs;
             }
 
@@ -866,7 +869,7 @@ final class Interpreter
 
     private function evalReturnStmt(ReturnStmt $stmt): ReturnJump
     {
-        if (empty($stmt->exprList->exprs)) {
+        if ($stmt->exprList === null || empty($stmt->exprList->exprs)) {
             return ReturnJump::fromVoid();
         }
 
@@ -1604,5 +1607,17 @@ final class Interpreter
 
         $init = true;
         self::$noneJump = new None();
+    }
+
+    /**
+     * @psalm-assert !null $this->ast
+     */
+    private function assertAstIsSet(): void
+    {
+        if ($this->ast !== null) {
+            return;
+        }
+
+        throw new InternalError('AST is not set');
     }
 }

@@ -65,14 +65,14 @@ class RuntimeError extends RuntimeException implements GoError
         return self::cannotUseArgumentAsType($value, $type, $name);
     }
 
-    public static function cannotUseArgumentAsType(GoValue $value, GoType|string $type, string $func): self
+    public static function cannotUseArgumentAsType(GoValue $value, GoType|string $type, ?string $func): self
     {
         return new self(
             sprintf(
                 'cannot use %s as type %s in argument to %s',
                 self::valueToString($value),
                 is_string($type) ? $type : $type->name(),
-                $func,
+                $func ?? 'function',
             ),
         );
     }
@@ -310,10 +310,52 @@ class RuntimeError extends RuntimeException implements GoError
     {
         return new self(
             sprintf(
-                'invalid argument %d (%s), expected %s',
+                'invalid argument: %d (%s), expected %s',
                 $arg->pos,
-                $arg->value->type()->name(),
+                self::valueToString($arg->value),
                 is_string($expectedType) ? $expectedType : $expectedType->name(),
+            ),
+        );
+    }
+
+    public static function wrongArgumentTypeForBuiltin(GoValue $value, string $func): self
+    {
+        return new self(
+            sprintf(
+                'invalid argument: %s for built-in %s',
+                self::valueToString($value),
+                $func,
+            ),
+        );
+    }
+
+    public static function wrongArgumentTypeForMake(Arg $arg): self
+    {
+        return new self(
+            sprintf(
+                'invalid argument: cannot make %s; type must be slice, map, or channel',
+                $arg->value->type()->name(),
+            ),
+        );
+    }
+
+    public static function nonFloatingPointArgument(GoValue $value): self
+    {
+        return new self(
+            sprintf(
+                'invalid argument: arguments have type %s, expected floating-point',
+                self::valueToString($value),
+            ),
+        );
+    }
+
+    //todo
+    public static function wrongFirstArgumentTypeForAppend(Arg $arg): self
+    {
+        return new self(
+            sprintf(
+                'first argument to append must be a slice; have %s',
+                self::valueToString($arg->value),
             ),
         );
     }
@@ -580,6 +622,9 @@ class RuntimeError extends RuntimeException implements GoError
         return new self('mixed named and unnamed parameters');
     }
 
+    /**
+     * @param list<GoValue> $returnValues
+     */
     public static function wrongReturnValueNumber(array $returnValues, Params $params): self
     {
         return self::wrongFuncArity($returnValues, $params, 'return values');
@@ -625,6 +670,9 @@ class RuntimeError extends RuntimeException implements GoError
         return sprintf('%s.%s', $name, $selector);
     }
 
+    /**
+     * @param Argv|list<GoValue> $values
+     */
     protected static function wrongFuncArity(
         Argv|array $values,
         Params $params,
@@ -632,11 +680,14 @@ class RuntimeError extends RuntimeException implements GoError
     ): self {
         [$len, $values] = is_array($values)
             ? [count($values), $values]
-            : [$values->argc, $values->values];
+            : [$values->argc, array_map(
+                static fn(Arg $arg): GoValue => $arg->value,
+                $values->values,
+            )];
 
-        $msg = $params->len > $len ?
-            'not enough ' :
-            'too many ';
+        $msg = $params->len > $len
+            ? 'not enough '
+            : 'too many ';
 
         $msg .= sprintf(
             "%s\nhave (%s)\nwant (%s)",

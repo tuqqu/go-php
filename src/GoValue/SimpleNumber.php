@@ -31,7 +31,7 @@ use function GoPhp\try_unwind;
 /**
  * @template N = int|float
  *
- * @template-implements Hashable<N>
+ * @template-implements Hashable<int>
  * @template-implements AddressableValue<N>
  */
 abstract class SimpleNumber implements Hashable, Castable, Sealable, Typeable, AddressableValue
@@ -124,9 +124,9 @@ abstract class SimpleNumber implements Hashable, Castable, Sealable, Typeable, A
         };
     }
 
-    final public function hash(): int|float
+    final public function hash(): int
     {
-        return $this->unwrap();
+        return (int) $this->unwrap();
     }
 
     public function cast(NamedType $to): self|ComplexNumber

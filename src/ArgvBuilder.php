@@ -52,6 +52,9 @@ final class ArgvBuilder
         };
     }
 
+    /**
+     * @psalm-suppress ArgumentTypeCoercion
+     */
     public function build(): Argv
     {
         /** @var list<Arg> $argv */

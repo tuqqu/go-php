@@ -41,9 +41,10 @@ class Copy implements BuiltinFunc
         $srcType = $src->value->type();
 
         if ($srcType instanceof BasicType && $srcType->isString()) {
-            assert_arg_type($dst, new SliceType(NamedType::Byte));
+            /** @psalm-suppress InvalidArgument */
+            assert_arg_type($dst, new SliceType(NamedType::Byte), $this->name);
         } else {
-            assert_arg_type($src, $dst->value->type());
+            assert_arg_type($src, $dst->value->type(), $this->name);
         }
 
         $dst = $dst->value;

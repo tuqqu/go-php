@@ -25,17 +25,17 @@ class Cap implements BuiltinFunc
     {
         assert_argc($this, $argv, 1);
 
-        $capable = $argv[0];
+        $v = $argv[0];
 
-        if ($capable->value instanceof ArrayValue) {
-            return new IntValue($capable->value->len());
+        if ($v->value instanceof ArrayValue) {
+            return new IntValue($v->value->len());
         }
 
-        if ($capable->value instanceof SliceValue) {
-            return new IntValue($capable->value->cap());
+        if ($v->value instanceof SliceValue) {
+            return new IntValue($v->value->cap());
         }
 
-        throw RuntimeError::wrongArgumentType($capable, 'slice, array');
+        throw RuntimeError::wrongArgumentTypeForBuiltin($v->value, $this->name);
     }
 
     public function name(): string

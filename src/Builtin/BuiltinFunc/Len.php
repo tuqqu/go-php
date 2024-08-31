@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
+use GoPhp\Error\RuntimeError;
 use GoPhp\GoValue\Int\IntValue;
 use GoPhp\GoValue\Sequence;
 
-use function GoPhp\assert_arg_value;
 use function GoPhp\assert_argc;
 
 /**
@@ -23,9 +23,12 @@ class Len implements BuiltinFunc
     public function __invoke(Argv $argv): IntValue
     {
         assert_argc($this, $argv, 1);
-        assert_arg_value($argv[0], Sequence::class, 'slice, array, string, map');
 
         $v = $argv[0]->value;
+
+        if (!$v instanceof Sequence) {
+            throw RuntimeError::wrongArgumentTypeForBuiltin($v, $this->name);
+        }
 
         return new IntValue($v->len());
     }
