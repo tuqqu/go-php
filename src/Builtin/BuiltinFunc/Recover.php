@@ -33,7 +33,7 @@ class Recover implements BuiltinFunc
         }
 
         // fixme type
-        return InterfaceValue::nil(new InterfaceType());
+        return InterfaceValue::nil(InterfaceType::any());
     }
 
     public function name(): string

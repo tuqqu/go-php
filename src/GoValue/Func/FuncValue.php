@@ -17,24 +17,23 @@ use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\RecoverableInvokable;
+use GoPhp\GoValue\Ref;
 use GoPhp\GoValue\SealableTrait;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Operator;
 
-use function spl_object_id;
-use function sprintf;
 use function GoPhp\assert_nil_comparison;
 use function GoPhp\assert_values_compatible;
+use function GoPhp\GoValue\get_address;
 
 use const GoPhp\GoValue\NIL;
-use const GoPhp\GoValue\ZERO_ADDRESS;
 
 /**
  * @psalm-type FuncCallable = callable(Argv): GoValue
  * @psalm-import-type FuncBody from Func
  * @template-implements AddressableValue<FuncCallable>
  */
-final class FuncValue implements RecoverableInvokable, AddressableValue
+final class FuncValue implements RecoverableInvokable, Ref, AddressableValue
 {
     use AddressableTrait;
     use SealableTrait;
@@ -75,9 +74,17 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
         return new self(NIL, $type);
     }
 
+    /**
+     * @psalm-assert !null $this->innerFunc
+     */
+    public function isNil(): bool
+    {
+        return $this->innerFunc === NIL;
+    }
+
     public function zeroReturnValue(): GoValue
     {
-        if ($this->innerFunc === NIL) {
+        if ($this->isNil()) {
             throw PanicError::nilDereference();
         }
 
@@ -86,7 +93,7 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
 
     public function bind(AddressableValue $instance): void
     {
-        if ($this->innerFunc === NIL) {
+        if ($this->isNil()) {
             throw InternalError::unexpectedValue(NIL);
         }
 
@@ -100,7 +107,7 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
 
     public function toString(): string
     {
-        return sprintf('0x%x', $this->getAddress());
+        return get_address($this);
     }
 
     /**
@@ -134,8 +141,8 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
         assert_nil_comparison($this, $rhs, self::NAME);
 
         return match ($op) {
-            Operator::EqEq => new BoolValue($this->innerFunc === NIL),
-            Operator::NotEq => new BoolValue($this->innerFunc !== NIL),
+            Operator::EqEq => new BoolValue($this->isNil()),
+            Operator::NotEq => new BoolValue(!$this->isNil()),
             default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
@@ -159,14 +166,5 @@ final class FuncValue implements RecoverableInvokable, AddressableValue
         }
 
         throw RuntimeError::undefinedOperator($op, $this);
-    }
-
-    private function getAddress(): int
-    {
-        if ($this->innerFunc === NIL) {
-            return ZERO_ADDRESS;
-        }
-
-        return spl_object_id($this);
     }
 }

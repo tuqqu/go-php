@@ -7,12 +7,12 @@ namespace GoPhp;
 use GoPhp\Builtin\BuiltinFunc\BuiltinFunc;
 use GoPhp\Error\InterfaceTypeError;
 use GoPhp\Error\InternalError;
+use GoPhp\Error\PanicError;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\InterfaceType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
-use GoPhp\GoType\WrappedType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\Castable;
 use GoPhp\GoValue\Float\FloatNumber;
@@ -40,7 +40,7 @@ function assert_types_compatible(GoType $a, GoType $b): void
         return;
     }
 
-    if ($a instanceof InterfaceType && $b instanceof WrappedType) {
+    if ($a instanceof InterfaceType) {
         throw InterfaceTypeError::cannotUseAsInterfaceType($b, $a);
     }
 
@@ -62,7 +62,7 @@ function assert_types_equal(GoType $a, GoType $b): void
         return;
     }
 
-    if ($a instanceof InterfaceType && $b instanceof WrappedType) {
+    if ($a instanceof InterfaceType) {
         throw InterfaceTypeError::cannotUseAsInterfaceType($b, $a);
     }
 
@@ -199,7 +199,7 @@ function assert_index_exists(int $index, int $max): void
     assert_index_positive($index);
 
     if ($index >= $max) {
-        throw RuntimeError::indexOutOfRange($index, $max);
+        throw PanicError::indexOutOfRange($index, $max);
     }
 }
 

@@ -8,7 +8,7 @@ use GoPhp\GoType\UntypedType;
 
 final class UntypedFloatValue extends FloatNumber
 {
-    private UntypedType $type;
+    private readonly UntypedType $type;
 
     public function __construct(float $value)
     {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GoPhp\Error;
 
 use LogicException;
+use ReflectionClass;
 
 use function get_debug_type;
 use function is_object;
@@ -14,6 +15,8 @@ use function sprintf;
 /**
  * Errors that indicate a bug in the code.
  * They must not occur even when running a wrongly written program.
+ *
+ * Non-implemented yet features also throw this exception.
  */
 final class InternalError extends LogicException
 {
@@ -25,7 +28,7 @@ final class InternalError extends LogicException
     public static function unreachable(object|string|null $context): self
     {
         $context = match (true) {
-            is_object($context) => $context::class,
+            is_object($context) => (new ReflectionClass($context))->getShortName(),
             is_string($context) => $context,
             $context === null => '',
         };

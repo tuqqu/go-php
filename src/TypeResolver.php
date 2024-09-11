@@ -11,6 +11,7 @@ use GoParser\Ast\Expr\Expr;
 use GoParser\Ast\Expr\FuncType as AstFuncType;
 use GoParser\Ast\Expr\InterfaceType as AstInterfaceType;
 use GoParser\Ast\Expr\MapType as AstMapType;
+use GoParser\Ast\Expr\ParenType;
 use GoParser\Ast\Expr\PointerType as AstPointerType;
 use GoParser\Ast\Expr\QualifiedTypeName;
 use GoParser\Ast\Expr\SingleTypeName;
@@ -18,6 +19,7 @@ use GoParser\Ast\Expr\SliceType as AstSliceType;
 use GoParser\Ast\Expr\StructType as AstStructType;
 use GoParser\Ast\Expr\Type as AstType;
 use GoParser\Ast\Expr\TypeTerm;
+use GoParser\Ast\Keyword;
 use GoParser\Ast\MethodElem;
 use GoParser\Ast\Params as AstParams;
 use GoParser\Ast\Signature as AstSignature;
@@ -55,6 +57,7 @@ final class TypeResolver
         return match (true) {
             $type instanceof SingleTypeName => $this->resolveTypeFromSingleName($type),
             $type instanceof QualifiedTypeName => $this->resolveTypeFromQualifiedName($type),
+            $type instanceof ParenType => $this->resolveTypeFromParenType($type),
             $type instanceof AstFuncType => $this->resolveTypeFromAstSignature($type->signature),
             $type instanceof AstArrayType => $this->resolveArrayType($type, $composite),
             $type instanceof AstSliceType => $this->resolveSliceType($type, $composite),
@@ -110,6 +113,15 @@ final class TypeResolver
             $type->typeName->name->name,
             $type->packageName->name,
         );
+    }
+
+    private function resolveTypeFromParenType(ParenType $type): GoType
+    {
+        if ($type->type instanceof Keyword) {
+            throw RuntimeError::typeOutsideTypeSwitch();
+        }
+
+        return $this->resolve($type->type);
     }
 
     private function resolveArrayType(AstArrayType $arrayType, bool $composite): ArrayType
@@ -210,7 +222,7 @@ final class TypeResolver
             }
         }
 
-        return new InterfaceType($methods, $this->envRef);
+        return InterfaceType::withMethods($methods, $this->envRef);
     }
 
     /**

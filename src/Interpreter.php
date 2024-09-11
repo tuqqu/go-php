@@ -24,6 +24,7 @@ use GoParser\Ast\Expr\SelectorExpr;
 use GoParser\Ast\Expr\SimpleSliceExpr;
 use GoParser\Ast\Expr\StringLit;
 use GoParser\Ast\Expr\Type as AstType;
+use GoParser\Ast\Expr\TypeAssertionExpr;
 use GoParser\Ast\Expr\UnaryExpr;
 use GoParser\Ast\ExprCaseClause;
 use GoParser\Ast\ExprList;
@@ -95,6 +96,7 @@ use GoPhp\GoValue\Func\Receiver;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\Int\UntypedIntValue;
 use GoPhp\GoValue\Interface\InterfaceBuilder;
+use GoPhp\GoValue\Interface\InterfaceValue;
 use GoPhp\GoValue\Invokable;
 use GoPhp\GoValue\Map\MapBuilder;
 use GoPhp\GoValue\Map\MapLookupValue;
@@ -749,6 +751,22 @@ final class Interpreter
         return $sequence->slice($low, $high, $max);
     }
 
+    private function evalTypeAssertionExpr(TypeAssertionExpr $expr): GoValue
+    {
+        $value = $this->evalExpr($expr->expr);
+        $type = $this->typeResolver->resolve($expr->type);
+
+        if (!$value instanceof InterfaceValue) {
+            throw RuntimeError::nonInterfaceAssertion($value);
+        }
+
+        if ($value->isNil() || !$type->isCompatible($value->value->type())) {
+            throw PanicError::interfaceConversion($value, $type);
+        }
+
+        return $value->value;
+    }
+
     private function getSliceExprIndex(?Expr $expr): ?int
     {
         if ($expr === null) {
@@ -1237,6 +1255,9 @@ final class Interpreter
         return self::$noneJump;
     }
 
+    /**
+     * @return array<GoValue>
+     */
     private function collectValuesFromExprList(ExprList $exprList, int $expectedLen): array
     {
         $value = $this->evalExpr($exprList->exprs[0]);
@@ -1294,6 +1315,7 @@ final class Interpreter
             $expr instanceof IndexExpr => $this->evalIndexExpr($expr),
             $expr instanceof SimpleSliceExpr => $this->evalSliceExpr($expr),
             $expr instanceof FullSliceExpr => $this->evalSliceExpr($expr),
+            $expr instanceof TypeAssertionExpr => $this->evalTypeAssertionExpr($expr),
             $expr instanceof CompositeLit => $this->evalCompositeLit($expr),
             $expr instanceof FuncLit => $this->evalFuncLit($expr),
             default => throw InternalError::unreachable($expr),
@@ -1551,17 +1573,21 @@ final class Interpreter
     private function defineVar(string $name, GoValue $value, ?GoType $type = null): void
     {
         $this->checkNonDeclarableNames($name);
+        $initValue = null;
 
         if ($value instanceof UntypedNilValue && $type instanceof RefType) {
-            $value = $type->zeroValue();
+            $initValue = $type->zeroValue();
+        } elseif ($type instanceof InterfaceType) {
+            $initValue = $type->zeroValue();
+            $initValue->mutate(Operator::Eq, $value);
         } else {
             /** @var AddressableValue $value */
-            $value = $value->copy();
+            $initValue = $value->copy();
         }
 
         $this->env->defineVar(
             $name,
-            $value,
+            $initValue,
             reify_untyped($type ?? $value->type()),
             $this->scopeResolver->resolveDefinitionScope(),
         );

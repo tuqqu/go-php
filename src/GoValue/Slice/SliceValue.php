@@ -7,6 +7,7 @@ namespace GoPhp\GoValue\Slice;
 use GoPhp\Error\RuntimeError;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\Ref;
 use GoPhp\GoValue\Unpackable;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\GoValue\PointerValue;
@@ -37,7 +38,7 @@ use const GoPhp\GoValue\NIL;
  * @template-implements Unpackable<V>
  * @template-implements AddressableValue<array<V>>
  */
-final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableValue
+final class SliceValue implements Sliceable, Unpackable, Sequence, Ref, AddressableValue
 {
     use AddressableTrait;
 
@@ -79,6 +80,14 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
     public static function nil(SliceType $type): self
     {
         return new self(NIL, $type);
+    }
+
+    /**
+     * @psalm-assert !null $this->values
+     */
+    public function isNil(): bool
+    {
+        return $this->values === NIL;
     }
 
     /**
@@ -159,7 +168,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
      */
     public function append(GoValue $value): void
     {
-        if ($this->values === NIL) {
+        if ($this->isNil()) {
             $this->values = UnderlyingArray::fromEmpty();
         }
 
@@ -184,8 +193,8 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
         assert_nil_comparison($this, $rhs, self::NAME);
 
         return match ($op) {
-            Operator::EqEq => new BoolValue($this->values === NIL),
-            Operator::NotEq => new BoolValue($this->values !== NIL),
+            Operator::EqEq => new BoolValue($this->isNil()),
+            Operator::NotEq => new BoolValue(!$this->isNil()),
             default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }
@@ -243,7 +252,7 @@ final class SliceValue implements Sliceable, Unpackable, Sequence, AddressableVa
      */
     public function copyFromSequence(Sequence $seq): int
     {
-        if ($this->values === NIL) {
+        if ($this->isNil()) {
             return 0;
         }
 

@@ -15,17 +15,36 @@ use function implode;
 use function sprintf;
 
 /**
+ * @psalm-type MethodMap = array<string, FuncType>
  * @template-implements Hashable<string>
  */
-final class InterfaceType implements Hashable, GoType
+final class InterfaceType implements Hashable, RefType
 {
     /**
-     * @param array<string, FuncType> $methods
+     * @param MethodMap $methods
      */
-    public function __construct(
-        private readonly array $methods = [],
-        private readonly ?Environment $envRef = null,
+    private function __construct(
+        private readonly array $methods,
+        private readonly ?Environment $envRef,
     ) {}
+
+    /**
+     * @param MethodMap $methods
+     */
+    public static function withMethods(array $methods, Environment $envRef): self
+    {
+        return new self($methods, $envRef);
+    }
+
+    public static function any(): self
+    {
+        return new self([], null);
+    }
+
+    public function isAny(): bool
+    {
+        return empty($this->methods);
+    }
 
     public function name(): string
     {
@@ -43,18 +62,37 @@ final class InterfaceType implements Hashable, GoType
 
     public function equals(GoType $other): bool
     {
-        return match (true) {
-            $other instanceof UntypedNilType,
-            $other instanceof self => true,
-            $other instanceof WrappedType => $this->checkWrappedType($other),
-            default => false,
-        };
+        if ($other instanceof UntypedNilType) {
+            return true;
+        }
+
+        if ($this->isAny()) {
+            return true;
+        }
+
+        if (!$other instanceof self) {
+            return false;
+        }
+
+        if ($this->noMissingMethods($other)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function isCompatible(GoType $other): bool
     {
-        return $other instanceof UntypedNilType
-            || $this->equals($other);
+        if ($this->isAny()) {
+            return true;
+        }
+
+        return match (true) {
+            $other instanceof UntypedNilType => true,
+            $other instanceof WrappedType,
+            $other instanceof self => $this->noMissingMethods($other),
+            default => false,
+        };
     }
 
     public function zeroValue(): InterfaceValue
@@ -68,7 +106,7 @@ final class InterfaceType implements Hashable, GoType
             return $value;
         }
 
-        if ($this->checkWrappedType($value->type())) {
+        if ($this->noMissingMethods($value->type())) {
             return $value;
         }
 
@@ -80,7 +118,7 @@ final class InterfaceType implements Hashable, GoType
         return $this->name();
     }
 
-    public function tryGetMissingMethod(WrappedType $other): ?string
+    public function tryGetMissingMethod(GoType $other): ?string
     {
         if ($this->envRef === null) {
             return null;
@@ -88,22 +126,27 @@ final class InterfaceType implements Hashable, GoType
 
         foreach ($this->methods as $name => $method) {
             if (
-                !$this->envRef->hasMethod($name, $other)
+                $other instanceof WrappedType
+                && !$this->envRef->hasMethod($name, $other)
                 && !$this->envRef->hasMethod($name, $other->underlyingType)
             ) {
                 return $name;
+            }
+
+            if ($other instanceof self) {
+                $hasMethod = isset($other->methods[$name]) && $method->equals($other->methods[$name]);
+
+                if (!$hasMethod) {
+                    return $name;
+                }
             }
         }
 
         return null;
     }
 
-    private function checkWrappedType(WrappedType $other): bool
+    private function noMissingMethods(self|WrappedType $other): bool
     {
-        if ($this->envRef === null) {
-            return true;
-        }
-
         return $this->tryGetMissingMethod($other) === null;
     }
 }

@@ -14,8 +14,8 @@ use function sprintf;
 
 class ImportHandler
 {
-    final protected const string EXTENSION_GO = '.go';
-    final protected const string EXTENSION_GO_PHP = '.gop';
+    final protected const string EXTENSION_GO = 'go';
+    final protected const string EXTENSION_GO_PHP = 'gop';
 
     protected const array EXTENSIONS = [
         self::EXTENSION_GO,
@@ -50,7 +50,7 @@ class ImportHandler
         }
 
         foreach ($this->extensions as $extension) {
-            $file = $path . $extension;
+            $file = sprintf('%s.%s', $path, $extension);
 
             if (is_file($file)) {
                 yield $this->importFromFile($file);

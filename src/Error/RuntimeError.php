@@ -181,6 +181,11 @@ class RuntimeError extends RuntimeException implements GoError
         return new self(sprintf('cannot find package "." in: %s', $path));
     }
 
+    public static function typeOutsideTypeSwitch(): self
+    {
+        return new self('invalid syntax tree: use of .(type) outside type switch');
+    }
+
     public static function undefinedOperator(Operator $op, AddressableValue $value, bool $unary = false): self
     {
         if ($op === Operator::Eq) {
@@ -360,6 +365,16 @@ class RuntimeError extends RuntimeException implements GoError
         );
     }
 
+    public static function nonInterfaceAssertion(GoValue $value): self
+    {
+        return new self(
+            sprintf(
+                'invalid operation: %s is not an interface',
+                self::valueToString($value),
+            ),
+        );
+    }
+
     public static function indexNegative(GoValue|int $value): self
     {
         return new self(
@@ -378,11 +393,6 @@ class RuntimeError extends RuntimeException implements GoError
     public static function nonConstantExpr(GoValue $value): self
     {
         return new self(sprintf('%s is not constant', self::valueToString($value)));
-    }
-
-    public static function indexOutOfRange(int $index, int $len): self
-    {
-        return new self(sprintf('index out of range [%d] with length %d', $index, $len));
     }
 
     public static function invalidSliceIndices(int $low, int $high): self

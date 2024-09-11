@@ -14,6 +14,7 @@ use GoPhp\GoValue\Hashable;
 use GoPhp\GoValue\BoolValue;
 use GoPhp\GoValue\GoValue;
 use GoPhp\GoValue\PointerValue;
+use GoPhp\GoValue\Ref;
 use GoPhp\GoValue\UntypedNilValue;
 use GoPhp\Operator;
 
@@ -36,7 +37,7 @@ use const GoPhp\GoValue\NIL;
  * psalm bug with Intersection types in generics
  * @psalm-suppress PossiblyUndefinedMethod
  */
-final class MapValue implements Map, AddressableValue
+final class MapValue implements Map, Ref, AddressableValue
 {
     use AddressableTrait;
 
@@ -55,6 +56,14 @@ final class MapValue implements Map, AddressableValue
     public static function nil(MapType $type): self
     {
         return new self(NIL, $type);
+    }
+
+    /**
+     * @psalm-assert !null $this->innerMap
+     */
+    public function isNil(): bool
+    {
+        return $this->innerMap === NIL;
     }
 
     public function toString(): string
@@ -96,7 +105,7 @@ final class MapValue implements Map, AddressableValue
 
     public function set(GoValue $value, GoValue $at): void
     {
-        if ($this->innerMap === NIL) {
+        if ($this->isNil()) {
             throw PanicError::nilMapAssignment();
         }
 
@@ -142,8 +151,8 @@ final class MapValue implements Map, AddressableValue
         assert_nil_comparison($this, $rhs, self::NAME);
 
         return match ($op) {
-            Operator::EqEq => new BoolValue($this->innerMap === NIL),
-            Operator::NotEq => new BoolValue($this->innerMap !== NIL),
+            Operator::EqEq => new BoolValue($this->isNil()),
+            Operator::NotEq => new BoolValue(!$this->isNil()),
             default => throw RuntimeError::undefinedOperator($op, $this),
         };
     }

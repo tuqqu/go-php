@@ -19,6 +19,7 @@ use GoPhp\Builtin\BuiltinFunc\Println;
 use GoPhp\Builtin\BuiltinFunc\Real;
 use GoPhp\Builtin\BuiltinFunc\Recover;
 use GoPhp\Env\Environment;
+use GoPhp\GoType\InterfaceType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
 use GoPhp\GoValue\BoolValue;
@@ -113,5 +114,6 @@ class StdBuiltinProvider implements BuiltinProvider
 
         $env->defineTypeAlias('byte', $uint8);
         $env->defineTypeAlias('rune', $int32);
+        $env->defineTypeAlias('any', new TypeValue(InterfaceType::any()));
     }
 }

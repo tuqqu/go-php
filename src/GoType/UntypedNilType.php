@@ -12,6 +12,8 @@ use GoPhp\GoValue\AddressableValue;
  */
 final class UntypedNilType implements RefType
 {
+    public const string NAME = 'nil';
+
     public function name(): string
     {
         return 'untyped nil';

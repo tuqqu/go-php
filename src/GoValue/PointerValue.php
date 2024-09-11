@@ -9,15 +9,13 @@ use GoPhp\Error\PanicError;
 use GoPhp\GoType\PointerType;
 use GoPhp\Operator;
 
-use function spl_object_id;
-use function sprintf;
 use function GoPhp\assert_values_compatible;
 
 /**
- * @psalm-type Address = int
+ * @psalm-type Address = string
  * @template-implements AddressableValue<Address>
  */
-final class PointerValue implements AddressableValue
+final class PointerValue implements Ref, AddressableValue
 {
     use AddressableTrait;
 
@@ -36,18 +34,26 @@ final class PointerValue implements AddressableValue
         return new self(NIL, $type);
     }
 
+    /**
+     * @psalm-assert !null $this->pointsTo
+     */
+    public function isNil(): bool
+    {
+        return $this->pointsTo === NIL;
+    }
+
     public function getPointsTo(): AddressableValue
     {
-        if ($this->pointsTo === NIL) {
+        if ($this->isNil()) {
             throw PanicError::nilDereference();
         }
 
         return $this->pointsTo;
     }
 
-    public function unwrap(): int
+    public function unwrap(): string
     {
-        return $this->getAddress();
+        return get_address($this);
     }
 
     public function operate(Operator $op): AddressableValue
@@ -81,6 +87,7 @@ final class PointerValue implements AddressableValue
                 return;
             }
 
+            /** @var self $rhs */
             $this->pointsTo = $rhs->pointsTo;
 
             return;
@@ -101,22 +108,13 @@ final class PointerValue implements AddressableValue
 
     public function toString(): string
     {
-        return sprintf('0x%x', $this->getAddress());
-    }
-
-    private function getAddress(): int
-    {
-        if ($this->pointsTo === NIL) {
-            return ZERO_ADDRESS;
-        }
-
-        return spl_object_id($this->pointsTo);
+        return get_address($this);
     }
 
     private function equals(self|UntypedNilValue $rhs): BoolValue
     {
         if ($rhs instanceof UntypedNilValue) {
-            return new BoolValue($this->pointsTo === NIL);
+            return new BoolValue($this->isNil());
         }
 
         return new BoolValue($rhs->pointsTo === $this->pointsTo);

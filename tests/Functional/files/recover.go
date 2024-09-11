@@ -29,7 +29,7 @@ func f() (int, bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			println("Recovered in f")
-			println(r)
+			println(r == nil)
 		}
 	}()
 	println("Calling g.")
@@ -67,7 +67,7 @@ func customPanic(msg string) {
 
 func customRecoverFromPanic(msg string) int {
 	var x, y = recover(), recover()
-	println(x)
+	println(x == nil)
 	println(y)
 	println(msg)
 
@@ -101,7 +101,7 @@ func checkAndGet(a []int, index int) (int, bool) {
 
 func handleOutOfBounds() {
 	if r := recover(); r != nil {
-		println("Recovering from panic:", r)
+		println("Recovering from panic:", r == nil)
 	}
 }
 
@@ -119,7 +119,7 @@ func test_5() {
 
 func handleNilDereference() {
 	if r := recover(); r != nil {
-		println("Recovering from panic:", r)
+		println("Recovering from panic:", r == nil)
 	} else {
 		println("No panic")
 	}
@@ -142,7 +142,7 @@ func test_6() {
 
 func handleNilMapAssignment() {
 	if r := recover(); r != nil {
-		println("Recovering from panic:", r)
+		println("Recovering from panic:", r == nil)
 	} else {
 		println("No panic")
 	}

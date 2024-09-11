@@ -138,12 +138,20 @@ enum UntypedType implements BasicType
         return $this === self::UntypedString;
     }
 
-    public function convert(AddressableValue $value): never
+    public function zeroValue(): AddressableValue
     {
-        throw InternalError::unreachableMethodCall();
+        return (match ($this) {
+            self::UntypedInt => NamedType::Int,
+            self::UntypedRune => NamedType::Int32,
+            self::UntypedRoundFloat,
+            self::UntypedFloat => NamedType::Float64,
+            self::UntypedBool => NamedType::Bool,
+            self::UntypedComplex => NamedType::Complex128,
+            self::UntypedString => NamedType::String,
+        })->zeroValue();
     }
 
-    public function zeroValue(): never
+    public function convert(AddressableValue $value): never
     {
         throw InternalError::unreachableMethodCall();
     }
