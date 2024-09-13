@@ -42,7 +42,7 @@ final class PointerValue implements Ref, AddressableValue
         return $this->pointsTo === NIL;
     }
 
-    public function getPointsTo(): AddressableValue
+    public function deref(): AddressableValue
     {
         if ($this->isNil()) {
             throw PanicError::nilDereference();
@@ -59,7 +59,7 @@ final class PointerValue implements Ref, AddressableValue
     public function operate(Operator $op): AddressableValue
     {
         return match ($op) {
-            Operator::Mul => $this->getPointsTo(),
+            Operator::Mul => $this->deref(),
             Operator::BitAnd => PointerValue::fromValue($this),
             default => throw RuntimeError::undefinedOperator($op, $this),
         };

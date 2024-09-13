@@ -10,3 +10,37 @@ test_append
 5 8 97 98 99 45
 6 8 97 98 99 45 9
 9 16 97 98 99 45 9 100 115 116
+test_delete
+3 A B  D
+2 0 0 0 3
+test_new
+5
+Hello
+0 1 2
+test_len
+4
+4
+13
+5
+5
+0
+test_cap
+5
+0
+5
+0
+5
+test_make
+3 3
+3 5
+0
+0
+test_complex
+(+5.000000+6.000000) 5.000000 6.000000
+7.000000 8.000000
+9.000000 10.000000
+11.000000 12.000000
+test_print
+Hello, world!helloworld123Hello,-
+world!
+hello world 1 2 3

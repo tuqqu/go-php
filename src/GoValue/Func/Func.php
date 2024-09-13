@@ -182,13 +182,13 @@ final class Func
         }
 
         $boundInstance = $this->boundInstance instanceof PointerValue
-            ? $this->boundInstance->getPointsTo()
+            ? $this->boundInstance->deref()
             : $this->boundInstance;
 
         $receiverType = $this->receiver->type;
 
         if ($boundInstance instanceof PointerValue) {
-            $boundInstance = $boundInstance->getPointsTo();
+            $boundInstance = $boundInstance->deref();
         }
 
         if ($receiverType instanceof PointerType) {

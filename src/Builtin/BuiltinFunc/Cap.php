@@ -6,8 +6,10 @@ namespace GoPhp\Builtin\BuiltinFunc;
 
 use GoPhp\Argv;
 use GoPhp\Error\RuntimeError;
+use GoPhp\GoType\ArrayType;
 use GoPhp\GoValue\Array\ArrayValue;
 use GoPhp\GoValue\Int\IntValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Slice\SliceValue;
 
 use function GoPhp\assert_argc;
@@ -25,17 +27,25 @@ class Cap implements BuiltinFunc
     {
         assert_argc($this, $argv, 1);
 
-        $v = $argv[0];
+        $v = $argv[0]->value;
 
-        if ($v->value instanceof ArrayValue) {
-            return new IntValue($v->value->len());
+        if ($v instanceof PointerValue && ($v->type()->pointsTo instanceof ArrayType)) {
+            if ($v->isNil()) {
+                return new IntValue(0);
+            }
+
+            $v = $v->deref();
         }
 
-        if ($v->value instanceof SliceValue) {
-            return new IntValue($v->value->cap());
+        if ($v instanceof ArrayValue) {
+            return new IntValue($v->len());
         }
 
-        throw RuntimeError::wrongArgumentTypeForBuiltin($v->value, $this->name);
+        if ($v instanceof SliceValue) {
+            return new IntValue($v->cap());
+        }
+
+        throw RuntimeError::wrongArgumentTypeForBuiltin($v, $this->name);
     }
 
     public function name(): string

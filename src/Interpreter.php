@@ -1516,7 +1516,7 @@ final class Interpreter
             $value = try_unwind($value);
 
             if ($value instanceof PointerValue) {
-                $value = $value->getPointsTo();
+                $value = $value->deref();
                 $check = true;
             }
         } while ($check);

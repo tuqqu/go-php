@@ -63,6 +63,10 @@ final class KeyValueTupleMap implements Map
     public function delete(Hashable&GoValue $at): void
     {
         unset($this->values[$at->hash()]);
+
+        if ($this->len > 0) {
+            --$this->len;
+        }
     }
 
     public function iter(): iterable
