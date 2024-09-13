@@ -10,6 +10,8 @@ use GoPhp\Env\EnvMap;
 use GoPhp\GoType\GoType;
 use GoPhp\GoType\NamedType;
 use GoPhp\GoType\UntypedType;
+use GoPhp\GoValue\AddressableValue;
+use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Unwindable;
 
 /**
@@ -116,4 +118,22 @@ function reify_untyped(GoType $type): GoType
     }
 
     return $type;
+}
+
+/**
+ * Dereference a value if it is a pointer.
+ *
+ * @internal
+ *
+ * @template T of AddressableValue
+ * @psalm-param T $value
+ * @psalm-return ($value is PointerValue ? AddressableValue : T)
+ */
+function deref(AddressableValue $value): AddressableValue
+{
+    if ($value instanceof PointerValue) {
+        return $value->deref();
+    }
+
+    return $value;
 }

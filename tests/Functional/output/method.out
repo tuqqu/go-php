@@ -1,6 +1,12 @@
 test_method_1
 called methodInt1
 20
+called methodInt1
+20
+10
+10
+called methodMyBool1
+false
 test_method_2
 called methodEmpty2
 2
@@ -9,8 +15,36 @@ called methodEmpty1
 test_method_3
 called methodPerson1
 test
+true
+1
+called methodPerson2
+test2
+true
+2
+test_method_4
+called methodPerson1
+test
+true
+true
 1
 called methodPerson2
 test3
 true
+true
+2
+called methodPerson1
+test3
+1
+called methodPerson2
+test5
+2
+called methodPerson1
+test5
+test5
+test5
+1
+called methodPerson2
+test7
+test7
+test7
 2

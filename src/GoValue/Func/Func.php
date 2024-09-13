@@ -14,7 +14,6 @@ use GoPhp\GoType\PointerType;
 use GoPhp\GoType\SliceType;
 use GoPhp\GoValue\AddressableValue;
 use GoPhp\GoValue\GoValue;
-use GoPhp\GoValue\PointerValue;
 use GoPhp\GoValue\Slice\SliceBuilder;
 use GoPhp\GoValue\TupleValue;
 use GoPhp\GoValue\VoidValue;
@@ -26,6 +25,7 @@ use function count;
 use function GoPhp\assert_arg_type;
 use function GoPhp\assert_argc;
 use function GoPhp\assert_types_compatible;
+use function GoPhp\deref;
 
 /**
  * @psalm-type FuncBody = Closure(Environment, string): StmtJump
@@ -181,15 +181,8 @@ final class Func
             throw InternalError::unreachable($this->receiver);
         }
 
-        $boundInstance = $this->boundInstance instanceof PointerValue
-            ? $this->boundInstance->deref()
-            : $this->boundInstance;
-
+        $boundInstance = deref($this->boundInstance);
         $receiverType = $this->receiver->type;
-
-        if ($boundInstance instanceof PointerValue) {
-            $boundInstance = $boundInstance->deref();
-        }
 
         if ($receiverType instanceof PointerType) {
             $receiverType = $receiverType->pointsTo;

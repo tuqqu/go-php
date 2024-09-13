@@ -1491,15 +1491,17 @@ final class Interpreter
             throw InternalError::unexpectedValue($value::class, AddressableValue::class);
         }
 
+        $receiverValue = deref($value);
+
         $method = $this->env->getMethod(
             $expr->selector->name,
-            $value->type(),
+            $receiverValue->type(),
         );
 
-        if ($method == null && $value instanceof WrappedValue) {
+        if ($method == null && $receiverValue instanceof WrappedValue) {
             $method = $this->env->getMethod(
                 $expr->selector->name,
-                $value->underlyingValue->type(),
+                $receiverValue->underlyingValue->type(),
             );
         }
 
